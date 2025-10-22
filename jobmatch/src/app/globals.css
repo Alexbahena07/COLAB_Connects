@@ -1,0 +1,113 @@
+/* === Tailwind (must be first) === */
+@import "tailwindcss";
+
+
+
+/* === Theme tokens === */
+:root {
+  --brand: #30183e;
+  --brandBlue: #759bad;
+  --background: #759bad;
+  --foreground: #30183e;
+  --surface: #ffffff;
+  --border: #e7e3ea;
+}
+
+
+
+
+@theme inline {
+  /* Colors */
+  --color-brand: var(--brand);
+  --color-brandBlue: var(--brandBlue);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+
+  /* Fonts */
+  --font-sans: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --font-serif: "Libre Baskerville", Georgia, Cambria, "Times New Roman", Times, serif;
+
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #30183e;
+    --foreground: #f2f2f2;
+    --surface: #759bad;
+    --border: #2a2431;
+  }
+}
+
+/* === Base element styles === */
+@layer base {
+  html, body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    letter-spacing: 0.2px;
+  }
+
+  a {
+    color: var(--brand);
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Print: prefer Mrs Eaves Roman if available */
+@media print {
+  body, h1, h2, h3, h4, p {
+    font-family: "Mrs Eaves Roman", "Libre Baskerville", Times, serif !important;
+    color: #2a2431 !important;
+  }
+}
+
+/* === Reusable helpers === */
+@layer utilities {
+  .page-container {
+    @apply min-h-screen grid place-items-center bg-surface px-4;
+    background-color: var(--brand);
+  }
+
+  .card {
+  @apply w-full max-w-md rounded-2xl p-6 shadow-sm border;
+  background-color: var(--surface);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.card-wide {
+  @apply w-full max-w-2xl rounded-2xl p-6 shadow-sm border;
+  background-color: var(--surface);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+
+  /* Buttons */
+  .btn-brand {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold text-white;
+    background-color: var(--brand);
+  }
+  .btn-brand:hover { opacity: 0.95; }
+
+  .btn-outline-brand {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold;
+    color: var(--brand);
+    border: 1px solid var(--brand);
+  }
+  .btn-outline-brand:hover {
+    background-color: #759bad; /* subtle purple tint */
+  }
+}
