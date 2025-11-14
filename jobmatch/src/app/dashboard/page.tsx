@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Header from "@/components/ui/Header";
 
 type Job = {
   id: string;
@@ -214,7 +215,9 @@ export default function DashboardPage() {
     location.trim() === "";
 
   return (
-    <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+    <>
+      <Header />
+      <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
         <div className="mx-auto w-full max-w-6xl px-4 py-4">
           <div className="flex flex-wrap items-end gap-4">
@@ -418,6 +421,7 @@ export default function DashboardPage() {
           )}
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

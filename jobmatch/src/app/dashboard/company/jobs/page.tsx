@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Header from "@/components/ui/Header";
 
 type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
 
@@ -116,7 +117,7 @@ export default function CompanyJobsPage() {
                   : [],
               } satisfies CompanyJob;
             })
-            .filter((job): job is CompanyJob => Boolean(job));
+            .filter((job: CompanyJob | null): job is CompanyJob => job !== null);
           setCompanyJobs(parsed);
         } else {
           setCompanyJobs([]);
@@ -350,7 +351,9 @@ export default function CompanyJobsPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+    <>
+      <Header />
+      <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
         <div className="mx-auto w-full max-w-6xl px-4 py-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -614,6 +617,7 @@ export default function CompanyJobsPage() {
           </div>
         </div>
       ) : null}
-    </main>
+      </main>
+    </>
   );
 }
