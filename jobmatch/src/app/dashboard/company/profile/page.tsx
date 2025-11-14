@@ -3,13 +3,16 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import CompanyProfileForm from "@/app/onboarding/company/company-form";
+import Header from "@/components/ui/Header";
 
 export default async function CompanyProfilePage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   return (
-    <main className="min-h-screen bg-[--brand] px-4 py-10 text-white">
+    <>
+      <Header />
+      <main className="min-h-screen bg-[--brand] px-4 py-10 text-white">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -30,6 +33,7 @@ export default async function CompanyProfilePage() {
           <CompanyProfileForm />
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

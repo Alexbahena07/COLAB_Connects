@@ -9,6 +9,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Header from "@/components/ui/Header";
 
 const LoginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -47,7 +48,9 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen grid place-items-center bg-[--brand] px-4">
+    <>
+      <Header />
+      <main className="min-h-screen grid place-items-center bg-[--brand] px-4">
                     
       <div className="card">
         <h1 className="text-2xl font-semibold mb-1">Welcome back</h1>
@@ -92,13 +95,6 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 space-y-3">
-          <button
-            className="w-full btn-outline-brand"
-            onClick={() => alert("LinkedIn login coming soon.")}
-          >
-            Continue with LinkedIn
-          </button>
-
           <p className="text-center text-sm opacity-80">
             Don’t have an account?{" "}
             <Link href="/register" className="font-medium underline">
@@ -107,6 +103,7 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

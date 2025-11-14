@@ -19,28 +19,29 @@ export default function Home() {
                 About Us
               </h1>
               <p className="mt-4 text-lg text-[--surface]/90">
-                A metrics-first marketplace that matches companies with job
-                candidates using verified skills, accomplishments, and
-                performance signals—far beyond résumé keywords.
+                A metrics-first marketplace that matches companies with job candidates using
+                verified skills, accomplishments, and performance signals—far beyond résumé
+                keywords. Companies can easily post job listings to connect with top student
+                talent, while students can explore and apply directly to opportunities that
+                align with their skills and career goals.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/register" className="w-full sm:w-auto">
-                  <Button className="w-full btn-brand">I’m a Candidate</Button>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-xl border border-white/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Log in
                 </Link>
-                <Link href="/register?type=company" className="w-full sm:w-auto">
-                  <Button className="text-sm rounded-lg bg-white px-4 py-2 font-semibold text-[--brand] hover:opacity-90">
-                    I’m Hiring
-                  </Button>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[--brand] transition hover:opacity-90"
+                >
+                  Register
                 </Link>
               </div>
 
-              <p className="mt-3 text-sm text-[--surface]/80">
-                Already have an account?{" "}
-                <Link href="/login" className="text-sm font-semibold text-[--brandBlue] hover:underline">
-                  Log in
-                </Link>
-              </p>
+        
             </div>
 
             {/* Hero mock panel */}

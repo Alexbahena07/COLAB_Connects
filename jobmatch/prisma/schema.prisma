@@ -22,6 +22,8 @@ model User {
   image         String?
   password      String?
   accountType   AccountType @default(STUDENT)
+  linkedinUrl   String?
+  linkedinId    String?   @unique
 
   // Existing NextAuth relations
   accounts Account[]
@@ -99,31 +101,42 @@ model Degree {
 }
 
 model Certificate {
-  id            String    @id @default(cuid())
-  userId        String
-  name          String
-  issuer        String?
-  issuedAt      DateTime?
-  credentialId  String?
-  credentialUrl String?
+  id              String    @id @default(cuid())
+  userId          String
+  name            String
+  issuer          String?
+  issuedAt        DateTime?
+  expirationDate  DateTime?
+  credentialId    String?
+  credentialUrl   String?
+  externalId      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@unique([userId, externalId])
 }
 
 model Experience {
-  id          String    @id @default(cuid())
-  userId      String
-  title       String
-  company     String
-  startDate   DateTime?
-  endDate     DateTime?
-  description String?
+  id             String    @id @default(cuid())
+  userId         String
+  title          String
+  company        String
+  startDate      DateTime?
+  endDate        DateTime?
+  location       String?
+  employmentType String?
+  description    String?
+  externalId     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@unique([userId, externalId])
 }
 
 /**

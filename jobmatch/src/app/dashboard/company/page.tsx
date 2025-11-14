@@ -4,6 +4,7 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Header from "@/components/ui/Header";
 
 type Applicant = {
   id: string;
@@ -255,7 +256,9 @@ export default function CompanyDashboardPage() {
   }, [selectedApplicantId]);
 
   return (
-    <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+    <>
+      <Header />
+      <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
       {/* Filters */}
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
         <div className="mx-auto w-full max-w-6xl px-4 py-4">
@@ -551,6 +554,7 @@ export default function CompanyDashboardPage() {
           )}
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

@@ -15,36 +15,12 @@ export default function Header() {
           <Image
             src="/COLAB_logo_reverse.png"
             alt="COLAB connects logo"
-            width={180}   // adjusted for balance
+            width={180}
             height={40}
             priority
+            style={{ width: "180px", height: "auto" }}
           />
         </Link>
-
-        {/* Right side buttons */}
-        {status === "loading" ? null : session ? (
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-sm rounded-lg bg-white px-4 py-2 font-semibold text-[--brand] hover:opacity-90"
-          >
-            Logout
-          </button>
-        ) : (
-          <div className="space-x-3">
-            <Link
-              href="/login"
-              className="text-sm rounded-lg bg-white px-4 py-2 font-semibold text-[--brand] hover:opacity-90"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm rounded-lg bg-white px-4 py-2 font-semibold text-[--brand] hover:opacity-90"
-            >
-              Register
-            </Link>
-          </div>
-        )}
       </div>
     </header>
   );
