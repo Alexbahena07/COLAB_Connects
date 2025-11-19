@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/Header";
+import Header from "@/components/ui/Header_with_Icons";
 
 type Job = {
   id: string;
@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 skills: normalizedSkills,
               } as Job;
             })
-            .filter((job): job is Job => Boolean(job));
+             .filter((job: Job | null): job is Job => job !== null);
 
           setJobs(parsedJobs);
         } else {
@@ -240,13 +240,23 @@ export default function DashboardPage() {
                 id="job-type-filter"
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
               >
-                <option value="">All types</option>
-                <option value="FULL_TIME">Full-time</option>
-                <option value="PART_TIME">Part-time</option>
-                <option value="CONTRACT">Contract</option>
-                <option value="INTERNSHIP">Internship</option>
+                <option className="text-black" value="">
+                  All types
+                </option>
+                <option className="text-black" value="FULL_TIME">
+                  Full-time
+                </option>
+                <option className="text-black" value="PART_TIME">
+                  Part-time
+                </option>
+                <option className="text-black" value="CONTRACT">
+                  Contract
+                </option>
+                <option className="text-black" value="INTERNSHIP">
+                  Internship
+                </option>
               </select>
             </div>
 
@@ -283,12 +293,6 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-2 md:ml-auto">
               <span className="text-sm font-medium text-white opacity-0">Actions</span>
               <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href="/dashboard/profile"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Edit profile
-                </Link>
                 <Button
                   className="btn-outline-brand h-11"
                   onClick={() => {
