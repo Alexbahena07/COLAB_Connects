@@ -9,6 +9,7 @@ const defaultPayload = {
   certificates: [] as Array<Record<string, string>>,
   experiences: [] as Array<Record<string, string>>,
   skills: [] as Array<{ name: string; years: number | null }>,
+  resume: null as null | { fileName: string; fileType: string },
 };
 
 const toDateInput = (value: Date | null): string => {
@@ -41,13 +42,28 @@ export async function GET() {
     return NextResponse.json(defaultPayload);
   }
 
+  const profileWithResume = user.profile as
+    | (typeof user.profile & {
+        resumeFileName?: string | null;
+        resumeFileType?: string | null;
+        resumeData?: string | null;
+      })
+    | null;
+
   const payload = {
     profile: {
-      firstName: user.profile?.firstName ?? "",
-      lastName: user.profile?.lastName ?? "",
-      headline: user.profile?.headline ?? "",
-      desiredLocation: user.profile?.desiredLocation ?? "",
+      firstName: profileWithResume?.firstName ?? "",
+      lastName: profileWithResume?.lastName ?? "",
+      headline: profileWithResume?.headline ?? "",
+      desiredLocation: profileWithResume?.desiredLocation ?? "",
     },
+    resume:
+      profileWithResume?.resumeFileName && profileWithResume?.resumeData
+        ? {
+            fileName: profileWithResume.resumeFileName,
+            fileType: profileWithResume.resumeFileType ?? "application/pdf",
+          }
+        : null,
     degrees: user.degrees.map((degree) => ({
       school: degree.school ?? "",
       degree: degree.degree ?? "",

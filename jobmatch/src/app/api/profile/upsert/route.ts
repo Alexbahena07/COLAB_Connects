@@ -4,6 +4,34 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 
+type ResumePayload = {
+  fileName: string;
+  fileType?: string;
+  dataUrl: string;
+};
+
+function normalizeResumePayload(input: unknown): ResumePayload | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  const fileName = typeof raw.fileName === "string" ? raw.fileName.trim() : "";
+  const fileType =
+    typeof raw.fileType === "string" && raw.fileType.trim()
+      ? raw.fileType.trim()
+      : "application/pdf";
+  const dataUrl = typeof raw.dataUrl === "string" ? raw.dataUrl.trim() : "";
+
+  if (!fileName || !dataUrl) return null;
+  const isPdfType =
+    fileType.toLowerCase().includes("pdf") ||
+    fileName.toLowerCase().endsWith(".pdf") ||
+    dataUrl.toLowerCase().startsWith("data:application/pdf");
+  if (!isPdfType) return null;
+  // Rough size guard (~10MB of base64)
+  if (dataUrl.length > 15_000_000) return null;
+
+  return { fileName, fileType, dataUrl };
+}
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -12,7 +40,7 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true },
+    select: { id: true, profile: { select: { resumeData: true } } },
   });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -25,14 +53,40 @@ export async function POST(req: Request) {
     certificates = [],
     experiences = [],
     skills = [], // [{ name, years? }]
+    resume,
   } = body;
 
   if (profile && typeof profile !== "object") {
     return NextResponse.json({ error: "Invalid profile" }, { status: 400 });
   }
 
+  let resumePayload: ResumePayload | null = null;
+  if (resume !== undefined) {
+    resumePayload = normalizeResumePayload(resume);
+    if (!resumePayload) {
+      return NextResponse.json({ error: "Invalid resume payload. Upload a PDF smaller than 10MB." }, { status: 400 });
+    }
+  }
+
+  const profileWithResume = user.profile as
+    | (typeof user.profile & { resumeData?: string | null })
+    | null;
+  const hasExistingResume = Boolean(profileWithResume?.resumeData);
+
+  if (!resumePayload && !hasExistingResume) {
+    return NextResponse.json({ error: "Please upload your resume as a PDF to continue." }, { status: 400 });
+  }
+
   try {
     await prisma.$transaction(async (tx) => {
+      const resumeFields = resumePayload
+        ? {
+            resumeFileName: resumePayload.fileName,
+            resumeFileType: resumePayload.fileType ?? "application/pdf",
+            resumeData: resumePayload.dataUrl,
+          }
+        : {};
+
       // Profile upsert
       await tx.profile.upsert({
         where: { userId: user.id },
@@ -41,6 +95,7 @@ export async function POST(req: Request) {
           lastName: profile?.lastName ?? null,
           headline: profile?.headline ?? null,
           desiredLocation: profile?.desiredLocation ?? null,
+          ...resumeFields,
         },
         create: {
           userId: user.id,
@@ -48,6 +103,9 @@ export async function POST(req: Request) {
           lastName: profile?.lastName ?? null,
           headline: profile?.headline ?? null,
           desiredLocation: profile?.desiredLocation ?? null,
+          resumeFileName: resumePayload?.fileName ?? null,
+          resumeFileType: resumePayload?.fileType ?? "application/pdf",
+          resumeData: resumePayload?.dataUrl ?? null,
         },
       });
 

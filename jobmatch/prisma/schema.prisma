@@ -82,6 +82,9 @@ model Profile {
   lastName        String?
   headline        String?
   desiredLocation String? // renamed from location
+  resumeFileName  String?
+  resumeFileType  String?
+  resumeData      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

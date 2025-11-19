@@ -282,7 +282,7 @@ export default function CompanyDashboardPage() {
                 id="filter-major"
                 value={major}
                 onChange={(e) => setMajor(e.target.value)}
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-black"
               >
                 <option value="">All majors</option>
                 {MAJOR_OPTIONS.map((m) => (
@@ -301,7 +301,7 @@ export default function CompanyDashboardPage() {
                 id="filter-skill"
                 value={skill}
                 onChange={(e) => setSkill(e.target.value)}
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-black"
               >
                 <option value="">All skills</option>
                 {SKILL_OPTIONS.map((s) => (
@@ -320,7 +320,7 @@ export default function CompanyDashboardPage() {
                 id="filter-grad-year"
                 value={gradYear}
                 onChange={(e) => setGradYear(e.target.value)}
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-black"
               >
                 <option value="">All years</option>
                 {GRAD_YEARS.map((y) => (
@@ -506,7 +506,7 @@ export default function CompanyDashboardPage() {
                 >
                   {isMessageComposerOpen ? "Close message" : "Send message"}
                 </Button>
-                <Button className="btn-outline-brand">View resume</Button>
+                <Button className="btn-brand">View resume</Button>
               </div>
 
               {isMessageComposerOpen && selectedApplicant ? (

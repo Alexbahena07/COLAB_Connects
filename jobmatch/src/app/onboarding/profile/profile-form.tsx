@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, type ChangeEvent } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Input from "@/components/ui/Input";
@@ -71,6 +71,11 @@ type ProfileFormProps = {
   redirectTo?: string;
 };
 
+type ResumeMetadata = {
+  fileName: string;
+  fileType?: string | null;
+} | null;
+
 const DEFAULT_VALUES: FormData = {
   profile: { firstName: "", lastName: "", headline: "", desiredLocation: "" },
   degrees: [],
@@ -78,6 +83,24 @@ const DEFAULT_VALUES: FormData = {
   experiences: [],
   skills: [],
 };
+
+async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        resolve(result);
+      } else {
+        reject(new Error("Unable to read file"));
+      }
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+const MAX_RESUME_BYTES = 5 * 1024 * 1024; // 5MB
 
 type ProfileResponse = {
   profile?: Partial<NonNullable<FormData["profile"]>>;
@@ -103,12 +126,19 @@ type ProfileResponse = {
     description?: string;
   }>;
   skills?: Array<{ name?: string; years?: number | null }>;
+  resume?: { fileName?: string; fileType?: string | null } | null;
 };
 
 export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [storedResume, setStoredResume] = useState<ResumeMetadata>(null);
+  const [existingResume, setExistingResume] = useState<ResumeMetadata>(null);
+  const [pendingResumeRemoval, setPendingResumeRemoval] = useState(false);
+  const resumeInputRef = useRef<HTMLInputElement | null>(null);
 
   const { register, control, handleSubmit, formState: { isSubmitting }, reset } =
     useForm<FormData>({
@@ -150,10 +180,27 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
         };
         reset(normalised);
         setLoadError(null);
+        const resumeMeta =
+          data?.resume && typeof data.resume === "object" && data.resume?.fileName
+            ? {
+                fileName: data.resume.fileName,
+                fileType: data.resume.fileType ?? "application/pdf",
+              }
+            : null;
+        setStoredResume(resumeMeta);
+        setExistingResume(resumeMeta);
+        setPendingResumeRemoval(false);
+        setResumeFile(null);
+        setResumeError(null);
       } catch (error) {
         console.error(error);
         setLoadError("We couldn't load your saved profile. You can still make updates below.");
         reset(DEFAULT_VALUES);
+        setStoredResume(null);
+        setExistingResume(null);
+        setPendingResumeRemoval(false);
+        setResumeFile(null);
+        setResumeError(null);
       } finally {
         if (active) setLoading(false);
       }
@@ -166,21 +213,105 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
     };
   }, [reset]);
 
+  const clearResumeInput = () => {
+    if (resumeInputRef.current) {
+      resumeInputRef.current.value = "";
+    }
+  };
+
+  const handleResumeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setResumeError(null);
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      setResumeFile(null);
+      if (!existingResume) {
+        setResumeError("Please upload your resume as a PDF.");
+      }
+      return;
+    }
+    const file = files.item(0);
+    if (!file) {
+      setResumeFile(null);
+      return;
+    }
+    const mime = file.type?.toLowerCase() ?? "";
+    const isPdf =
+      mime.includes("pdf") || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      setResumeFile(null);
+      setResumeError("Upload your resume as a PDF file.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > MAX_RESUME_BYTES) {
+      setResumeFile(null);
+      setResumeError("PDF must be 5MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+    setResumeFile(file);
+  };
+
+  const markResumeForRemoval = () => {
+    setPendingResumeRemoval(true);
+    setExistingResume(null);
+    setResumeFile(null);
+    setResumeError("Upload a new resume to finish removal.");
+    clearResumeInput();
+  };
+
+  const cancelResumeRemoval = () => {
+    setPendingResumeRemoval(false);
+    setExistingResume(storedResume);
+    setResumeFile(null);
+    setResumeError(null);
+    clearResumeInput();
+  };
+
   const formDisabled = loading || isSubmitting;
 
   const onSubmit = async (data: FormData) => {
     if (loading) return;
 
+    setResumeError(null);
+    if (pendingResumeRemoval && !resumeFile) {
+      setResumeError("Upload a new resume before removing the current one.");
+      return;
+    }
+    if (!resumeFile && !existingResume) {
+      setResumeError("Please upload your resume as a PDF before continuing.");
+      return;
+    }
+
+    let resumePayload: { fileName: string; fileType: string; dataUrl: string } | null = null;
+    if (resumeFile) {
+      try {
+        const dataUrl = await fileToDataUrl(resumeFile);
+        resumePayload = {
+          fileName: resumeFile.name,
+          fileType: resumeFile.type || "application/pdf",
+          dataUrl,
+        };
+      } catch (error) {
+        console.error(error);
+        setResumeError("We couldn't read that PDF. Try uploading it again.");
+        return;
+      }
+    }
+
     const stripEmpty = <T extends Record<string, unknown>>(rows: T[] | undefined) =>
       (rows ?? []).filter((r) => Object.values(r).some((v) => v !== "" && v !== undefined && v !== null));
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       profile: data.profile,
       degrees: stripEmpty(data.degrees),
       certificates: stripEmpty(data.certificates),
       experiences: stripEmpty(data.experiences),
       skills: stripEmpty(data.skills),
     };
+    if (resumePayload) {
+      payload.resume = resumePayload;
+    }
 
     const res = await fetch("/api/profile/upsert", {
       method: "POST",
@@ -224,6 +355,69 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
               />
             )}
           />
+        </div>
+      </section>
+
+      {/* Resume upload */}
+      <section className="rounded-xl border border-gray-200 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-medium">Resume (PDF)</h2>
+            <p className="text-sm text-gray-600">Upload a PDF of your resume (max 5MB). Required for students.</p>
+          </div>
+          {existingResume ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-semibold text-green-700">On file: {existingResume.fileName}</span>
+              <button
+                type="button"
+                onClick={markResumeForRemoval}
+                className="rounded-md border border-red-600 px-2 py-1 font-semibold text-red-600 hover:bg-red-50"
+              >
+                Remove resume
+              </button>
+            </div>
+          ) : storedResume && pendingResumeRemoval ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-semibold text-red-600">Removal pending — upload a new PDF to finish.</span>
+              <button
+                type="button"
+                onClick={cancelResumeRemoval}
+                className="rounded-md border border-[--brand] px-2 py-1 font-semibold text-[--brand] hover:bg-[--background]/20"
+              >
+                Keep current resume
+              </button>
+            </div>
+          ) : (
+            <span className="text-xs font-semibold text-[--brand]">Required</span>
+          )}
+        </div>
+        <div className="mt-4 space-y-2">
+          <label
+            htmlFor="resume-upload"
+            className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-[--border] bg-[--surface] px-4 py-3 text-sm font-semibold text-[--brand] hover:bg-[--background]/40"
+          >
+            <span>{resumeFile ? "Replace selected PDF" : "Upload PDF"}</span>
+            <span className="text-xs font-normal text-[--foreground]/70">Max 5MB</span>
+          </label>
+          <input
+            id="resume-upload"
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            ref={resumeInputRef}
+            onChange={handleResumeChange}
+            disabled={formDisabled}
+          />
+          {resumeFile ? (
+            <p className="text-xs text-[--foreground]">Selected file: {resumeFile.name}</p>
+          ) : pendingResumeRemoval && storedResume ? (
+            <p className="text-xs text-[--foreground]/80">Resume removal pending. Choose a PDF above to replace it.</p>
+          ) : existingResume ? (
+            <p className="text-xs text-[--foreground]/80">Current resume: {existingResume.fileName}</p>
+          ) : (
+            <p className="text-xs text-[--foreground]/80">No resume uploaded yet.</p>
+          )}
+          {resumeError ? <p className="text-xs text-red-600">{resumeError}</p> : null}
         </div>
       </section>
 
