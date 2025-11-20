@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
+import Footer from "@/components/ui/Footer";
 
 export default function Home() {
   return (
@@ -173,17 +174,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[--border]">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 text-sm text-[--brandBlue] md:flex-row">
-          <p>© {new Date().getFullYear()} COLAB connects</p>
-          <nav className="flex gap-5">
-            <Link href="/privacy" className="hover:underline">Privacy</Link>
-            <Link href="/terms" className="hover:underline">Terms</Link>
-            <Link href="/contact" className="hover:underline">Contact</Link>
-          </nav>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }

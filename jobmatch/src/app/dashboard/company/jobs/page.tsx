@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/Header";
+import Header from "@/components/ui/Header_with_Icons";
+import Footer from "@/components/ui/Footer";
 
 type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
 
@@ -62,12 +63,14 @@ export default function CompanyJobsPage() {
   const [companyJobs, setCompanyJobs] = useState<CompanyJob[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [jobsError, setJobsError] = useState<string | null>(null);
+
   const [jobForm, setJobForm] = useState<JobFormState>(defaultFormState);
   const [jobFormErrors, setJobFormErrors] = useState<Partial<Record<keyof JobFormState, string>>>({});
   const [jobFormServerError, setJobFormServerError] = useState<string | null>(null);
   const [jobFormSuccess, setJobFormSuccess] = useState<string | null>(null);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [jobsFilter, setJobsFilter] = useState("");
   const [jobPendingDeletion, setJobPendingDeletion] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -350,249 +353,286 @@ export default function CompanyJobsPage() {
     }
   };
 
-  return (
-    <>
-      <Header />
-      <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+ return (
+  <>
+    <Header />
+    <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+      {/* Top bar */}
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="mx-auto w-full max-w-6xl px-4 py-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-white">Manage job listings</h1>
-              <p className="text-sm text-white/70">
-                View, publish, and update the roles students see on the marketplace.
-              </p>
+        <div className="flex w-full items-center justify-between gap-4 px-6 py-6">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[--brandBlue]/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[--surface]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[--surface]" />
+              Company jobs
             </div>
-            <Link
-              href="/dashboard/company"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-white px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Back to dashboard
-            </Link>
+            <h1 className="text-2xl font-semibold text-[--surface]">Manage job listings</h1>
+            <p className="text-sm text-[--surface]/80">
+              Review your open roles and publish new opportunities for students.
+            </p>
           </div>
+          <Link
+            href="/dashboard/company"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-[--surface] px-4 text-sm font-semibold text-[--surface] transition hover:bg-[--surface]/10"
+          >
+            Back to dashboard
+          </Link>
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
-        <section className="rounded-xl border border-[--border] bg-[--surface] p-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-white">
+      {/* Main grid – full width with BrandBlue accent */}
+      <div className="flex w-full flex-1 flex-col gap-6 px-6 py-8">
+        <div className="grid w-full gap-6 lg:grid-cols-[1.5fr,1fr] xl:grid-cols-[1.6fr,1fr]">
+          {/* LEFT: Your job listings */}
+          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[--border] bg-[--surface] p-6 shadow-sm">
+            <header className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-[--brand]">Your job listings</h2>
+                <p className="text-sm text-[--foreground]/70">
+                  {companyJobs.length === 0
+                    ? "You haven't published any roles yet."
+                    : `Managing ${companyJobs.length} job${
+                        companyJobs.length === 1 ? "" : "s"
+                      } visible to students.`}
+                </p>
+              </div>
+              <div className="min-w-[240px]">
+                <Input
+                  label="Filter jobs"
+                  value={jobsFilter}
+                  onChange={(event) => setJobsFilter(event.target.value)}
+                  placeholder="Search by title, location, or skill..."
+                  className="h-10 bg-[--brandBlue]/10 text-[--foreground]"
+                  labelClassName="text-[--foreground]"
+                />
+              </div>
+            </header>
+
+            {deleteError ? (
+              <p className="text-sm text-red-500">{deleteError}</p>
+            ) : null}
+            {deleteSuccess ? (
+              <p className="text-sm text-green-600">{deleteSuccess}</p>
+            ) : null}
+
+            <div className="mt-2">
+              {isLoadingJobs ? (
+                <p className="text-sm text-[--foreground]/70">Loading job listings...</p>
+              ) : jobsError ? (
+                <p className="text-sm text-red-500">{jobsError}</p>
+              ) : filteredJobs.length === 0 ? (
+                <p className="text-sm text-[--foreground]/70">
+                  No jobs match this filter. Try adjusting your search.
+                </p>
+              ) : (
+                <ul className="space-y-4">
+                  {filteredJobs.map((job) => (
+                    <li
+                      key={job.id}
+                      className="rounded-2xl border border-[--border] bg-[--brandBlue]/5 px-4 py-3 shadow-sm transition hover:border-[--brandBlue]/60 hover:shadow-md"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <h3 className="text-base font-semibold text-[--brand]">
+                            {job.title}
+                          </h3>
+                          <p className="text-xs text-[--foreground]/70">
+                            {job.location} • {getJobTypeLabel(job.type)}{" "}
+                            {job.remote ? "• Remote friendly" : ""}
+                          </p>
+                          <p className="text-xs text-[--foreground]/60">
+                            Posted {new Date(job.postedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button
+                            type="button"
+                            className="btn-outline-brand border-[--brandBlue] text-[--brand] hover:bg-[--brandBlue]/10"
+                            onClick={() => handleSelectJobToEdit(job.id)}
+                            disabled={isSubmitting && editingJobId === job.id}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            type="button"
+                            className="btn-outline-brand border-red-400 text-red-500 hover:bg-red-500/10"
+                            onClick={() => {
+                              setJobPendingDeletion(job.id);
+                              setDeleteError(null);
+                              setDeleteSuccess(null);
+                            }}
+                            disabled={jobPendingDeletion === job.id}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+
+                      {job.skills.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {job.skills.map((skill) => (
+                            <span
+                              key={`${job.id}-${skill}`}
+                              className="rounded-full border border-[--border] bg-[--brandBlue]/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[--brandBlue]"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          {/* RIGHT: Post / edit job */}
+          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[--brandBlue] bg-[--brandBlue] p-6 text-white shadow-sm">
+            <header className="space-y-1">
+              <h2 className="text-lg font-semibold">
                 {editingJobId ? "Edit job" : "Post a new job"}
               </h2>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-white/80">
                 {editingJobId
-                  ? "Update the listing students can apply to."
-                  : "Publish a new role to reach students immediately."}
+                  ? "Update details for a role that students can already see."
+                  : "Publish a new role and make it visible to students immediately."}
               </p>
-            </div>
-            {editingJobId && jobBeingEdited ? (
-              <div className="rounded-lg border border-[--brandBlue] bg-[--brandBlue]/10 px-3 py-2 text-xs text-white">
-                Editing: <span className="font-semibold">{jobBeingEdited.title}</span>
-              </div>
-            ) : null}
-          </div>
-
-          <form className="mt-6 space-y-4" onSubmit={handleSubmitJob}>
-            {jobFormServerError ? (
-              <div className="rounded-lg border border-red-400 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                {jobFormServerError}
-              </div>
-            ) : null}
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Input
-                label="Job title"
-                value={jobForm.title}
-                onChange={(event) => handleJobFieldChange("title", event.target.value)}
-                placeholder="e.g. Product Designer"
-                className="border-[--border] bg-[--background] text-[--foreground]"
-                labelClassName="text-[--foreground]"
-                error={jobFormErrors.title}
-              />
-              <Input
-                label="Location"
-                value={jobForm.location}
-                onChange={(event) => handleJobFieldChange("location", event.target.value)}
-                placeholder="City, State or Remote"
-                className="border-[--border] bg-[--background] text-[--foreground]"
-                labelClassName="text-[--foreground]"
-                error={jobFormErrors.location}
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1">
-                <label htmlFor="job-type" className="block text-sm font-medium text-[--foreground]">
-                  Job type
-                </label>
-                <select
-                  id="job-type"
-                  value={jobForm.type}
-                  onChange={(event) => handleJobFieldChange("type", event.target.value as JobType)}
-                  className="h-11 w-full rounded-xl border border-[--border] bg-[--background] px-3 text-sm text-[--foreground] outline-none transition focus:border-[--brandBlue] focus:ring-2 focus:ring-[--brandBlue]/40"
-                >
-                  {JOB_TYPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                {jobFormErrors.type ? <p className="text-xs text-red-500">{jobFormErrors.type}</p> : null}
-              </div>
-              <label className="flex h-11 items-center gap-2 rounded-xl border border-[--border] bg-[--background] px-4 text-sm text-[--foreground]">
-                <input
-                  type="checkbox"
-                  checked={jobForm.remote}
-                  onChange={(event) => handleJobFieldChange("remote", event.target.checked)}
-                  className="h-4 w-4"
-                />
-                Remote friendly role
-              </label>
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="job-description" className="block text-sm font-medium text-[--foreground]">
-                Description
-              </label>
-              <textarea
-                id="job-description"
-                value={jobForm.description}
-                onChange={(event) => handleJobFieldChange("description", event.target.value)}
-                placeholder="Share the mission, responsibilities, and what success looks like..."
-                className="min-h-[140px] w-full rounded-xl border border-[--border] bg-[--background] px-3 py-2 text-sm text-[--foreground] outline-none transition focus:border-[--brandBlue] focus:ring-2 focus:ring-[--brandBlue]/40"
-              />
-              {jobFormErrors.description ? (
-                <p className="text-xs text-red-500">{jobFormErrors.description}</p>
+              {editingJobId && jobBeingEdited ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-white bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+                  Editing: <span>{jobBeingEdited.title}</span>
+                </div>
               ) : null}
-            </div>
+            </header>
 
-            <Input
-              label="Key skills (comma separated)"
-              value={jobForm.skills}
-              onChange={(event) => handleJobFieldChange("skills", event.target.value)}
-              placeholder="e.g. React, TypeScript, Figma"
-              className="border-[--border] bg-[--background] text-[--foreground]"
-              labelClassName="text-[--foreground]"
-              error={jobFormErrors.skills}
-            />
-            <p className="text-xs text-[--foreground]/70">
-              Include the top 3-5 skills students should bring. We'll remove duplicates automatically.
-            </p>
+            <form className="mt-2 space-y-4" onSubmit={handleSubmitJob}>
+              {jobFormServerError ? (
+                <div className="rounded-lg border border-red-400 bg-red-500/5 px-3 py-2 text-sm text-red-600">
+                  {jobFormServerError}
+                </div>
+              ) : null}
 
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" className="btn-brand" isLoading={isSubmitting}>
-                {editingJobId ? "Update job" : "Publish job"}
-              </Button>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Input
+                  label="Job title"
+                  value={jobForm.title}
+                  onChange={(event) => handleJobFieldChange("title", event.target.value)}
+                  placeholder="e.g. Product Designer"
+                  className="border-white/40 bg-white/10 text-white placeholder:text-white/60"
+                  labelClassName="text-white"
+                  error={jobFormErrors.title}
+                />
+                <Input
+                  label="Location"
+                  value={jobForm.location}
+                  onChange={(event) => handleJobFieldChange("location", event.target.value)}
+                  placeholder="City, State or Remote"
+                  className="border-white/40 bg-white/10 text-white placeholder:text-white/60"
+                  labelClassName="text-white"
+                  error={jobFormErrors.location}
+                />
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-[1.3fr,auto]">
+                <div className="space-y-1">
+                  <label
+                    htmlFor="job-type"
+                    className="block text-sm font-medium text-white"
+                  >
+                    Job type
+                  </label>
+                  <select
+                    id="job-type"
+                    value={jobForm.type}
+                    onChange={(event) =>
+                      handleJobFieldChange("type", event.target.value as JobType)
+                    }
+                    className="h-10 w-full rounded-xl border border-white bg-white/10 px-3 text-sm text-white outline-none transition focus:border-white focus:ring-2 focus:ring-white/40"
+                  >
+                    {JOB_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value} className="text-black">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {jobFormErrors.type ? (
+                    <p className="text-xs text-red-500">{jobFormErrors.type}</p>
+                  ) : null}
+                </div>
+                <label className="mt-6 inline-flex h-10 items-center gap-2 rounded-xl border border-white bg-white/10 px-4 text-sm text-white md:mt-0">
+                  <input
+                    type="checkbox"
+                    checked={jobForm.remote}
+                    onChange={(event) =>
+                      handleJobFieldChange("remote", event.target.checked)
+                    }
+                    className="h-4 w-4"
+                  />
+                  Remote friendly
+                </label>
+              </div>
+
+              <div className="space-y-1">
+                <label
+                  htmlFor="job-description"
+                  className="block text-sm font-medium text-white"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="job-description"
+                  value={jobForm.description}
+                  onChange={(event) => handleJobFieldChange("description", event.target.value)}
+                  placeholder="Share the mission, responsibilities, and what success looks like..."
+                  className="min-h-[140px] w-full rounded-xl border border-white/40 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-white focus:ring-2 focus:ring-white/30"
+                />
+                {jobFormErrors.description ? (
+                  <p className="text-xs text-red-500">{jobFormErrors.description}</p>
+                ) : null}
+              </div>
+
+              <Input
+                label="Key skills (comma separated)"
+                value={jobForm.skills}
+                onChange={(event) => handleJobFieldChange("skills", event.target.value)}
+                placeholder="e.g. React, TypeScript, Figma"
+                className="border-white/40 bg-white/10 text-white placeholder:text-white/60"
+                labelClassName="text-white"
+                error={jobFormErrors.skills}
+              />
+              <p className="text-xs text-white/80">
+                Include 3-5 skills students should bring. We'll automatically remove duplicates.
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" className="btn-brand" isLoading={isSubmitting}>
+                  {editingJobId ? "Update job" : "Publish job"}
+                </Button>
               <Button
                 type="button"
-                className="btn-outline-brand"
+                className="btn-outline-brand border-white text-white hover:bg-white/10"
                 onClick={() => resetJobForm({ clearEditing: true, clearSuccess: true })}
                 disabled={isSubmitting}
               >
                 Clear form
               </Button>
-            </div>
-            {jobFormSuccess ? (
-              <p className="text-sm text-green-400">{jobFormSuccess}</p>
-            ) : null}
-          </form>
-        </section>
+              </div>
 
-        <section className="rounded-xl border border-[--border] bg-[--surface] p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-white">Your job listings</h2>
-              <p className="text-sm text-white/70">
-                {companyJobs.length === 0
-                  ? "You haven't published any roles yet."
-                  : `Managing ${companyJobs.length} job${companyJobs.length === 1 ? "" : "s"}.`}
-              </p>
-            </div>
-            <Input
-              label="Filter jobs"
-              value={jobsFilter}
-              onChange={(event) => setJobsFilter(event.target.value)}
-              placeholder="Search by title, location, or skill..."
-              className="h-11 min-w-[240px] bg-[--background] text-[--foreground]"
-              labelClassName="text-white"
-            />
-          </div>
-          {deleteError ? (
-            <p className="mt-3 text-sm text-red-300">{deleteError}</p>
-          ) : null}
-          {deleteSuccess ? (
-            <p className="mt-3 text-sm text-green-300">{deleteSuccess}</p>
-          ) : null}
-
-          {isLoadingJobs ? (
-            <p className="mt-6 text-sm text-white/70">Loading job listings...</p>
-          ) : jobsError ? (
-            <p className="mt-6 text-sm text-red-300">{jobsError}</p>
-          ) : filteredJobs.length === 0 ? (
-            <p className="mt-6 text-sm text-white/70">No jobs match this filter.</p>
-          ) : (
-            <ul className="mt-4 space-y-4">
-              {filteredJobs.map((job) => (
-                <li key={job.id} className="rounded-xl border border-[--border] bg-[--background] p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-[--foreground]">{job.title}</h3>
-                      <p className="text-xs text-[--foreground]/70">
-                        {job.location} • {getJobTypeLabel(job.type)} {job.remote ? "• Remote friendly" : ""}
-                      </p>
-                      <p className="mt-1 text-xs text-[--foreground]/60">
-                        Posted {new Date(job.postedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        className="btn-outline-brand border-white text-white hover:bg-white/10"
-                        onClick={() => handleSelectJobToEdit(job.id)}
-                        disabled={isSubmitting && editingJobId === job.id}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        type="button"
-                        className="btn-outline-brand border-red-400 text-red-200 hover:bg-red-500/10"
-                        onClick={() => {
-                          setJobPendingDeletion(job.id);
-                          setDeleteError(null);
-                          setDeleteSuccess(null);
-                        }}
-                        disabled={jobPendingDeletion === job.id}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                  {job.skills.length > 0 ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {job.skills.map((skill) => (
-                        <span
-                          key={`${job.id}-${skill}`}
-                          className="rounded-xl border border-[--border] px-2 py-1 text-[10px] uppercase tracking-wide text-[--foreground]/80"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+              {jobFormSuccess ? (
+                <p className="text-sm text-green-600">{jobFormSuccess}</p>
+              ) : null}
+            </form>
+          </section>
+        </div>
       </div>
+
+      {/* Delete confirmation dialog */}
       {jobPendingDeletion ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md rounded-xl border border-[--border] bg-[--surface] p-6">
-            <h3 className="text-lg font-semibold text-white">Delete job listing</h3>
-            <p className="mt-2 text-sm text-white/70">
-              Are you sure you want to remove this job? Students will no longer be able to view or apply once it is
-              deleted.
+          <div className="w-full max-w-md rounded-2xl border border-[--border] bg-[--surface] p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-[--brand]">Delete job listing</h3>
+            <p className="mt-2 text-sm text-[--foreground]/80">
+              Are you sure you want to remove this job? Students will no longer be able to view
+              or apply once it is deleted.
             </p>
             <div className="mt-5 flex flex-wrap justify-end gap-2">
               <Button
@@ -617,7 +657,9 @@ export default function CompanyJobsPage() {
           </div>
         </div>
       ) : null}
-      </main>
-    </>
-  );
+
+      <Footer />
+    </main>
+  </>
+);
 }

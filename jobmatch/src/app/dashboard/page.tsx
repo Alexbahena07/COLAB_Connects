@@ -5,6 +5,7 @@ import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header_with_Icons";
+import Footer from "@/components/ui/Footer";
 
 type Job = {
   id: string;
@@ -75,6 +76,8 @@ export default function DashboardPage() {
   const [type, setType] = useState<string>("");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [location, setLocation] = useState("");
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -177,7 +180,8 @@ export default function DashboardPage() {
   }, []);
 
   const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
+    const source = showSavedOnly ? jobs.filter((job) => savedJobIds.has(job.id)) : jobs;
+    return source.filter((job) => {
       const query = q.toLowerCase().trim();
       const matchesQuery =
         !query ||
@@ -190,7 +194,7 @@ export default function DashboardPage() {
         !location || job.location.toLowerCase().includes(location.toLowerCase());
       return matchesQuery && matchesType && matchesRemote && matchesLocation;
     });
-  }, [jobs, q, type, remoteOnly, location]);
+  }, [jobs, q, type, remoteOnly, location, showSavedOnly, savedJobIds]);
 
   useEffect(() => {
     if (filteredJobs.length === 0) {
@@ -213,6 +217,23 @@ export default function DashboardPage() {
     type === "" &&
     !remoteOnly &&
     location.trim() === "";
+
+  const toggleSaveJob = (jobId: string) => {
+    setSavedJobIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(jobId)) {
+        next.delete(jobId);
+      } else {
+        next.add(jobId);
+      }
+      return next;
+    });
+  };
+
+  const isJobSaved = (jobId: string | null | undefined) => {
+    if (!jobId) return false;
+    return savedJobIds.has(jobId);
+  };
 
   return (
     <>
@@ -294,12 +315,23 @@ export default function DashboardPage() {
               <span className="text-sm font-medium text-white opacity-0">Actions</span>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
+                  className={`h-11 rounded-xl border px-4 text-sm font-semibold transition ${
+                    showSavedOnly
+                      ? "border-white bg-white/10 text-white"
+                      : "border-white text-white hover:bg-white/10"
+                  }`}
+                  onClick={() => setShowSavedOnly((prev) => !prev)}
+                >
+                  {showSavedOnly ? "All jobs" : "View saved jobs"}
+                </Button>
+                <Button
                   className="btn-outline-brand h-11"
                   onClick={() => {
                     setQ("");
                     setType("");
                     setRemoteOnly(false);
                     setLocation("");
+                    setShowSavedOnly(false);
                   }}
                 >
                   Reset
@@ -327,7 +359,11 @@ export default function DashboardPage() {
                 <li className="p-4 text-sm opacity-80">Loading jobs...</li>
               ) : filteredJobs.length === 0 ? (
                 <li className="p-4 text-sm opacity-80">
-                  {noJobsAvailable ? "No job listings are available yet." : "No results. Try adjusting filters."}
+                  {showSavedOnly
+                    ? "You haven't saved any jobs yet."
+                    : noJobsAvailable
+                    ? "No job listings are available yet."
+                    : "No results. Try adjusting filters."}
                 </li>
               ) : (
                 filteredJobs.map((job) => {
@@ -418,13 +454,19 @@ export default function DashboardPage() {
 
               <div className="mt-auto flex flex-wrap gap-3">
                 <Button className="btn-brand">Apply</Button>
-                <Button className="btn-outline-brand">Save</Button>
+                <Button
+                  className={isJobSaved(selectedJob.id) ? "btn-brand bg-white text-[--brand]" : "btn-outline-brand"}
+                  onClick={() => toggleSaveJob(selectedJob.id)}
+                >
+                  {isJobSaved(selectedJob.id) ? "Unsave" : "Save"}
+                </Button>
                 <Button className="btn-outline-brand">Share</Button>
               </div>
             </article>
           )}
         </section>
       </div>
+      <Footer />
       </main>
     </>
   );

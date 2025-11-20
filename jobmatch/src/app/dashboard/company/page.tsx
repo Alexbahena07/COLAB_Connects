@@ -4,10 +4,12 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/Header";
+import Header from "@/components/ui/Header_with_Icons";
+import Footer from "@/components/ui/Footer";
 
 type Applicant = {
   id: string;
+  jobId: string;
   name: string;
   school: string;
   major: string;
@@ -31,6 +33,11 @@ type Applicant = {
   submittedAt: string; // ISO
 };
 
+type JobListing = {
+  id: string;
+  title: string;
+};
+
 const SKILL_OPTIONS = ["React", "TypeScript", "Python", "Data Science", "Figma", "SQL", "Node.js", "UX Research", "Motion", "Firebase", "After Effects", "R", "scikit-learn"];
 const MAJOR_OPTIONS = ["Computer Science", "Information Systems", "Design", "Business Analytics"];
 const GRAD_YEARS = ["2025", "2026", "2027"];
@@ -38,6 +45,7 @@ const GRAD_YEARS = ["2025", "2026", "2027"];
 const MOCK_APPLICANTS: Applicant[] = [
   {
     id: "a-1",
+    jobId: "job-1",
     name: "Maya Chen",
     school: "Stanford University",
     major: "Computer Science",
@@ -73,6 +81,7 @@ const MOCK_APPLICANTS: Applicant[] = [
   },
   {
     id: "a-2",
+    jobId: "job-1",
     name: "Jordan Alvarez",
     school: "University of Michigan",
     major: "Information Systems",
@@ -102,6 +111,7 @@ const MOCK_APPLICANTS: Applicant[] = [
   },
   {
     id: "a-3",
+    jobId: "job-2",
     name: "Priya Desai",
     school: "Rhode Island School of Design",
     major: "Design",
@@ -131,6 +141,7 @@ const MOCK_APPLICANTS: Applicant[] = [
   },
   {
     id: "a-4",
+    jobId: "job-2",
     name: "Ethan Patel",
     school: "Georgia Tech",
     major: "Business Analytics",
@@ -166,11 +177,56 @@ export default function CompanyDashboardPage() {
   const [major, setMajor] = useState("");
   const [skill, setSkill] = useState("");
   const [gradYear, setGradYear] = useState("");
+  const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string>("");
+  const [jobsError, setJobsError] = useState<string | null>(null);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [isMessageComposerOpen, setIsMessageComposerOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [messageError, setMessageError] = useState("");
   const [messageSuccess, setMessageSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadJobs = async () => {
+      setIsLoadingJobs(true);
+      try {
+        const response = await fetch("/api/jobs?scope=mine", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Failed to load jobs (${response.status})`);
+        }
+        const payload = await response.json();
+        if (Array.isArray(payload.jobs) && payload.jobs.length > 0) {
+          const parsed = payload.jobs
+            .map((job: any): JobListing | null => {
+              if (!job || typeof job !== "object" || typeof job.id !== "string" || typeof job.title !== "string") {
+                return null;
+              }
+              return { id: job.id, title: job.title };
+            })
+            .filter((job): job is JobListing => job !== null);
+
+          if (parsed.length > 0) {
+            setJobs(parsed);
+            setJobsError(null);
+            // If the currently selected job is no longer valid, reset to All listings.
+            setSelectedJobId((current) => (parsed.some((job) => job.id === current) ? current : ""));
+            return;
+          }
+        }
+        setJobs([]);
+        setJobsError(null);
+      } catch (error) {
+        console.error("Unable to load company jobs", error);
+        setJobsError("We couldn't load your job listings.");
+        setJobs([]);
+      } finally {
+        setIsLoadingJobs(false);
+      }
+    };
+
+    loadJobs();
+  }, []);
 
   const applicants = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -182,12 +238,13 @@ export default function CompanyDashboardPage() {
         a.summary.toLowerCase().includes(query) ||
         a.skills.some((s) => s.toLowerCase().includes(query));
 
+      const matchesJob = !selectedJobId || a.jobId === selectedJobId;
       const matchesMajor = !major || a.major === major;
       const matchesSkill = !skill || a.skills.includes(skill);
       const matchesGradYear = !gradYear || a.graduationYear === gradYear;
-      return matchesQuery && matchesMajor && matchesSkill && matchesGradYear;
+      return matchesQuery && matchesJob && matchesMajor && matchesSkill && matchesGradYear;
     });
-  }, [q, major, skill, gradYear]);
+  }, [q, major, skill, gradYear, selectedJobId]);
 
   useEffect(() => {
     if (applicants.length === 0) {
@@ -282,11 +339,13 @@ export default function CompanyDashboardPage() {
                 id="filter-major"
                 value={major}
                 onChange={(e) => setMajor(e.target.value)}
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-black"
+                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
               >
-                <option value="">All majors</option>
+                <option className="text-black" value="">
+                  All majors
+                </option>
                 {MAJOR_OPTIONS.map((m) => (
-                  <option key={m} value={m}>
+                  <option key={m} value={m} className="text-black">
                     {m}
                   </option>
                 ))}
@@ -301,11 +360,13 @@ export default function CompanyDashboardPage() {
                 id="filter-skill"
                 value={skill}
                 onChange={(e) => setSkill(e.target.value)}
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-black"
+                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
               >
-                <option value="">All skills</option>
+                <option className="text-black" value="">
+                  All skills
+                </option>
                 {SKILL_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
+                  <option key={s} value={s} className="text-black">
                     {s}
                   </option>
                 ))}
@@ -320,38 +381,53 @@ export default function CompanyDashboardPage() {
                 id="filter-grad-year"
                 value={gradYear}
                 onChange={(e) => setGradYear(e.target.value)}
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-black"
+                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
               >
-                <option value="">All years</option>
+                <option className="text-black" value="">
+                  All years
+                </option>
                 {GRAD_YEARS.map((y) => (
-                  <option key={y} value={y}>
+                  <option key={y} value={y} className="text-black">
                     {y}
                   </option>
                 ))}
               </select>
             </div>
 
+            <div className="flex min-w-[180px] flex-col gap-2">
+              <label htmlFor="filter-job" className="text-sm font-medium text-white">
+                Job Listing
+              </label>
+              <select
+                id="filter-job"
+                value={selectedJobId}
+                onChange={(e) => setSelectedJobId(e.target.value)}
+                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
+              >
+                <option className="text-black" value="">
+                  Select
+                </option>
+                {jobs.length === 0 ? (
+                  <option className="text-black" value="" disabled>
+                    No job listings posted yet
+                  </option>
+                ) : (
+                  <>
+                    {jobs.map((job) => (
+                      <option key={job.id} value={job.id} className="text-black">
+                        {job.title}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
+              {jobsError ? <p className="text-xs text-red-400">{jobsError}</p> : null}
+              {isLoadingJobs ? <p className="text-xs text-white/70">Loading jobs...</p> : null}
+            </div>
+
             <div className="flex flex-col gap-2 md:ml-auto">
               <span className="text-sm font-medium text-transparent">Actions</span>
               <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href="/dashboard/company/jobs"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Manage jobs
-                </Link>
-                <Link
-                  href="/dashboard/company/profile"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Company info
-                </Link>
-                <Link
-                  href="/dashboard/company/messages"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  View messages
-                </Link>
                 <Button
                   className="btn-outline-brand h-11"
                   onClick={() => {
@@ -359,6 +435,7 @@ export default function CompanyDashboardPage() {
                     setMajor("");
                     setSkill("");
                     setGradYear("");
+                    setSelectedJobId("");
                   }}
                 >
                   Reset
@@ -555,6 +632,7 @@ export default function CompanyDashboardPage() {
         </section>
       </div>
       </main>
+      <Footer />
     </>
   );
 }
