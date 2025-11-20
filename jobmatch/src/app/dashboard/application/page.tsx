@@ -1,6 +1,7 @@
 "use client";
 
 import Header from "@/components/ui/Header_with_Icons";
+import Footer from "@/components/ui/Footer";
 
 export default function DashboardEventApplicationPage() {
   return (
@@ -11,6 +12,7 @@ export default function DashboardEventApplicationPage() {
           <h1 className="text-3xl font-bold">Application</h1>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

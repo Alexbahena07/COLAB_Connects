@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import Button from "@/components/ui/Button";
 import ProfileHeroActions, { OpenToWorkToggle } from "@/components/profile/ProfileHeroActions";
 import Header from "@/components/ui/Header_with_Icons";
+import Footer from "@/components/ui/Footer";
 
 type ExperienceItem = {
   id: string;
@@ -518,6 +519,7 @@ export default async function StudentProfilePage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

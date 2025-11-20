@@ -102,7 +102,7 @@ export default function CompanyProfileForm() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700" htmlFor="company-team-size">
-            Team size
+            Company size
           </label>
           <select
             id="company-team-size"
@@ -121,12 +121,31 @@ export default function CompanyProfileForm() {
           ) : null}
         </div>
 
-        <Input
-          label="Hiring focus"
-          placeholder="e.g. Product design interns"
-          {...register("hiringFocus")}
-          error={errors.hiringFocus?.message}
-        />
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="company-industry">
+            Industry
+          </label>
+          <select
+            id="company-industry"
+            className="h-11 w-full rounded-xl border border-white bg-[--surface] px-3 text-sm text-black"
+            {...register("hiringFocus")}
+          >
+            <option value="">Select industry</option>
+            <option value="Accounting">Accounting</option>
+            <option value="Corporate Finance">Corporate Finance</option>
+            <option value="Hedge Funds">Hedge Funds</option>
+            <option value="Investment Banking">Investment Banking</option>
+            <option value="Management Consulting">Management Consulting</option>
+            <option value="Private Credit">Private Credit</option>
+            <option value="Private Equity">Private Equity</option>
+            <option value="Real Estate/Real Assets">Real Estate/Real Assets</option>
+            <option value="Start-ups">Start-ups</option>
+            <option value="Venture Capital">Venture Capital</option>
+          </select>
+          {errors.hiringFocus ? (
+            <p className="text-xs text-red-600">{errors.hiringFocus.message}</p>
+          ) : null}
+        </div>
       </div>
 
       <div className="space-y-1">
@@ -145,14 +164,7 @@ export default function CompanyProfileForm() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" isLoading={isSubmitting} className="btn-brand">
-          Save &amp; continue
-        </Button>
-        <Button
-          type="button"
-          className="btn-outline-brand"
-          onClick={() => router.push("/dashboard/company")}
-        >
-          Skip for now
+          Save
         </Button>
       </div>
     </form>

@@ -87,7 +87,84 @@ export default function Header() {
               </svg>
               <span className="text-xs font-semibold">Profile</span>
             </Link>
-          ) : null}
+          ) : (
+            <>
+              <Link
+                href="/dashboard/company"
+                className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  className="h-8 w-8"
+                >
+                  <path d="M4 11.5 11.5 4 19 11.5" />
+                  <path d="M6.5 10v7.5A2.5 2.5 0 0 0 9 20h6a2.5 2.5 0 0 0 2.5-2.5V10" />
+                  <path d="M10 20v-5h4v5" />
+                </svg>
+                <span className="text-xs font-semibold">Applicants</span>
+              </Link>
+              <Link
+                href="/dashboard/company/jobs"
+                className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  className="h-8 w-8"
+                >
+                  <rect x="4" y="7" width="16" height="11" rx="2" />
+                  <path d="M9 7V5.5a2.5 2.5 0 0 1 5 0V7" />
+                  <path d="M8 11h8" />
+                  <path d="M8 14h4" />
+                </svg>
+                <span className="text-xs font-semibold">Manage Jobs</span>
+              </Link>
+              <Link
+                href="/dashboard/company/profile"
+                className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  className="h-8 w-8"
+                >
+                  <circle cx="12" cy="7.5" r="3" />
+                  <path d="M5 18.5a7 7 0 0 1 14 0" />
+                </svg>
+                <span className="text-xs font-semibold">Company Info</span>
+              </Link>
+              <Link
+                href="/dashboard/company/messages"
+                className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  className="h-8 w-8"
+                >
+                  <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H9l-3.5 3.5V6.5Z" />
+                </svg>
+                <span className="text-xs font-semibold">View Messages</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
