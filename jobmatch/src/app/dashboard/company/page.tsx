@@ -1,36 +1,61 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header_with_Icons";
 import Footer from "@/components/ui/Footer";
 
-type Applicant = {
+type ApplicantSkill = { name: string; years: number | null };
+type ApplicantExperience = {
   id: string;
-  jobId: string;
-  name: string;
+  title: string | null;
+  company: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  location: string | null;
+  employmentType: string | null;
+  description: string | null;
+};
+type ApplicantDegree = {
+  id: string;
   school: string;
-  major: string;
-  graduationYear: string;
-  location: string;
-  email: string;
-  phone: string;
-  skills: string[];
-  summary: string;
-  experience: Array<{
-    role: string;
-    company: string;
-    duration: string;
-    highlights: string[];
-  }>;
-  projects: Array<{
-    name: string;
-    description: string;
-    skills: string[];
-  }>;
+  degree: string | null;
+  field: string | null;
+  startDate: string | null;
+  endDate: string | null;
+};
+type ApplicantCertificate = {
+  id: string;
+  name: string;
+  issuer: string | null;
+  issuedAt: string | null;
+  expirationDate: string | null;
+  credentialId: string | null;
+  credentialUrl: string | null;
+};
+
+type ApplicantProfile = {
+  id: string;
+  name: string;
+  email: string | null;
+  headline: string | null;
+  desiredLocation: string | null;
+  resumeFileName: string | null;
+  resumeFileType: string | null;
+  resumeUrl: string | null;
+  degrees: ApplicantDegree[];
+  certificates: ApplicantCertificate[];
+  experiences: ApplicantExperience[];
+  skills: ApplicantSkill[];
+};
+
+type ApplicantApplication = {
+  applicationId: string;
+  jobId: string;
+  status: string;
   submittedAt: string; // ISO
+  applicant: ApplicantProfile;
 };
 
 type JobListing = {
@@ -38,165 +63,38 @@ type JobListing = {
   title: string;
 };
 
-const SKILL_OPTIONS = ["React", "TypeScript", "Python", "Data Science", "Figma", "SQL", "Node.js", "UX Research", "Motion", "Firebase", "After Effects", "R", "scikit-learn"];
-const MAJOR_OPTIONS = ["Computer Science", "Information Systems", "Design", "Business Analytics"];
-const GRAD_YEARS = ["2025", "2026", "2027"];
-
-const MOCK_APPLICANTS: Applicant[] = [
-  {
-    id: "a-1",
-    jobId: "job-1",
-    name: "Maya Chen",
-    school: "Stanford University",
-    major: "Computer Science",
-    graduationYear: "2025",
-    location: "San Francisco, CA",
-    email: "maya.chen@email.com",
-    phone: "(415) 555-2180",
-    skills: ["React", "TypeScript", "Node.js"],
-    summary:
-      "Frontend-focused engineer with 2 internships building accessible, component-driven web applications. Passionate about design systems and rapid iteration.",
-    experience: [
-      {
-        role: "Frontend Engineering Intern",
-        company: "BrightOps",
-        duration: "Jun 2024 - Aug 2024",
-        highlights: ["Led redesign of dashboard widgets", "Improved Lighthouse performance score from 68 to 92"],
-      },
-      {
-        role: "Software Engineering Intern",
-        company: "River Tech",
-        duration: "Jun 2023 - Aug 2023",
-        highlights: ["Built real-time analytics view in Next.js", "Collaborated with product on accessibility QA"]
-      }
-    ],
-    projects: [
-      {
-        name: "Campus Tasks",
-        description: "Student productivity web app with shared calendars and real-time updates.",
-        skills: ["React", "TypeScript", "Firebase"],
-      },
-    ],
-    submittedAt: "2025-09-08",
-  },
-  {
-    id: "a-2",
-    jobId: "job-1",
-    name: "Jordan Alvarez",
-    school: "University of Michigan",
-    major: "Information Systems",
-    graduationYear: "2026",
-    location: "Ann Arbor, MI",
-    email: "jordana@umich.edu",
-    phone: "(734) 555-9971",
-    skills: ["SQL", "Python", "Data Science"],
-    summary:
-      "Data-driven problem solver with experience building ETL jobs and dashboards that inform product decisions.",
-    experience: [
-      {
-        role: "Data Analyst Intern",
-        company: "Insightful",
-        duration: "May 2024 - Aug 2024",
-        highlights: ["Automated weekly reporting for 15+ stakeholders", "Built churn propensity model with 82% accuracy"],
-      }
-    ],
-    projects: [
-      {
-        name: "Trail Metrics",
-        description: "Analyzed national park trail usage and created interactive Tableau dashboards for visitors.",
-        skills: ["Python", "SQL", "Tableau"],
-      },
-    ],
-    submittedAt: "2025-09-05",
-  },
-  {
-    id: "a-3",
-    jobId: "job-2",
-    name: "Priya Desai",
-    school: "Rhode Island School of Design",
-    major: "Design",
-    graduationYear: "2025",
-    location: "Providence, RI",
-    email: "priya.designs@risd.edu",
-    phone: "(401) 555-7712",
-    skills: ["Figma", "UX Research", "Motion"],
-    summary:
-      "Product designer focused on storytelling and motion systems. Loves prototyping complex interactions and collaborating with engineers.",
-    experience: [
-      {
-        role: "Product Design Intern",
-        company: "Glyph Studio",
-        duration: "Jun 2024 - Aug 2024",
-        highlights: ["Created motion guidelines for design system", "Ran user research studies with ~30 participants"],
-      }
-    ],
-    projects: [
-      {
-        name: "Transit Muse",
-        description: "Concept redesign of public transit mobile experience focused on accessibility and ease of use.",
-        skills: ["Figma", "After Effects"],
-      }
-    ],
-    submittedAt: "2025-09-02",
-  },
-  {
-    id: "a-4",
-    jobId: "job-2",
-    name: "Ethan Patel",
-    school: "Georgia Tech",
-    major: "Business Analytics",
-    graduationYear: "2026",
-    location: "Atlanta, GA",
-    email: "ethan.patel@gatech.edu",
-    phone: "(404) 555-6432",
-    skills: ["Python", "SQL", "R"],
-    summary:
-      "Analytics student with co-op experience building predictive KPIs for finance teams. Comfortable presenting insights to senior stakeholders.",
-    experience: [
-      {
-        role: "Business Analytics Co-op",
-        company: "AeroLink",
-        duration: "Jan 2024 - Aug 2024",
-        highlights: ["Implemented demand forecasting model", "Collaborated with engineering to productionize dashboards"],
-      }
-    ],
-    projects: [
-      {
-        name: "GreenGrid",
-        description: "Optimized energy usage patterns for small businesses using public datasets and clustering.",
-        skills: ["Python", "scikit-learn"],
-      }
-    ],
-    submittedAt: "2025-09-10",
-  },
-];
+const formatDate = (value: string | null | undefined) => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.valueOf()) ? "" : parsed.toLocaleDateString();
+};
 
 export default function CompanyDashboardPage() {
-  const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(MOCK_APPLICANTS[0]?.id ?? null);
   const [q, setQ] = useState("");
-  const [major, setMajor] = useState("");
   const [skill, setSkill] = useState("");
-  const [gradYear, setGradYear] = useState("");
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   const [jobsError, setJobsError] = useState<string | null>(null);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
-  const [isMessageComposerOpen, setIsMessageComposerOpen] = useState(false);
-  const [messageText, setMessageText] = useState("");
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [messageError, setMessageError] = useState("");
-  const [messageSuccess, setMessageSuccess] = useState<string | null>(null);
+
+  const [applications, setApplications] = useState<ApplicantApplication[]>([]);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [savedApplicationIds, setSavedApplicationIds] = useState<Set<string>>(new Set());
+  const [applicantsError, setApplicantsError] = useState<string | null>(null);
+  const [isLoadingApplicants, setIsLoadingApplicants] = useState(false);
+
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
 
   useEffect(() => {
+    let active = true;
     const loadJobs = async () => {
       setIsLoadingJobs(true);
       try {
         const response = await fetch("/api/jobs?scope=mine", { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`Failed to load jobs (${response.status})`);
-        }
-        const payload = await response.json();
-        if (Array.isArray(payload.jobs) && payload.jobs.length > 0) {
+        const payload = await response.json().catch(() => null);
+        if (!active) return;
+
+        if (response.ok && Array.isArray(payload?.jobs)) {
           const parsed = payload.jobs
             .map((job: any): JobListing | null => {
               if (!job || typeof job !== "object" || typeof job.id !== "string" || typeof job.title !== "string") {
@@ -206,431 +104,481 @@ export default function CompanyDashboardPage() {
             })
             .filter((job): job is JobListing => job !== null);
 
-          if (parsed.length > 0) {
-            setJobs(parsed);
-            setJobsError(null);
-            // If the currently selected job is no longer valid, reset to All listings.
-            setSelectedJobId((current) => (parsed.some((job) => job.id === current) ? current : ""));
-            return;
-          }
+          setJobs(parsed);
+          setJobsError(null);
+          setSelectedJobId((current) => (parsed.some((job) => job.id === current) ? current : parsed[0]?.id ?? ""));
+        } else {
+          setJobs([]);
+          const errorMessage =
+            typeof payload?.error === "string"
+              ? payload.error
+              : "We couldn't load your job listings.";
+          setJobsError(errorMessage);
         }
-        setJobs([]);
-        setJobsError(null);
       } catch (error) {
         console.error("Unable to load company jobs", error);
+        if (!active) return;
         setJobsError("We couldn't load your job listings.");
         setJobs([]);
       } finally {
-        setIsLoadingJobs(false);
+        if (active) {
+          setIsLoadingJobs(false);
+        }
       }
     };
 
     loadJobs();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const applicants = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    return MOCK_APPLICANTS.filter((a) => {
-      const matchesQuery =
-        !query ||
-        a.name.toLowerCase().includes(query) ||
-        a.school.toLowerCase().includes(query) ||
-        a.summary.toLowerCase().includes(query) ||
-        a.skills.some((s) => s.toLowerCase().includes(query));
-
-      const matchesJob = !selectedJobId || a.jobId === selectedJobId;
-      const matchesMajor = !major || a.major === major;
-      const matchesSkill = !skill || a.skills.includes(skill);
-      const matchesGradYear = !gradYear || a.graduationYear === gradYear;
-      return matchesQuery && matchesJob && matchesMajor && matchesSkill && matchesGradYear;
-    });
-  }, [q, major, skill, gradYear, selectedJobId]);
-
   useEffect(() => {
-    if (applicants.length === 0) {
-      setSelectedApplicantId(null);
+    if (!selectedJobId) {
+      setApplications([]);
+      setSelectedApplicationId(null);
       return;
     }
-    if (!selectedApplicantId || !applicants.some((c) => c.id === selectedApplicantId)) {
-      setSelectedApplicantId(applicants[0].id);
+
+    let active = true;
+    const loadApplicants = async () => {
+      setIsLoadingApplicants(true);
+      setApplicantsError(null);
+      try {
+        const response = await fetch(`/api/jobs/${selectedJobId}/applicants`, { cache: "no-store" });
+        const payload = await response.json().catch(() => null);
+        if (!active) return;
+
+        if (!response.ok) {
+          const errorMessage =
+            typeof payload?.error === "string"
+              ? payload.error
+              : "We couldn't load applicants for this job.";
+          setApplicantsError(errorMessage);
+          setApplications([]);
+          setSelectedApplicationId(null);
+          return;
+        }
+
+        const parsedApplicants: ApplicantApplication[] = Array.isArray(payload?.applicants)
+          ? payload.applicants
+              .map((application: any) => ({
+                applicationId: String(application.applicationId),
+                jobId: String(application.jobId ?? selectedJobId),
+                status: typeof application.status === "string" ? application.status : "SUBMITTED",
+                submittedAt:
+                  typeof application.submittedAt === "string" ? application.submittedAt : new Date().toISOString(),
+                applicant: {
+                  ...(application.applicant as ApplicantProfile),
+                  skills: Array.isArray(application?.applicant?.skills) ? application.applicant.skills : [],
+                },
+              }))
+              .filter(
+                (application) =>
+                  Boolean(application.applicationId) &&
+                  Boolean(application.applicant) &&
+                  Array.isArray(application.applicant.skills)
+              )
+          : [];
+
+        setApplications(parsedApplicants);
+        setSelectedApplicationId((current) =>
+          parsedApplicants.some((app) => app.applicationId === current)
+            ? current
+            : parsedApplicants[0]?.applicationId ?? null
+        );
+      } catch (error) {
+        console.error("Unable to load applicants", error);
+        if (!active) return;
+        setApplicantsError("We couldn't load applicants for this job.");
+        setApplications([]);
+        setSelectedApplicationId(null);
+      } finally {
+        if (active) {
+          setIsLoadingApplicants(false);
+        }
+      }
+    };
+
+    loadApplicants();
+    return () => {
+      active = false;
+    };
+  }, [selectedJobId]);
+
+  const skillOptions = useMemo(() => {
+    const unique = new Set<string>();
+    applications.forEach((application) =>
+      application.applicant.skills.forEach((s) => {
+        if (s?.name) unique.add(s.name);
+      })
+    );
+    return Array.from(unique).sort();
+  }, [applications]);
+
+  const filteredApplicants = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    const base = showSavedOnly
+      ? applications.filter((application) => savedApplicationIds.has(application.applicationId))
+      : applications;
+
+    return base.filter((application) => {
+      const applicant = application.applicant;
+      const matchesQuery =
+        !query ||
+        applicant.name.toLowerCase().includes(query) ||
+        (applicant.email ?? "").toLowerCase().includes(query) ||
+        (applicant.headline ?? "").toLowerCase().includes(query) ||
+        applicant.skills.some((s) => s.name.toLowerCase().includes(query));
+
+      const matchesSkill = !skill || applicant.skills.some((s) => s.name === skill);
+      return matchesQuery && matchesSkill;
+    });
+  }, [applications, q, skill, savedApplicationIds, showSavedOnly]);
+
+  useEffect(() => {
+    if (filteredApplicants.length === 0) {
+      setSelectedApplicationId(null);
+      return;
     }
-  }, [applicants, selectedApplicantId]);
+
+    if (!selectedApplicationId || !filteredApplicants.some((app) => app.applicationId === selectedApplicationId)) {
+      setSelectedApplicationId(filteredApplicants[0].applicationId);
+    }
+  }, [filteredApplicants, selectedApplicationId]);
 
   const selectedApplicant =
-    (selectedApplicantId ? applicants.find((c) => c.id === selectedApplicantId) : applicants[0]) ?? null;
+    (selectedApplicationId
+      ? filteredApplicants.find((app) => app.applicationId === selectedApplicationId)
+      : filteredApplicants[0]) ?? null;
+
+  const selectedJob = useMemo(
+    () => jobs.find((job) => job.id === selectedJobId) ?? null,
+    [jobs, selectedJobId]
+  );
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => setQ(e.target.value);
 
-  const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedApplicant) return;
-    if (!messageText.trim()) {
-      setMessageError("Write a quick note before sending.");
-      setMessageSuccess(null);
-      return;
-    }
-
-    setMessageError("");
-    setIsSendingMessage(true);
-    try {
-      const res = await fetch("/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applicantId: selectedApplicant.id,
-          applicantEmail: selectedApplicant.email,
-          applicantName: selectedApplicant.name,
-          message: messageText.trim(),
-        }),
-      });
-
-      if (!res.ok) {
-        const payload = await res.json().catch(() => null);
-        const msg = typeof payload?.error === "string" ? payload.error : "We couldn't send that message. Please try again.";
-        setMessageError(msg);
-        setMessageSuccess(null);
-        return;
+  const toggleSave = (applicationId: string) => {
+    setSavedApplicationIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(applicationId)) {
+        next.delete(applicationId);
+      } else {
+        next.add(applicationId);
       }
-
-      const ok = await res.json().catch(() => ({}));
-      const okMsg = typeof ok?.message === "string" ? ok.message : "Message sent! Check the messages tab for the conversation.";
-      setMessageSuccess(okMsg);
-      setMessageText("");
-    } catch (err) {
-      console.error("Failed to send message", err);
-      setMessageError("We couldn't reach the messaging service. Please try again.");
-      setMessageSuccess(null);
-    } finally {
-      setIsSendingMessage(false);
-    }
+      return next;
+    });
   };
 
-  useEffect(() => {
-    setIsMessageComposerOpen(false);
-    setMessageText("");
-    setMessageError("");
-    setMessageSuccess(null);
-  }, [selectedApplicantId]);
+  const isSaved = (applicationId: string | null) => {
+    if (!applicationId) return false;
+    return savedApplicationIds.has(applicationId);
+  };
 
   return (
     <>
       <Header />
       <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
-      {/* Filters */}
-      <div className="border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="mx-auto w-full max-w-6xl px-4 py-4">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="min-w-[220px] flex-1">
-              <Input
-                label="Search"
-                placeholder="Search name, school, or skill..."
-                value={q}
-                onChange={handleSearchChange}
-                className="h-11"
-                labelClassName="text-white"
-              />
-            </div>
+        <div className="border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="mx-auto w-full max-w-6xl px-4 py-4">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="min-w-[220px] flex-1">
+                <Input
+                  label="Search applicants"
+                  placeholder="Search name, email, or skill..."
+                  value={q}
+                  onChange={handleSearchChange}
+                  className="h-11"
+                  labelClassName="text-white"
+                />
+              </div>
 
-            <div className="flex min-w-[160px] flex-col gap-2">
-              <label htmlFor="filter-major" className="text-sm font-medium text-white">
-                Major
-              </label>
-              <select
-                id="filter-major"
-                value={major}
-                onChange={(e) => setMajor(e.target.value)}
-                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
-              >
-                <option className="text-black" value="">
-                  All majors
-                </option>
-                {MAJOR_OPTIONS.map((m) => (
-                  <option key={m} value={m} className="text-black">
-                    {m}
+              <div className="flex min-w-[180px] flex-col gap-2">
+                <label htmlFor="filter-skill" className="text-sm font-medium text-white">
+                  Skill focus
+                </label>
+                <select
+                  id="filter-skill"
+                  value={skill}
+                  onChange={(e) => setSkill(e.target.value)}
+                  className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
+                >
+                  <option className="text-black" value="">
+                    All skills
                   </option>
-                ))}
-              </select>
-            </div>
+                  {skillOptions.map((s) => (
+                    <option key={s} value={s} className="text-black">
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="flex min-w-[160px] flex-col gap-2">
-              <label htmlFor="filter-skill" className="text-sm font-medium text-white">
-                Skill focus
-              </label>
-              <select
-                id="filter-skill"
-                value={skill}
-                onChange={(e) => setSkill(e.target.value)}
-                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
-              >
-                <option className="text-black" value="">
-                  All skills
-                </option>
-                {SKILL_OPTIONS.map((s) => (
-                  <option key={s} value={s} className="text-black">
-                    {s}
+              <div className="flex min-w-[200px] flex-col gap-2">
+                <label htmlFor="filter-job" className="text-sm font-medium text-white">
+                  Job Listing
+                </label>
+                <select
+                  id="filter-job"
+                  value={selectedJobId}
+                  onChange={(e) => setSelectedJobId(e.target.value)}
+                  className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
+                >
+                  <option className="text-black" value="">
+                    Select a job
                   </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex min-w-[140px] flex-col gap-2">
-              <label htmlFor="filter-grad-year" className="text-sm font-medium text-white">
-                Grad year
-              </label>
-              <select
-                id="filter-grad-year"
-                value={gradYear}
-                onChange={(e) => setGradYear(e.target.value)}
-                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
-              >
-                <option className="text-black" value="">
-                  All years
-                </option>
-                {GRAD_YEARS.map((y) => (
-                  <option key={y} value={y} className="text-black">
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex min-w-[180px] flex-col gap-2">
-              <label htmlFor="filter-job" className="text-sm font-medium text-white">
-                Job Listing
-              </label>
-              <select
-                id="filter-job"
-                value={selectedJobId}
-                onChange={(e) => setSelectedJobId(e.target.value)}
-                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
-              >
-                <option className="text-black" value="">
-                  Select
-                </option>
-                {jobs.length === 0 ? (
-                  <option className="text-black" value="" disabled>
-                    No job listings posted yet
-                  </option>
-                ) : (
-                  <>
-                    {jobs.map((job) => (
+                  {jobs.length === 0 ? (
+                    <option className="text-black" value="" disabled>
+                      No job listings posted yet
+                    </option>
+                  ) : (
+                    jobs.map((job) => (
                       <option key={job.id} value={job.id} className="text-black">
                         {job.title}
                       </option>
-                    ))}
-                  </>
-                )}
-              </select>
-              {jobsError ? <p className="text-xs text-red-400">{jobsError}</p> : null}
-              {isLoadingJobs ? <p className="text-xs text-white/70">Loading jobs...</p> : null}
-            </div>
+                    ))
+                  )}
+                </select>
+                {jobsError ? <p className="text-xs text-red-400">{jobsError}</p> : null}
+                {isLoadingJobs ? <p className="text-xs text-white/70">Loading jobs...</p> : null}
+              </div>
 
-            <div className="flex flex-col gap-2 md:ml-auto">
-              <span className="text-sm font-medium text-transparent">Actions</span>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  className="btn-outline-brand h-11"
-                  onClick={() => {
-                    setQ("");
-                    setMajor("");
-                    setSkill("");
-                    setGradYear("");
-                    setSelectedJobId("");
-                  }}
-                >
-                  Reset
-                </Button>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-white">Saved applicants</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    className={`h-11 rounded-xl border px-4 text-sm font-semibold transition ${
+                      showSavedOnly
+                        ? "border-white bg-white/10 text-white"
+                        : "border-white text-white hover:bg-white/10"
+                    }`}
+                    onClick={() => setShowSavedOnly((prev) => !prev)}
+                    disabled={applications.length === 0}
+                  >
+                    {showSavedOnly ? "Show all" : "Show saved"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 md:ml-auto">
+                <span className="text-sm font-medium text-transparent">Actions</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    className="btn-outline-brand h-11"
+                    onClick={() => {
+                      setQ("");
+                      setSkill("");
+                    }}
+                  >
+                    Reset filters
+                  </Button>
+                </div>
               </div>
             </div>
+            {applicantsError ? <p className="mt-2 text-sm text-red-400">{applicantsError}</p> : null}
           </div>
         </div>
-      </div>
-      {/* ✅ removed the extra closing </div> that was here */}
 
-      {/* Split view */}
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden md:flex-row">
-        <aside
-          className="w-full border-b md:w-96 md:max-w-sm md:flex-shrink-0 md:border-b-0 md:border-r"
-          style={{ borderColor: "var(--border)" }}
-          aria-label="Applicant list"
-        >
-          <div className="h-full overflow-y-auto">
-            <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
-              {applicants.length === 0 ? (
-                <li className="p-4 text-sm opacity-80">No applicants match your filters.</li>
-              ) : (
-                applicants.map((candidate) => {
-                  const active = candidate.id === selectedApplicant?.id;
-                  return (
-                    <li key={candidate.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedApplicantId(candidate.id)}
-                        className={`w-full p-4 text-left transition ${active ? "bg-[--surface] ring-1 ring-[--brandBlue]" : "hover:bg-[--surface]"}`}
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <h3 className="font-semibold">{candidate.name}</h3>
-                            <p className="mt-1 text-sm opacity-90">
-                              {candidate.major} · {candidate.school}
-                            </p>
+        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden md:flex-row">
+          <aside
+            className="w-full border-b md:w-96 md:max-w-sm md:flex-shrink-0 md:border-b-0 md:border-r"
+            style={{ borderColor: "var(--border)" }}
+            aria-label="Applicant list"
+          >
+            <div className="h-full overflow-y-auto">
+              <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
+                {!selectedJobId ? (
+                  <li className="p-4 text-sm opacity-80">Select a job to view applicants.</li>
+                ) : isLoadingApplicants ? (
+                  <li className="p-4 text-sm opacity-80">Loading applicants...</li>
+                ) : filteredApplicants.length === 0 ? (
+                  <li className="p-4 text-sm opacity-80">No applicants match your filters.</li>
+                ) : (
+                  filteredApplicants.map((candidate) => {
+                    const active = candidate.applicationId === selectedApplicant?.applicationId;
+                    const saved = isSaved(candidate.applicationId);
+                    return (
+                      <li key={candidate.applicationId}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedApplicationId(candidate.applicationId)}
+                          className={`w-full p-4 text-left transition ${active ? "bg-[--surface] ring-1 ring-[--brandBlue]" : "hover:bg-[--surface]"}`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <h3 className="font-semibold">{candidate.applicant.name}</h3>
+                              <p className="mt-1 text-sm opacity-90">
+                                {candidate.applicant.headline ?? "No headline yet"}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {saved ? (
+                                <span className="rounded-md bg-[--brandBlue] px-2 py-0.5 text-xs text-white">
+                                  Saved
+                                </span>
+                              ) : null}
+                              <span className="rounded-md border px-2 py-0.5 text-xs" style={{ borderColor: "var(--border)" }}>
+                                {formatDate(candidate.submittedAt) || "Pending"}
+                              </span>
+                            </div>
                           </div>
-                          <span className="rounded-md border px-2 py-0.5 text-xs" style={{ borderColor: "var(--border)" }}>
-                            {candidate.graduationYear}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-xs opacity-80">
-                          Applied {new Date(candidate.submittedAt).toLocaleDateString()}
-                        </p>
-                      </button>
-                    </li>
-                  );
-                })
-              )}
-            </ul>
-          </div>
-        </aside>
+                          <p className="mt-2 text-xs opacity-80">
+                            {candidate.applicant.email ?? "Email unavailable"}
+                          </p>
+                        </button>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+            </div>
+          </aside>
 
-        <section className="flex-1 overflow-y-auto p-6">
-          {!selectedApplicant ? (
-            <div className="card">Select an applicant to view their profile.</div>
-          ) : (
-            <article className="card-wide flex h-full flex-col gap-6">
-              <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold">{selectedApplicant.name}</h2>
-                  <p className="opacity-90">
-                    {selectedApplicant.major} · {selectedApplicant.school}
-                  </p>
-                  <p className="text-sm opacity-80">
-                    {selectedApplicant.location} · Grad {selectedApplicant.graduationYear}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-sm opacity-90">
-                  <span>{selectedApplicant.email}</span>
-                  <span>{selectedApplicant.phone}</span>
-                </div>
-              </header>
-
-              <section>
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Top skills</h3>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedApplicant.skills.map((s) => (
-                    <span
-                      key={s}
-                      className="rounded-xl px-3 py-1 text-xs"
-                      style={{ backgroundColor: "var(--brandBlue)", color: "#fff" }}
-                    >
-                      {s}
+          <section className="flex-1 overflow-y-auto p-6">
+            {!selectedJobId ? (
+              <div className="card">Select a job to view its applicants.</div>
+            ) : isLoadingApplicants ? (
+              <div className="card">Loading applicants for this job...</div>
+            ) : !selectedApplicant ? (
+              <div className="card">No applicants to show for this job yet.</div>
+            ) : (
+              <article className="card-wide flex h-full flex-col gap-6">
+                <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-semibold">{selectedApplicant.applicant.name}</h2>
+                    <p className="opacity-90">
+                      {selectedApplicant.applicant.headline ?? "No headline yet"}
+                    </p>
+                    <p className="text-sm opacity-80">
+                      {selectedApplicant.applicant.desiredLocation
+                        ? `Preferred location: ${selectedApplicant.applicant.desiredLocation}`
+                        : "Location preference not provided."}
+                    </p>
+                    <p className="text-xs uppercase tracking-wide text-white/70">
+                      Applied {formatDate(selectedApplicant.submittedAt) || "N/A"} • Status {selectedApplicant.status}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start gap-2 text-sm opacity-90 md:items-end">
+                    <span>{selectedApplicant.applicant.email ?? "Email unavailable"}</span>
+                    {selectedJob ? <span>Job: {selectedJob.title}</span> : null}
+                    <span className="rounded-full border border-[--border] px-3 py-1 text-xs">
+                      Application ID: {selectedApplicant.applicationId}
                     </span>
-                  ))}
-                </div>
-              </section>
-
-              <section className="space-y-2">
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Summary</h3>
-                <p className="leading-relaxed">{selectedApplicant.summary}</p>
-              </section>
-
-              <section className="space-y-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Experience</h3>
-                {selectedApplicant.experience.map((item, idx) => (
-                  <div key={`${item.company}-${idx}`} className="rounded-xl border border-[--border] bg-[--surface] p-4">
-                    <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <p className="font-semibold">{item.role}</p>
-                        <p className="text-sm opacity-80">{item.company}</p>
-                      </div>
-                      <p className="text-xs opacity-70">{item.duration}</p>
-                    </div>
-                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm opacity-90">
-                      {item.highlights.map((h) => (
-                        <li key={h}>{h}</li>
-                      ))}
-                    </ul>
                   </div>
-                ))}
-              </section>
+                </header>
 
-              <section className="space-y-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Projects</h3>
-                {selectedApplicant.projects.map((p) => (
-                  <div key={p.name} className="rounded-xl border border-[--border] bg-[--surface] p-4">
-                    <p className="font-semibold">{p.name}</p>
-                    <p className="mt-1 text-sm opacity-90">{p.description}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {p.skills.map((ps) => (
-                        <span key={ps} className="rounded-xl border border-[--border] px-3 py-1 text-xs opacity-80">
-                          {ps}
+                <section>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Top skills</h3>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedApplicant.applicant.skills.length === 0 ? (
+                      <p className="text-sm opacity-80">No skills added yet.</p>
+                    ) : (
+                      selectedApplicant.applicant.skills.map((s) => (
+                        <span
+                          key={s.name}
+                          className="rounded-xl px-3 py-1 text-xs"
+                          style={{ backgroundColor: "var(--brandBlue)", color: "#fff" }}
+                        >
+                          {s.name}
+                          {typeof s.years === "number" ? ` • ${s.years} yrs` : ""}
                         </span>
-                      ))}
-                    </div>
+                      ))
+                    )}
                   </div>
-                ))}
-              </section>
+                </section>
 
-              <div className="mt-auto flex flex-wrap gap-3">
-                <Button className="btn-brand">Request interview</Button>
-                <Button
-                  type="button"
-                  className="btn-outline-brand h-11"
-                  disabled={!selectedApplicant}
-                  onClick={() => {
-                    setIsMessageComposerOpen((prev) => !prev);
-                    setMessageError("");
-                    setMessageSuccess(null);
-                  }}
-                >
-                  {isMessageComposerOpen ? "Close message" : "Send message"}
-                </Button>
-                <Button className="btn-brand">View resume</Button>
-              </div>
+                <section className="space-y-4">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Experience</h3>
+                  {selectedApplicant.applicant.experiences.length === 0 ? (
+                    <p className="text-sm opacity-80">No experience listed.</p>
+                  ) : (
+                    selectedApplicant.applicant.experiences.map((item) => (
+                      <div key={item.id} className="rounded-xl border border-[--border] bg-[--surface] p-4">
+                        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <p className="font-semibold">{item.title ?? "Role not specified"}</p>
+                            <p className="text-sm opacity-80">{item.company ?? "Company not specified"}</p>
+                          </div>
+                          <p className="text-xs opacity-70">
+                            {[formatDate(item.startDate), formatDate(item.endDate)].filter(Boolean).join(" - ") || "Timing not provided"}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-xs opacity-70">{item.location ?? ""}</p>
+                        {item.description ? <p className="mt-3 text-sm opacity-90">{item.description}</p> : null}
+                      </div>
+                    ))
+                  )}
+                </section>
 
-              {isMessageComposerOpen && selectedApplicant ? (
-                <form
-                  className="mt-4 space-y-3 rounded-xl border border-[--border] bg-[--surface] p-4"
-                  onSubmit={handleSendMessage}
-                >
-                  <div className="space-y-1">
-                    <label className="text-sm font-semibold text-[--foreground]">
-                      Message to {selectedApplicant.name}
-                    </label>
-                    <textarea
-                      value={messageText}
-                      onChange={(e) => {
-                        setMessageText(e.target.value);
-                        if (messageError) setMessageError("");
-                        if (messageSuccess) setMessageSuccess(null);
-                      }}
-                      className="min-h-[120px] w-full rounded-xl border border-[--border] bg-[--background] px-3 py-2 text-sm text-[--foreground] outline-none transition focus:border-[--brandBlue] focus:ring-2 focus:ring-[--brandBlue] focus:ring-opacity-30"
-                      placeholder="Introduce yourself, mention why you're reaching out, and share next steps..."
-                    />
-                  </div>
-                  {messageError ? <p className="text-sm text-red-500">{messageError}</p> : null}
-                  {messageSuccess ? <p className="text-sm text-green-500">{messageSuccess}</p> : null}
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="submit" className="btn-brand" isLoading={isSendingMessage}>
-                      Send
-                    </Button>
-                    <Button
-                      type="button"
-                      className="btn-outline-brand"
-                      onClick={() => {
-                        setIsMessageComposerOpen(false);
-                        setMessageText("");
-                        setMessageError("");
-                        setMessageSuccess(null);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              ) : null}
-            </article>
-          )}
-        </section>
-      </div>
+                <section className="space-y-4">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Education</h3>
+                  {selectedApplicant.applicant.degrees.length === 0 ? (
+                    <p className="text-sm opacity-80">No education details listed.</p>
+                  ) : (
+                    selectedApplicant.applicant.degrees.map((degree) => (
+                      <div key={degree.id} className="rounded-xl border border-[--border] bg-[--surface] p-4">
+                        <p className="font-semibold">{degree.school}</p>
+                        <p className="text-sm opacity-80">
+                          {[degree.degree, degree.field].filter(Boolean).join(" • ") || "Degree not specified"}
+                        </p>
+                        <p className="text-xs opacity-70">
+                          {[formatDate(degree.startDate), formatDate(degree.endDate)].filter(Boolean).join(" - ") || "Dates not provided"}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </section>
+
+                <section className="space-y-4">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Certificates</h3>
+                  {selectedApplicant.applicant.certificates.length === 0 ? (
+                    <p className="text-sm opacity-80">No certificates listed.</p>
+                  ) : (
+                    selectedApplicant.applicant.certificates.map((cert) => (
+                      <div key={cert.id} className="rounded-xl border border-[--border] bg-[--surface] p-4">
+                        <p className="font-semibold">{cert.name}</p>
+                        <p className="text-sm opacity-80">{cert.issuer ?? "Issuer not provided"}</p>
+                        <p className="text-xs opacity-70">
+                          {cert.issuedAt ? `Issued ${formatDate(cert.issuedAt)}` : "Issued date not provided"}
+                          {cert.expirationDate ? ` • Expires ${formatDate(cert.expirationDate)}` : ""}
+                        </p>
+                        {cert.credentialUrl ? (
+                          <a
+                            href={cert.credentialUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-[--brandBlue] underline"
+                          >
+                            Credential link
+                          </a>
+                        ) : null}
+                      </div>
+                    ))
+                  )}
+                </section>
+
+                <div className="mt-auto flex flex-wrap gap-3">
+                  <Button className="btn-brand" onClick={() => selectedApplicant.applicant.resumeUrl && window.open(selectedApplicant.applicant.resumeUrl, "_blank")} disabled={!selectedApplicant.applicant.resumeUrl}>
+                    {selectedApplicant.applicant.resumeUrl ? "View resume" : "No resume uploaded"}
+                  </Button>
+                  <Button
+                    type="button"
+                    className={
+                      isSaved(selectedApplicant.applicationId)
+                        ? "btn-brand h-11 bg-white text-[--brand]"
+                        : "btn-outline-brand h-11"
+                    }
+                    disabled={!selectedApplicant}
+                    onClick={() => toggleSave(selectedApplicant.applicationId)}
+                  >
+                    {isSaved(selectedApplicant.applicationId) ? "Unsave" : "Save"}
+                  </Button>
+                </div>
+              </article>
+            )}
+          </section>
+        </div>
       </main>
       <Footer />
     </>

@@ -37,6 +37,8 @@ model User {
   experiences  Experience[]
   userSkills   UserSkill[]
   jobs         Job[]
+  jobApplications     JobApplication[] @relation("ApplicantApplications")
+  receivedApplications JobApplication[] @relation("CompanyApplications")
 }
 
 model Account {
@@ -200,6 +202,7 @@ model Job {
 
   company User      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   skills  JobSkill[]
+  applications JobApplication[]
 
   @@index([companyId])
   @@index([postedAt])
@@ -215,4 +218,22 @@ model JobSkill {
 
   @@unique([jobId, skillId])
   @@index([jobId])
+}
+
+model JobApplication {
+  id          String   @id @default(cuid())
+  jobId       String
+  applicantId String
+  companyId   String?
+  status      String   @default("SUBMITTED")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  job       Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicant User  @relation("ApplicantApplications", fields: [applicantId], references: [id], onDelete: Cascade)
+  company   User? @relation("CompanyApplications", fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@unique([jobId, applicantId])
+  @@index([companyId])
+  @@index([applicantId])
 }

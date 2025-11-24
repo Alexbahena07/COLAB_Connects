@@ -77,7 +77,11 @@ export default function DashboardPage() {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [location, setLocation] = useState("");
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
+  const [applySuccess, setApplySuccess] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -210,6 +214,14 @@ export default function DashboardPage() {
   const selectedJob =
     (selectedJobId ? filteredJobs.find((job) => job.id === selectedJobId) : filteredJobs[0]) ?? null;
 
+  const hasApplied = selectedJob ? appliedJobIds.has(selectedJob.id) : false;
+
+  useEffect(() => {
+    setApplyError(null);
+    setApplySuccess(null);
+    setIsApplying(false);
+  }, [selectedJobId]);
+
   const noJobsAvailable =
     !isLoading &&
     jobs.length === 0 &&
@@ -233,6 +245,56 @@ export default function DashboardPage() {
   const isJobSaved = (jobId: string | null | undefined) => {
     if (!jobId) return false;
     return savedJobIds.has(jobId);
+  };
+
+  const handleApply = async () => {
+    if (!selectedJob) return;
+    setApplyError(null);
+    setApplySuccess(null);
+    setIsApplying(true);
+
+    try {
+      const response = await fetch(`/api/jobs/${selectedJob.id}/apply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jobTitle: selectedJob.title,
+          jobCompany: selectedJob.company,
+          jobLocation: selectedJob.location,
+          jobType: selectedJob.type,
+          jobRemote: selectedJob.remote,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorMessage =
+          typeof payload?.error === "string"
+            ? payload.error
+            : "We couldn't send your profile. Please try again.";
+        setApplyError(errorMessage);
+        return;
+      }
+
+      const message =
+        typeof payload?.message === "string"
+          ? payload.message
+          : `Your profile was sent to ${selectedJob.company}.`;
+      setApplySuccess(message);
+      setAppliedJobIds((previous) => {
+        const next = new Set(previous);
+        next.add(selectedJob.id);
+        return next;
+      });
+    } catch (error) {
+      console.error("Failed to apply to job", error);
+      setApplyError("We couldn't reach the application service. Please try again.");
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -453,7 +515,14 @@ export default function DashboardPage() {
               </section>
 
               <div className="mt-auto flex flex-wrap gap-3">
-                <Button className="btn-brand">Apply</Button>
+                <Button
+                  className="btn-brand"
+                  onClick={handleApply}
+                  isLoading={isApplying}
+                  disabled={!selectedJob || hasApplied}
+                >
+                  {hasApplied ? "Applied" : "Apply"}
+                </Button>
                 <Button
                   className={isJobSaved(selectedJob.id) ? "btn-brand bg-white text-[--brand]" : "btn-outline-brand"}
                   onClick={() => toggleSaveJob(selectedJob.id)}
@@ -462,6 +531,13 @@ export default function DashboardPage() {
                 </Button>
                 <Button className="btn-outline-brand">Share</Button>
               </div>
+
+              {applyError ? (
+                <p className="text-sm text-red-500">{applyError}</p>
+              ) : null}
+              {applySuccess ? (
+                <p className="text-sm text-green-500">{applySuccess}</p>
+              ) : null}
             </article>
           )}
         </section>
