@@ -59,6 +59,39 @@ const normalizeSkillsInput = (value: string) =>
     .map((skill) => skill.trim())
     .filter((skill, index, array) => skill.length > 0 && array.indexOf(skill) === index);
 
+const parseJob = (job: unknown): CompanyJob | null => {
+  if (!job || typeof job !== "object") return null;
+  const raw = job as Record<string, unknown>;
+  const id = typeof raw.id === "string" ? raw.id : null;
+  const title = typeof raw.title === "string" ? raw.title : null;
+  const location = typeof raw.location === "string" ? raw.location : null;
+  const description = typeof raw.description === "string" ? raw.description : null;
+  const postedAtValue = raw.postedAt;
+  const postedAt =
+    typeof postedAtValue === "string"
+      ? postedAtValue
+      : postedAtValue instanceof Date
+      ? postedAtValue.toISOString()
+      : new Date(postedAtValue ?? Date.now()).toISOString();
+
+  if (!id || !title || !location || !description) return null;
+
+  const skills = Array.isArray(raw.skills)
+    ? raw.skills.filter((skill: unknown): skill is string => typeof skill === "string")
+    : [];
+
+  return {
+    id,
+    title,
+    location,
+    type: coerceJobType(raw.type),
+    remote: Boolean(raw.remote),
+    description,
+    postedAt,
+    skills,
+  };
+};
+
 export default function CompanyJobsPage() {
   const [companyJobs, setCompanyJobs] = useState<CompanyJob[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
@@ -91,35 +124,7 @@ export default function CompanyJobsPage() {
 
         if (Array.isArray(payload.jobs)) {
           const parsed = payload.jobs
-            .map((job: any) => {
-              if (!job || typeof job !== "object") return null;
-              const { id, title, location, type, remote, description, postedAt, skills } = job;
-              if (
-                typeof id !== "string" ||
-                typeof title !== "string" ||
-                typeof location !== "string" ||
-                typeof description !== "string"
-              ) {
-                return null;
-              }
-              return {
-                id,
-                title,
-                location,
-                type: coerceJobType(type),
-                remote: Boolean(remote),
-                description,
-                postedAt:
-                  typeof postedAt === "string"
-                    ? postedAt
-                    : postedAt instanceof Date
-                    ? postedAt.toISOString()
-                    : new Date(postedAt ?? Date.now()).toISOString(),
-                skills: Array.isArray(skills)
-                  ? skills.filter((skill: unknown): skill is string => typeof skill === "string")
-                  : [],
-              } satisfies CompanyJob;
-            })
+            .map((job: unknown) => parseJob(job))
             .filter((job: CompanyJob | null): job is CompanyJob => job !== null);
           setCompanyJobs(parsed);
         } else {
@@ -278,31 +283,16 @@ export default function CompanyJobsPage() {
         return;
       }
 
-      const jobPayload = payload?.job;
-      if (jobPayload && typeof jobPayload === "object") {
+      const jobPayload = parseJob(payload?.job);
+      if (jobPayload) {
         setCompanyJobs((previous) => {
           const withoutCurrent = previous.filter((existing) => existing.id !== jobPayload.id);
-          const nextJob: CompanyJob = {
-            id: jobPayload.id,
-            title: jobPayload.title,
-            location: jobPayload.location,
-            type: coerceJobType(jobPayload.type),
-            remote: Boolean(jobPayload.remote),
-            description: jobPayload.description,
-            postedAt:
-              typeof jobPayload.postedAt === "string"
-                ? jobPayload.postedAt
-                : new Date(jobPayload.postedAt ?? Date.now()).toISOString(),
-            skills: Array.isArray(jobPayload.skills)
-              ? jobPayload.skills.filter((skill: unknown): skill is string => typeof skill === "string")
-              : [],
-          };
-          return [nextJob, ...withoutCurrent];
+          return [jobPayload, ...withoutCurrent];
         });
       }
 
       const successMessage = (() => {
-        if (typeof jobPayload?.title === "string") {
+        if (jobPayload?.title) {
           return isEditing
             ? `"${jobPayload.title}" was updated.`
             : `"${jobPayload.title}" is live for students.`;
@@ -436,8 +426,8 @@ export default function CompanyJobsPage() {
                             {job.title}
                           </h3>
                           <p className="text-xs text-[--foreground]/70">
-                            {job.location} • {getJobTypeLabel(job.type)}{" "}
-                            {job.remote ? "• Remote friendly" : ""}
+                            {job.location} | {getJobTypeLabel(job.type)}{" "}
+                            {job.remote ? "| Remote friendly" : ""}
                           </p>
                           <p className="text-xs text-[--foreground]/60">
                             Posted {new Date(job.postedAt).toLocaleDateString()}
@@ -600,7 +590,7 @@ export default function CompanyJobsPage() {
                 error={jobFormErrors.skills}
               />
               <p className="text-xs text-white/80">
-                Include 3-5 skills students should bring. We'll automatically remove duplicates.
+                Include 3-5 skills students should bring. We&apos;ll automatically remove duplicates.
               </p>
 
               <div className="flex flex-wrap gap-2">

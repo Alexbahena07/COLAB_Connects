@@ -4,8 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/Button";
 import type {
   LinkedInPreviewPayload,
-  LinkedInExperiencePreview,
-  LinkedInCertificationPreview,
 } from "@/types/linkedin";
 
 type FetchState = {

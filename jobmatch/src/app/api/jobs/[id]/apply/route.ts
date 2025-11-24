@@ -28,8 +28,60 @@ const applicantSelect = {
   },
 } as const;
 
-const formatApplicant = (applicant: any) => {
-  const profile = applicant.profile ?? {};
+type ApplicantWithRelations = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  profile: {
+    firstName: string | null;
+    lastName: string | null;
+    headline: string | null;
+    desiredLocation: string | null;
+    resumeFileName: string | null;
+    resumeFileType: string | null;
+  } | null;
+  degrees: Array<{
+    id: string;
+    school: string | null;
+    degree: string | null;
+    field: string | null;
+    startDate: Date | null;
+    endDate: Date | null;
+  }>;
+  certificates: Array<{
+    id: string;
+    name: string | null;
+    issuer: string | null;
+    issuedAt: Date | null;
+    expirationDate: Date | null;
+    credentialId: string | null;
+    credentialUrl: string | null;
+  }>;
+  experiences: Array<{
+    id: string;
+    title: string | null;
+    company: string | null;
+    startDate: Date | null;
+    endDate: Date | null;
+    location: string | null;
+    employmentType: string | null;
+    description: string | null;
+  }>;
+  userSkills: Array<{
+    skill: { name: string };
+    years: number | null;
+  }>;
+};
+
+const formatApplicant = (applicant: ApplicantWithRelations) => {
+  const profile = applicant.profile ?? {
+    firstName: null,
+    lastName: null,
+    headline: null,
+    desiredLocation: null,
+    resumeFileName: null,
+    resumeFileType: null,
+  };
   const computedName = `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim();
 
   return {
@@ -47,7 +99,7 @@ const formatApplicant = (applicant: any) => {
     degrees: applicant.degrees,
     certificates: applicant.certificates,
     experiences: applicant.experiences,
-    skills: (applicant.userSkills ?? []).map((userSkill: any) => ({
+    skills: (applicant.userSkills ?? []).map((userSkill) => ({
       name: userSkill.skill?.name,
       years: userSkill.years ?? null,
     })),

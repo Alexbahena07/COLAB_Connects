@@ -10,6 +10,38 @@ type ResumePayload = {
   dataUrl: string;
 };
 
+type DegreePayload = {
+  school: string;
+  degree: string | null;
+  field: string | null;
+  startDate: Date | null;
+  endDate: Date | null;
+};
+
+type CertificatePayload = {
+  name: string;
+  issuer: string | null;
+  issuedAt: Date | null;
+  expirationDate: Date | null;
+  credentialId: string | null;
+  credentialUrl: string | null;
+};
+
+type ExperiencePayload = {
+  title: string;
+  company: string;
+  startDate: Date | null;
+  endDate: Date | null;
+  location: string | null;
+  employmentType: string | null;
+  description: string | null;
+};
+
+type SkillPayload = {
+  name: string;
+  years: number | null;
+};
+
 function normalizeResumePayload(input: unknown): ResumePayload | null {
   if (!input || typeof input !== "object") return null;
   const raw = input as Record<string, unknown>;
@@ -32,6 +64,71 @@ function normalizeResumePayload(input: unknown): ResumePayload | null {
   return { fileName, fileType, dataUrl };
 }
 
+const toDateOrNull = (value: unknown): Date | null => {
+  if (typeof value === "string" || typeof value === "number" || value instanceof Date) {
+    const date = new Date(value);
+    return Number.isNaN(date.valueOf()) ? null : date;
+  }
+  return null;
+};
+
+const normalizeDegree = (input: unknown): DegreePayload | null => {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  const school = typeof raw.school === "string" ? raw.school : "";
+  if (!school) return null;
+  return {
+    school,
+    degree: typeof raw.degree === "string" ? raw.degree : null,
+    field: typeof raw.field === "string" ? raw.field : null,
+    startDate: toDateOrNull(raw.startDate),
+    endDate: toDateOrNull(raw.endDate),
+  };
+};
+
+const normalizeCertificate = (input: unknown): CertificatePayload | null => {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  const name = typeof raw.name === "string" ? raw.name : "";
+  if (!name) return null;
+  return {
+    name,
+    issuer: typeof raw.issuer === "string" ? raw.issuer : null,
+    issuedAt: toDateOrNull(raw.issuedAt),
+    expirationDate: toDateOrNull(raw.expirationDate),
+    credentialId: typeof raw.credentialId === "string" ? raw.credentialId : null,
+    credentialUrl: typeof raw.credentialUrl === "string" ? raw.credentialUrl : null,
+  };
+};
+
+const normalizeExperience = (input: unknown): ExperiencePayload | null => {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  const title = typeof raw.title === "string" ? raw.title : "";
+  const company = typeof raw.company === "string" ? raw.company : "";
+  if (!title && !company) return null;
+  return {
+    title,
+    company,
+    startDate: toDateOrNull(raw.startDate),
+    endDate: toDateOrNull(raw.endDate),
+    location: typeof raw.location === "string" ? raw.location : null,
+    employmentType: typeof raw.employmentType === "string" ? raw.employmentType : null,
+    description: typeof raw.description === "string" ? raw.description : null,
+  };
+};
+
+const normalizeSkill = (input: unknown): SkillPayload | null => {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  const name = typeof raw.name === "string" ? raw.name : "";
+  if (!name) return null;
+  return {
+    name,
+    years: typeof raw.years === "number" ? raw.years : null,
+  };
+};
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -46,7 +143,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const rawBody = (await req.json().catch(() => null)) as unknown;
+  if (!rawBody || typeof rawBody !== "object") {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+  const body = rawBody as Record<string, unknown>;
   const {
     profile,
     degrees = [],
@@ -111,53 +212,67 @@ export async function POST(req: Request) {
 
       // Degrees: replace
       await tx.degree.deleteMany({ where: { userId: user.id } });
-      if (Array.isArray(degrees) && degrees.length) {
+      const degreePayloads = (Array.isArray(degrees) ? degrees : [])
+        .map((degree) => normalizeDegree(degree))
+        .filter((degree): degree is DegreePayload => Boolean(degree));
+      if (degreePayloads.length) {
         await tx.degree.createMany({
-          data: degrees.map((d: any) => ({
+          data: degreePayloads.map((d) => ({
             userId: user.id,
-            school: d.school || "",
-            degree: d.degree ?? null,
-            field: d.field ?? null,
-            startDate: d.startDate ? new Date(d.startDate) : null,
-            endDate: d.endDate ? new Date(d.endDate) : null,
+            school: d.school,
+            degree: d.degree,
+            field: d.field,
+            startDate: d.startDate,
+            endDate: d.endDate,
           })),
         });
       }
 
       // Certificates: replace
       await tx.certificate.deleteMany({ where: { userId: user.id } });
-      if (Array.isArray(certificates) && certificates.length) {
+      const certificatePayloads = (Array.isArray(certificates) ? certificates : [])
+        .map((certificate) => normalizeCertificate(certificate))
+        .filter((certificate): certificate is CertificatePayload => Boolean(certificate));
+      if (certificatePayloads.length) {
         await tx.certificate.createMany({
-          data: certificates.map((c: any) => ({
+          data: certificatePayloads.map((c) => ({
             userId: user.id,
-            name: c.name || "",
-            issuer: c.issuer ?? null,
-            issuedAt: c.issuedAt ? new Date(c.issuedAt) : null,
-            credentialId: c.credentialId ?? null,
-            credentialUrl: c.credentialUrl ?? null,
+            name: c.name,
+            issuer: c.issuer,
+            issuedAt: c.issuedAt,
+            expirationDate: c.expirationDate,
+            credentialId: c.credentialId,
+            credentialUrl: c.credentialUrl,
           })),
         });
       }
 
       // Experiences: replace
       await tx.experience.deleteMany({ where: { userId: user.id } });
-      if (Array.isArray(experiences) && experiences.length) {
+      const experiencePayloads = (Array.isArray(experiences) ? experiences : [])
+        .map((experience) => normalizeExperience(experience))
+        .filter((experience): experience is ExperiencePayload => Boolean(experience));
+      if (experiencePayloads.length) {
         await tx.experience.createMany({
-          data: experiences.map((e: any) => ({
+          data: experiencePayloads.map((e) => ({
             userId: user.id,
-            title: e.title || "",
-            company: e.company || "",
-            startDate: e.startDate ? new Date(e.startDate) : null,
-            endDate: e.endDate ? new Date(e.endDate) : null,
-            description: e.description ?? null,
+            title: e.title,
+            company: e.company,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            location: e.location,
+            employmentType: e.employmentType,
+            description: e.description,
           })),
         });
       }
 
       // Skills: replace (no level)
       await tx.userSkill.deleteMany({ where: { userId: user.id } });
-      for (const s of Array.isArray(skills) ? skills : []) {
-        if (!s?.name) continue;
+      const skillPayloads = (Array.isArray(skills) ? skills : [])
+        .map((skill) => normalizeSkill(skill))
+        .filter((skill): skill is SkillPayload => Boolean(skill));
+      for (const s of skillPayloads) {
         const skill = await tx.skill.upsert({
           where: { name: s.name },
           create: { name: s.name },

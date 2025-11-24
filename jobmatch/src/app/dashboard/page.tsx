@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header_with_Icons";
@@ -98,7 +97,7 @@ export default function DashboardPage() {
 
         if (Array.isArray(payload.jobs)) {
           const parsedJobs = payload.jobs
-            .map((job: any) => {
+            .map((job: unknown) => {
               if (!job || typeof job !== "object") return null;
 
               const {

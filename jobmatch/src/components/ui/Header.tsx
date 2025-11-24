@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useSession, signOut } from "next-auth/react";
-
 export default function Header() {
-  const { data: session, status } = useSession();
 
   return (
     <header className="bg-[--brand] text-[--brand]">

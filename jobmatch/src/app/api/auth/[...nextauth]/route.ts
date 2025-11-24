@@ -69,8 +69,9 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      if (user) {
-        token.id = (user as any).id;
+      const userId = typeof user?.id === "string" ? user.id : undefined;
+      if (userId) {
+        token.id = userId;
       }
       if (account?.provider === "linkedin") {
         if (account.access_token) {

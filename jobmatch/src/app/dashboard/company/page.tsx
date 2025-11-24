@@ -63,6 +63,48 @@ type JobListing = {
   title: string;
 };
 
+const parseJobListing = (job: unknown): JobListing | null => {
+  if (!job || typeof job !== "object") return null;
+  const raw = job as Record<string, unknown>;
+  const id = typeof raw.id === "string" ? raw.id : null;
+  const title = typeof raw.title === "string" ? raw.title : null;
+  if (!id || !title) return null;
+  return { id, title };
+};
+
+const parseApplicantApplication = (
+  application: unknown,
+  fallbackJobId: string
+): ApplicantApplication | null => {
+  if (!application || typeof application !== "object") return null;
+  const raw = application as Record<string, unknown>;
+  const applicationIdCandidate =
+    raw.applicationId ??
+    raw.id ??
+    (typeof raw["applicationID"] === "string" ? raw["applicationID"] : null);
+  const applicationId = typeof applicationIdCandidate === "string" ? applicationIdCandidate : null;
+  if (!applicationId) return null;
+
+  const applicantRaw = raw.applicant;
+  if (!applicantRaw || typeof applicantRaw !== "object") return null;
+
+  const skills = Array.isArray((applicantRaw as ApplicantProfile).skills)
+    ? (applicantRaw as ApplicantProfile).skills
+    : [];
+
+  return {
+    applicationId,
+    jobId: typeof raw.jobId === "string" ? raw.jobId : fallbackJobId,
+    status: typeof raw.status === "string" ? raw.status : "SUBMITTED",
+    submittedAt:
+      typeof raw.submittedAt === "string" ? raw.submittedAt : new Date().toISOString(),
+    applicant: {
+      ...(applicantRaw as ApplicantProfile),
+      skills,
+    },
+  };
+};
+
 const formatDate = (value: string | null | undefined) => {
   if (!value) return "";
   const parsed = new Date(value);
@@ -96,12 +138,7 @@ export default function CompanyDashboardPage() {
 
         if (response.ok && Array.isArray(payload?.jobs)) {
           const parsed = payload.jobs
-            .map((job: any): JobListing | null => {
-              if (!job || typeof job !== "object" || typeof job.id !== "string" || typeof job.title !== "string") {
-                return null;
-              }
-              return { id: job.id, title: job.title };
-            })
+            .map((job: unknown): JobListing | null => parseJobListing(job))
             .filter((job): job is JobListing => job !== null);
 
           setJobs(parsed);
@@ -162,22 +199,12 @@ export default function CompanyDashboardPage() {
 
         const parsedApplicants: ApplicantApplication[] = Array.isArray(payload?.applicants)
           ? payload.applicants
-              .map((application: any) => ({
-                applicationId: String(application.applicationId),
-                jobId: String(application.jobId ?? selectedJobId),
-                status: typeof application.status === "string" ? application.status : "SUBMITTED",
-                submittedAt:
-                  typeof application.submittedAt === "string" ? application.submittedAt : new Date().toISOString(),
-                applicant: {
-                  ...(application.applicant as ApplicantProfile),
-                  skills: Array.isArray(application?.applicant?.skills) ? application.applicant.skills : [],
-                },
-              }))
+              .map((application: unknown) => parseApplicantApplication(application, selectedJobId))
               .filter(
-                (application) =>
-                  Boolean(application.applicationId) &&
-                  Boolean(application.applicant) &&
-                  Array.isArray(application.applicant.skills)
+                (application): application is ApplicantApplication =>
+                  Boolean(application?.applicationId) &&
+                  Boolean(application?.applicant) &&
+                  Array.isArray(application?.applicant.skills)
               )
           : [];
 

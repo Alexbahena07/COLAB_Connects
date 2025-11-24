@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -105,7 +106,7 @@ export default function RegisterPage() {
     let encodedPhoto: string;
     try {
       encodedPhoto = await fileToDataUrl(photoFile);
-    } catch (error) {
+    } catch {
       setServerError("We couldn't read that image. Try a different file.");
       return;
     }
@@ -252,9 +253,11 @@ export default function RegisterPage() {
 
               {photoPreview ? (
                 <div className="flex items-center gap-3">
-                  <img
+                  <Image
                     src={photoPreview}
                     alt="Profile preview"
+                    width={64}
+                    height={64}
                     className="h-16 w-16 rounded-full border border-[--border] object-cover shadow-sm"
                   />
                   <span className="text-xs text-gray-600">Looks great! You can swap this out by uploading a different file.</span>
