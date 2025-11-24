@@ -11,7 +11,7 @@ async function fetchLinkedInEndpoint(
   accessToken: string,
   endpoint: string,
   params: Record<string, string> = {}
-): Promise<any | null> {
+): Promise<unknown | null> {
   const search = new URLSearchParams(params);
   const url = `${LINKEDIN_API_BASE}/${endpoint}${search.size ? `?${search.toString()}` : ""}`;
   try {
@@ -37,69 +37,94 @@ function fallbackId(seed: string): string {
   return crypto.createHash("sha1").update(seed).digest("hex").slice(0, 24);
 }
 
-function normalizeDate(input: any): string | null {
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+
+const pickString = (value: unknown): string | null =>
+  typeof value === "string" && value.trim().length > 0 ? value : null;
+
+const readLocalizedString = (value: unknown): string | null => {
+  const direct = pickString(value);
+  if (direct) return direct;
+
+  const record = asRecord(value);
+  if (!record) return null;
+
+  const localized = asRecord(record.localized);
+  return (
+    pickString(localized?.en_US) ??
+    pickString(localized?.["en_US"]) ??
+    pickString(localized?.defaultLocale) ??
+    pickString(record.text) ??
+    null
+  );
+};
+
+function normalizeDate(input: unknown): string | null {
   if (!input) return null;
   if (typeof input === "string") {
     const parsed = new Date(input);
     if (!Number.isNaN(parsed.valueOf())) return parsed.toISOString();
     return null;
   }
-  if (typeof input === "object" && ("year" in input || "month" in input)) {
-    const year = Number(input.year) || undefined;
+  if (typeof input === "object" && ("year" in (input as Record<string, unknown>) || "month" in (input as Record<string, unknown>))) {
+    const record = input as Record<string, unknown>;
+    const year = Number(record.year) || undefined;
     if (!year) return null;
-    const month = Number(input.month) || 1;
-    const day = Number(input.day) || 1;
+    const month = Number(record.month) || 1;
+    const day = Number(record.day) || 1;
     const parsed = new Date(Date.UTC(year, month - 1, day));
     if (!Number.isNaN(parsed.valueOf())) return parsed.toISOString();
   }
   return null;
 }
 
-function extractId(raw: any): string {
+function extractId(raw: unknown): string {
   if (!raw) return fallbackId(Math.random().toString());
-  const urn =
-    typeof raw.entityUrn === "string"
-      ? raw.entityUrn.split(":").pop()
-      : typeof raw.urn === "string"
-        ? raw.urn.split(":").pop()
+  const record = asRecord(raw);
+  const urnValue =
+    typeof record?.entityUrn === "string"
+      ? record.entityUrn
+      : typeof record?.urn === "string"
+        ? record.urn
         : undefined;
+  const urn = urnValue ? urnValue.split(":").pop() : undefined;
   if (urn) return urn;
-  if (typeof raw.id === "string") return raw.id;
-  if (typeof raw.$id === "string") return raw.$id;
+  if (typeof record?.id === "string") return record.id;
+  if (typeof record?.$id === "string") return record.$id;
   return fallbackId(JSON.stringify(raw));
 }
 
-function mapExperience(raw: any): LinkedInExperiencePreview | null {
+function mapExperience(raw: unknown): LinkedInExperiencePreview | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+
+  const companyRecord = asRecord(record.company);
+  const locationRecord = asRecord(record.locationName);
+  const timePeriod = asRecord(record.timePeriod);
+
   const id = extractId(raw);
   const title =
-    raw.title?.localized?.en_US ||
-    raw.title?.localized?.en_US ||
-    raw.title?.localized?.["en_US"] ||
-    raw.title?.localized?.defaultLocale ||
-    raw.title?.localized ||
-    raw.title?.text ||
-    raw.title ||
-    raw.positionTitle ||
-    raw.roleTitle;
+    readLocalizedString(record.title) ??
+    readLocalizedString(record.positionTitle) ??
+    readLocalizedString(record.roleTitle);
   const company =
-    raw.companyName?.localized?.en_US ||
-    raw.companyName?.text ||
-    raw.companyName ||
-    raw.company?.name ||
-    raw.company?.localizedName ||
-    raw.organizationName?.localized?.en_US ||
-    raw.organizationName ||
-    raw.company || "";
+    readLocalizedString(record.companyName) ??
+    readLocalizedString(companyRecord?.name) ??
+    readLocalizedString(companyRecord?.localizedName) ??
+    readLocalizedString(record.organizationName) ??
+    readLocalizedString(record.company) ??
+    "";
 
   if (!title || !company) return null;
 
   const startDate =
-    normalizeDate(raw.timePeriod?.startDate) ||
-    normalizeDate(raw.startDate) ||
+    normalizeDate(timePeriod?.startDate) ||
+    normalizeDate(record.startDate) ||
     null;
   const endDate =
-    normalizeDate(raw.timePeriod?.endDate) ||
-    normalizeDate(raw.endDate) ||
+    normalizeDate(timePeriod?.endDate) ||
+    normalizeDate(record.endDate) ||
     null;
 
   return {
@@ -109,47 +134,64 @@ function mapExperience(raw: any): LinkedInExperiencePreview | null {
     startDate,
     endDate,
     location:
-      raw.locationName?.localized?.en_US ||
-      raw.locationName ||
-      raw.location ||
-      raw.geoLocationName ||
+      readLocalizedString(locationRecord) ??
+      readLocalizedString(record.locationName) ??
+      readLocalizedString(record.location) ??
+      readLocalizedString(record.geoLocationName) ??
       null,
-    employmentType: raw.employmentType || raw.employmentStatus || null,
-    description: raw.description?.localized?.en_US || raw.description || null,
+    employmentType:
+      pickString(record.employmentType) ??
+      pickString(record.employmentStatus) ??
+      null,
+    description:
+      readLocalizedString(record.description) ??
+      readLocalizedString(record.summary) ??
+      null,
   };
 }
 
-function mapCertification(raw: any): LinkedInCertificationPreview | null {
+function mapCertification(raw: unknown): LinkedInCertificationPreview | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+
   const id = extractId(raw);
   const name =
-    raw.name?.localized?.en_US ||
-    raw.name?.text ||
-    raw.name ||
-    raw.title?.localized?.en_US ||
-    raw.title ||
-    raw.certificateName;
+    readLocalizedString(record.name) ??
+    readLocalizedString(record.title) ??
+    readLocalizedString(record.certificateName);
   if (!name) return null;
 
   return {
     id,
     name,
     issuer:
-      raw.authority?.localized?.en_US ||
-      raw.authority?.name ||
-      raw.issuer ||
-      raw.organization ||
+      readLocalizedString(record.authority) ??
+      readLocalizedString(record.issuer) ??
+      readLocalizedString(record.organization) ??
       null,
     issueDate:
-      normalizeDate(raw.issueDate) ||
-      normalizeDate(raw.issuedOn) ||
-      normalizeDate(raw.issuedAt) ||
+      normalizeDate(record.issueDate) ||
+      normalizeDate(record.issuedOn) ||
+      normalizeDate(record.issuedAt) ||
       null,
     expirationDate:
-      normalizeDate(raw.expirationDate) || normalizeDate(raw.expiresOn) || null,
-    credentialId: raw.credentialId || raw.licenseNumber || null,
-    credentialUrl: raw.credentialUrl || raw.verificationUrl || null,
+      normalizeDate(record.expirationDate) || normalizeDate(record.expiresOn) || null,
+    credentialId:
+      pickString(record.credentialId) ?? pickString(record.licenseNumber) ?? null,
+    credentialUrl:
+      pickString(record.credentialUrl) ??
+      pickString(record.verificationUrl) ??
+      null,
   };
 }
+
+const extractElements = (data: unknown): unknown[] => {
+  if (!data || typeof data !== "object") return [];
+  const record = data as Record<string, unknown>;
+  if (Array.isArray(record.elements)) return record.elements;
+  if (Array.isArray(record.values)) return record.values;
+  return [];
+};
 
 async function loadExperiences(accessToken: string): Promise<LinkedInExperiencePreview[]> {
   const candidates = ["positions", "experience", "positionsV2"];
@@ -157,7 +199,7 @@ async function loadExperiences(accessToken: string): Promise<LinkedInExperienceP
     const data = await fetchLinkedInEndpoint(accessToken, endpoint, {
       q: "me",
     });
-    const elements: any[] = data?.elements || data?.values || [];
+    const elements = extractElements(data);
     if (Array.isArray(elements) && elements.length) {
       return elements
         .map(mapExperience)
@@ -173,7 +215,7 @@ async function loadCertifications(accessToken: string): Promise<LinkedInCertific
     const data = await fetchLinkedInEndpoint(accessToken, endpoint, {
       q: "me",
     });
-    const elements: any[] = data?.elements || data?.values || [];
+    const elements = extractElements(data);
     if (Array.isArray(elements) && elements.length) {
       return elements
         .map(mapCertification)

@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
-  const { data: session, status } = useSession();
   const pathname = usePathname();
   const isCompany = pathname?.startsWith("/dashboard/company");
   const applicationHref = isCompany ? "/dashboard/company/application" : "/dashboard/application";
