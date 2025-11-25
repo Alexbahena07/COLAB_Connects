@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import LinkedInImportClient from "./LinkedInImportClient";
 import Header from "@/components/ui/Header";
 
@@ -29,3 +29,4 @@ export default async function LinkedInImportPage() {
     </>
   );
 }
+

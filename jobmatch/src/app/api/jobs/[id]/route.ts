@@ -1,8 +1,15 @@
+// src/app/api/jobs/[id]/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
 
 const updateJobSchema = z.object({
   title: z.string().min(1).max(200),
@@ -14,14 +21,21 @@ const updateJobSchema = z.object({
 });
 
 const normalizeSkills = (skills: string[]) =>
-  Array.from(new Set(skills.map((skill) => skill.trim()).filter((skill) => skill.length > 0)));
+  Array.from(
+    new Set(
+      skills
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+    )
+  );
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// ----------------------------------------
+// PATCH — Update Job
+// ----------------------------------------
+export async function PATCH(request: Request, context: RouteContext) {
+  const { id: jobId } = await context.params;
+
   const session = await getServerSession(authOptions);
-
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -32,17 +46,15 @@ export async function PATCH(
   });
 
   if (!companyUser || companyUser.accountType !== "COMPANY") {
-    return NextResponse.json({ error: "Only company accounts can update jobs" }, { status: 403 });
-  }
-
-  const jobId = params?.id;
-  if (!jobId) {
-    return NextResponse.json({ error: "Job id is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Only company accounts can update jobs" },
+      { status: 403 }
+    );
   }
 
   const existingJob = await prisma.job.findUnique({
     where: { id: jobId },
-    select: { id: true, companyId: true },
+    select: { companyId: true },
   });
 
   if (!existingJob) {
@@ -50,51 +62,51 @@ export async function PATCH(
   }
 
   if (existingJob.companyId !== companyUser.id) {
-    return NextResponse.json({ error: "You can only edit your own jobs" }, { status: 403 });
+    return NextResponse.json(
+      { error: "You can only edit your own jobs" },
+      { status: 403 }
+    );
   }
 
-  const parsedPayload = updateJobSchema.safeParse(await request.json().catch(() => ({})));
-  if (!parsedPayload.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsedPayload.error.flatten() }, { status: 400 });
+  const parsed = updateJobSchema.safeParse(await request.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
-  const { title, location, type, remote, description, skills = [] } = parsedPayload.data;
+  const { title, location, type, remote, description, skills = [] } =
+    parsed.data;
+
   const uniqueSkills = normalizeSkills(skills);
 
   try {
     const updatedJobId = await prisma.$transaction(async (tx) => {
       await tx.job.update({
         where: { id: jobId },
-        data: {
-          title,
-          location,
-          type,
-          remote,
-          description,
-        },
+        data: { title, location, type, remote, description },
       });
 
       await tx.jobSkill.deleteMany({ where: { jobId } });
 
       if (uniqueSkills.length > 0) {
         const skillRecords = await Promise.all(
-          uniqueSkills.map((skillName) =>
+          uniqueSkills.map((name) =>
             tx.skill.upsert({
-              where: { name: skillName },
+              where: { name },
               update: {},
-              create: { name: skillName },
+              create: { name },
             })
           )
         );
 
-        if (skillRecords.length > 0) {
-          await tx.jobSkill.createMany({
-            data: skillRecords.map((skill) => ({
-              jobId,
-              skillId: skill.id,
-            })),
-          });
-        }
+        await tx.jobSkill.createMany({
+          data: skillRecords.map((skill) => ({
+            jobId,
+            skillId: skill.id,
+          })),
+        });
       }
 
       return jobId;
@@ -107,23 +119,18 @@ export async function PATCH(
           select: {
             id: true,
             name: true,
-            companyProfile: {
-              select: {
-                companyName: true,
-              },
-            },
+            companyProfile: { select: { companyName: true } },
           },
         },
-        skills: {
-          include: {
-            skill: true,
-          },
-        },
+        skills: { include: { skill: true } },
       },
     });
 
     if (!updatedJob) {
-      return NextResponse.json({ error: "Job was updated but could not be fetched" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Job updated but cannot be fetched" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -131,27 +138,31 @@ export async function PATCH(
         id: updatedJob.id,
         title: updatedJob.title,
         companyId: updatedJob.company.id,
-        company: updatedJob.company.companyProfile?.companyName ?? updatedJob.company.name ?? "Unknown company",
+        company:
+          updatedJob.company.companyProfile?.companyName ||
+          updatedJob.company.name ||
+          "Unknown company",
         location: updatedJob.location,
         type: updatedJob.type,
         remote: updatedJob.remote,
         description: updatedJob.description,
         postedAt: updatedJob.postedAt.toISOString(),
-        skills: updatedJob.skills.map((jobSkill) => jobSkill.skill.name),
+        skills: updatedJob.skills.map((js) => js.skill.name),
       },
     });
-  } catch (error) {
-    console.error("Failed to update job", error);
+  } catch (err) {
+    console.error("Failed to update job", err);
     return NextResponse.json({ error: "Failed to update job" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(authOptions);
+// ----------------------------------------
+// DELETE — Delete Job
+// ----------------------------------------
+export async function DELETE(_request: Request, context: RouteContext) {
+  const { id: jobId } = await context.params;
 
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -162,17 +173,15 @@ export async function DELETE(
   });
 
   if (!companyUser || companyUser.accountType !== "COMPANY") {
-    return NextResponse.json({ error: "Only company accounts can delete jobs" }, { status: 403 });
-  }
-
-  const jobId = params?.id;
-  if (!jobId) {
-    return NextResponse.json({ error: "Job id is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Only company accounts can delete jobs" },
+      { status: 403 }
+    );
   }
 
   const existingJob = await prisma.job.findUnique({
     where: { id: jobId },
-    select: { id: true, companyId: true },
+    select: { companyId: true },
   });
 
   if (!existingJob) {
@@ -180,16 +189,17 @@ export async function DELETE(
   }
 
   if (existingJob.companyId !== companyUser.id) {
-    return NextResponse.json({ error: "You can only delete your own jobs" }, { status: 403 });
+    return NextResponse.json(
+      { error: "You can only delete your own jobs" },
+      { status: 403 }
+    );
   }
 
   try {
-    await prisma.job.delete({
-      where: { id: jobId },
-    });
+    await prisma.job.delete({ where: { id: jobId } });
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    console.error("Failed to delete job", error);
+  } catch (err) {
+    console.error("Failed to delete job", err);
     return NextResponse.json({ error: "Failed to delete job" }, { status: 500 });
   }
 }

@@ -139,11 +139,13 @@ export default function CompanyDashboardPage() {
         if (response.ok && Array.isArray(payload?.jobs)) {
           const parsed = payload.jobs
             .map((job: unknown): JobListing | null => parseJobListing(job))
-            .filter((job): job is JobListing => job !== null);
+            .filter((job: JobListing | null): job is JobListing => job !== null);
 
           setJobs(parsed);
           setJobsError(null);
-          setSelectedJobId((current) => (parsed.some((job) => job.id === current) ? current : parsed[0]?.id ?? ""));
+          setSelectedJobId((current) =>
+          parsed.some((job: JobListing) => job.id === current) ? current : parsed[0]?.id ?? "");
+
         } else {
           setJobs([]);
           const errorMessage =
@@ -198,15 +200,16 @@ export default function CompanyDashboardPage() {
         }
 
         const parsedApplicants: ApplicantApplication[] = Array.isArray(payload?.applicants)
-          ? payload.applicants
-              .map((application: unknown) => parseApplicantApplication(application, selectedJobId))
-              .filter(
-                (application): application is ApplicantApplication =>
-                  Boolean(application?.applicationId) &&
-                  Boolean(application?.applicant) &&
-                  Array.isArray(application?.applicant.skills)
-              )
-          : [];
+        ? payload.applicants
+            .map((application: unknown) =>
+              parseApplicantApplication(application, selectedJobId)
+            )
+            .filter(
+              (application: ApplicantApplication | null): application is ApplicantApplication =>
+                application !== null
+            )
+        : [];
+
 
         setApplications(parsedApplicants);
         setSelectedApplicationId((current) =>
@@ -234,33 +237,38 @@ export default function CompanyDashboardPage() {
   }, [selectedJobId]);
 
   const skillOptions = useMemo(() => {
-    const unique = new Set<string>();
-    applications.forEach((application) =>
-      application.applicant.skills.forEach((s) => {
-        if (s?.name) unique.add(s.name);
-      })
-    );
-    return Array.from(unique).sort();
-  }, [applications]);
+  const unique = new Set<string>();
+  applications.forEach((application: ApplicantApplication) =>
+    application.applicant.skills.forEach((s) => {
+      if (s?.name) unique.add(s.name);
+    })
+  );
+  return Array.from(unique).sort();
+}, [applications]);
+
 
   const filteredApplicants = useMemo(() => {
     const query = q.trim().toLowerCase();
     const base = showSavedOnly
-      ? applications.filter((application) => savedApplicationIds.has(application.applicationId))
-      : applications;
+    ? applications.filter((application: ApplicantApplication) =>
+        savedApplicationIds.has(application.applicationId)
+      )
+    : applications;
 
-    return base.filter((application) => {
-      const applicant = application.applicant;
-      const matchesQuery =
-        !query ||
-        applicant.name.toLowerCase().includes(query) ||
-        (applicant.email ?? "").toLowerCase().includes(query) ||
-        (applicant.headline ?? "").toLowerCase().includes(query) ||
-        applicant.skills.some((s) => s.name.toLowerCase().includes(query));
 
-      const matchesSkill = !skill || applicant.skills.some((s) => s.name === skill);
-      return matchesQuery && matchesSkill;
-    });
+    return base.filter((application: ApplicantApplication) => {
+  const applicant = application.applicant;
+  const matchesQuery =
+    !query ||
+    applicant.name.toLowerCase().includes(query) ||
+    (applicant.email ?? "").toLowerCase().includes(query) ||
+    (applicant.headline ?? "").toLowerCase().includes(query) ||
+    applicant.skills.some((s) => s.name.toLowerCase().includes(query));
+
+  const matchesSkill = !skill || applicant.skills.some((s) => s.name === skill);
+  return matchesQuery && matchesSkill;
+  });
+
   }, [applications, q, skill, savedApplicationIds, showSavedOnly]);
 
   useEffect(() => {

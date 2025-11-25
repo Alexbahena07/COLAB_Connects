@@ -1,7 +1,7 @@
 // src/app/api/profile/upsert/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 type ResumePayload = {
@@ -40,6 +40,13 @@ type ExperiencePayload = {
 type SkillPayload = {
   name: string;
   years: number | null;
+};
+
+type ProfilePayload = {
+  firstName?: string | null;
+  lastName?: string | null;
+  headline?: string | null;
+  desiredLocation?: string | null;
 };
 
 function normalizeResumePayload(input: unknown): ResumePayload | null {
@@ -148,24 +155,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
   const body = rawBody as Record<string, unknown>;
+
   const {
-    profile,
     degrees = [],
     certificates = [],
     experiences = [],
-    skills = [], // [{ name, years? }]
+    skills = [],
     resume,
   } = body;
 
-  if (profile && typeof profile !== "object") {
+  // Validate and type profile from body
+  const rawProfile = body.profile;
+  if (rawProfile !== undefined && typeof rawProfile !== "object") {
     return NextResponse.json({ error: "Invalid profile" }, { status: 400 });
   }
+
+  let profile: ProfilePayload | null = null;
+
+if (rawProfile && typeof rawProfile === "object") {
+  const raw = rawProfile as Record<string, unknown>;
+  profile = {
+    firstName: typeof raw.firstName === "string" ? raw.firstName : null,
+    lastName: typeof raw.lastName === "string" ? raw.lastName : null,
+    headline: typeof raw.headline === "string" ? raw.headline : null,
+    desiredLocation:
+      typeof raw.desiredLocation === "string" ? raw.desiredLocation : null,
+  };
+}
+
 
   let resumePayload: ResumePayload | null = null;
   if (resume !== undefined) {
     resumePayload = normalizeResumePayload(resume);
     if (!resumePayload) {
-      return NextResponse.json({ error: "Invalid resume payload. Upload a PDF smaller than 10MB." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid resume payload. Upload a PDF smaller than 10MB." },
+        { status: 400 }
+      );
     }
   }
 
@@ -175,7 +201,10 @@ export async function POST(req: Request) {
   const hasExistingResume = Boolean(profileWithResume?.resumeData);
 
   if (!resumePayload && !hasExistingResume) {
-    return NextResponse.json({ error: "Please upload your resume as a PDF to continue." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Please upload your resume as a PDF to continue." },
+      { status: 400 }
+    );
   }
 
   try {
@@ -267,7 +296,7 @@ export async function POST(req: Request) {
         });
       }
 
-      // Skills: replace (no level)
+      // Skills: replace
       await tx.userSkill.deleteMany({ where: { userId: user.id } });
       const skillPayloads = (Array.isArray(skills) ? skills : [])
         .map((skill) => normalizeSkill(skill))

@@ -96,43 +96,48 @@ export default function DashboardPage() {
         if (!active) return;
 
         if (Array.isArray(payload.jobs)) {
-          const parsedJobs = payload.jobs
-            .map((job: unknown) => {
+          const parsedJobs: Job[] = payload.jobs
+            .map((job: unknown): Job | null => {
               if (!job || typeof job !== "object") return null;
 
-              const {
-                id,
-                title,
-                company,
-                location,
-                type: rawType,
-                remote,
-                description,
-                postedAt,
-                skills,
-              } = job;
+              const raw = job as Record<string, unknown>;
+
+              const id = typeof raw.id === "string" ? raw.id : null;
+              const title = typeof raw.title === "string" ? raw.title : null;
+              const company = typeof raw.company === "string" ? raw.company : null;
+              const jobLocation = typeof raw.location === "string" ? raw.location : null;
+              const description =
+                typeof raw.description === "string" ? raw.description : null;
+              const rawType =
+                typeof raw.type === "string" ? (raw.type as string) : null;
 
               if (
-                typeof id !== "string" ||
-                typeof title !== "string" ||
-                typeof company !== "string" ||
-                typeof location !== "string" ||
-                typeof description !== "string" ||
-                typeof rawType !== "string" ||
+                !id ||
+                !title ||
+                !company ||
+                !jobLocation ||
+                !description ||
+                !rawType ||
                 !JOB_TYPE_VALUES.includes(rawType as Job["type"])
               ) {
                 return null;
               }
 
+              const postedAtValue = raw.postedAt;
               let postedAtIso: string | null = null;
-              if (typeof postedAt === "string") {
-                postedAtIso = postedAt;
-              } else if (postedAt instanceof Date) {
-                postedAtIso = postedAt.toISOString();
-              } else if (postedAt && typeof postedAt === "object" && "toString" in postedAt) {
-                const parsed = new Date(postedAt as string | number | Date);
-                if (!Number.isNaN(parsed.valueOf())) {
-                  postedAtIso = parsed.toISOString();
+
+              if (typeof postedAtValue === "string") {
+                postedAtIso = postedAtValue;
+              } else if (postedAtValue instanceof Date) {
+                postedAtIso = postedAtValue.toISOString();
+              } else if (postedAtValue && typeof postedAtValue === "object") {
+                const maybeString =
+                  "toString" in postedAtValue
+                    ? (postedAtValue as { toString: () => string }).toString()
+                    : "";
+                const parsedDate = new Date(maybeString);
+                if (!Number.isNaN(parsedDate.valueOf())) {
+                  postedAtIso = parsedDate.toISOString();
                 }
               }
 
@@ -140,23 +145,25 @@ export default function DashboardPage() {
                 return null;
               }
 
-              const normalizedSkills = Array.isArray(skills)
-                ? skills.filter((skill: unknown): skill is string => typeof skill === "string")
+              const skillsValue = raw.skills;
+              const normalizedSkills = Array.isArray(skillsValue)
+                ? skillsValue.filter((skill): skill is string => typeof skill === "string")
                 : [];
 
               return {
                 id,
                 title,
                 company,
-                location,
+                location: jobLocation,
                 type: rawType as Job["type"],
-                remote: Boolean(remote),
+                remote: Boolean(raw.remote),
                 description,
                 postedAt: postedAtIso,
                 skills: normalizedSkills,
-              } as Job;
+              };
             })
-             .filter((job: Job | null): job is Job => job !== null);
+            .filter((job: Job | null): job is Job => job !== null);
+
 
           setJobs(parsedJobs);
         } else {
@@ -183,8 +190,11 @@ export default function DashboardPage() {
   }, []);
 
   const filteredJobs = useMemo(() => {
-    const source = showSavedOnly ? jobs.filter((job) => savedJobIds.has(job.id)) : jobs;
-    return source.filter((job) => {
+    const source = showSavedOnly
+      ? jobs.filter((job: Job) => savedJobIds.has(job.id))
+      : jobs;
+
+    return source.filter((job: Job) => {
       const query = q.toLowerCase().trim();
       const matchesQuery =
         !query ||
@@ -205,13 +215,15 @@ export default function DashboardPage() {
       return;
     }
 
-    if (!selectedJobId || !filteredJobs.some((job) => job.id === selectedJobId)) {
+    if (!selectedJobId || !filteredJobs.some((job: Job) => job.id === selectedJobId)) {
       setSelectedJobId(filteredJobs[0].id);
     }
   }, [filteredJobs, selectedJobId]);
 
   const selectedJob =
-    (selectedJobId ? filteredJobs.find((job) => job.id === selectedJobId) : filteredJobs[0]) ?? null;
+    (selectedJobId
+      ? filteredJobs.find((job: Job) => job.id === selectedJobId)
+      : filteredJobs[0]) ?? null;
 
   const hasApplied = selectedJob ? appliedJobIds.has(selectedJob.id) : false;
 
@@ -300,248 +312,254 @@ export default function DashboardPage() {
     <>
       <Header />
       <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
-      <div className="border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="mx-auto w-full max-w-6xl px-4 py-4">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="min-w-[220px] flex-1">
-              <Input
-                label="Search"
-                placeholder="Search job title, company, or skill..."
-                value={q}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
-                className="h-11"
-                labelClassName="text-white"
-              />
-            </div>
-
-            <div className="flex min-w-[180px] flex-col gap-2">
-              <label htmlFor="job-type-filter" className="text-sm font-medium text-white">
-                Job type
-              </label>
-              <select
-                id="job-type-filter"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
-              >
-                <option className="text-black" value="">
-                  All types
-                </option>
-                <option className="text-black" value="FULL_TIME">
-                  Full-time
-                </option>
-                <option className="text-black" value="PART_TIME">
-                  Part-time
-                </option>
-                <option className="text-black" value="CONTRACT">
-                  Contract
-                </option>
-                <option className="text-black" value="INTERNSHIP">
-                  Internship
-                </option>
-              </select>
-            </div>
-
-            <div className="flex min-w-[180px] flex-col gap-2 text-white">
-              <label htmlFor="job-location-filter" className="text-sm font-medium text-white">
-                Location
-              </label>
-              <input
-                id="job-location-filter"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Location"
-                className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
-              />
-            </div>
-
-            <div className="flex min-w-[160px] flex-col gap-2 text-white">
-              <span className="text-sm font-medium text-white">Remote</span>
-              <label
-                htmlFor="remote-only-toggle"
-                className="flex h-11 items-center gap-2 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-white"
-              >
-                <input
-                  id="remote-only-toggle"
-                  type="checkbox"
-                  checked={remoteOnly}
-                  onChange={(e) => setRemoteOnly(e.target.checked)}
-                  className="h-4 w-4"
+        <div className="border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="mx-auto w-full max-w-6xl px-4 py-4">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="min-w-[220px] flex-1">
+                <Input
+                  label="Search"
+                  placeholder="Search job title, company, or skill..."
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="h-11"
+                  labelClassName="text-white"
                 />
-                Remote only
-              </label>
-            </div>
-
-            <div className="flex flex-col gap-2 md:ml-auto">
-              <span className="text-sm font-medium text-white opacity-0">Actions</span>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  className={`h-11 rounded-xl border px-4 text-sm font-semibold transition ${
-                    showSavedOnly
-                      ? "border-white bg-white/10 text-white"
-                      : "border-white text-white hover:bg-white/10"
-                  }`}
-                  onClick={() => setShowSavedOnly((prev) => !prev)}
-                >
-                  {showSavedOnly ? "All jobs" : "View saved jobs"}
-                </Button>
-                <Button
-                  className="btn-outline-brand h-11"
-                  onClick={() => {
-                    setQ("");
-                    setType("");
-                    setRemoteOnly(false);
-                    setLocation("");
-                    setShowSavedOnly(false);
-                  }}
-                >
-                  Reset
-                </Button>
               </div>
-            </div>
-          </div>
-          {loadError ? (
-            <div className="mt-3 rounded-lg border border-yellow-400 bg-yellow-400/10 px-3 py-2 text-xs text-yellow-100">
-              {loadError}
-            </div>
-          ) : null}
-        </div>
-      </div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden md:flex-row">
-        <aside
-          className="w-full border-b md:w-80 md:max-w-xs md:flex-shrink-0 md:border-b-0 md:border-r"
-          style={{ borderColor: "var(--border)" }}
-          aria-label="Job list"
-        >
-          <div className="h-full overflow-y-auto">
-            <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
-              {isLoading ? (
-                <li className="p-4 text-sm opacity-80">Loading jobs...</li>
-              ) : filteredJobs.length === 0 ? (
-                <li className="p-4 text-sm opacity-80">
-                  {showSavedOnly
-                    ? "You haven't saved any jobs yet."
-                    : noJobsAvailable
-                    ? "No job listings are available yet."
-                    : "No results. Try adjusting filters."}
-                </li>
-              ) : (
-                filteredJobs.map((job) => {
-                  const active = job.id === selectedJob?.id;
-                  return (
-                    <li key={job.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedJobId(job.id)}
-                        className={`w-full p-4 text-left transition ${
-                          active ? "bg-[--surface] shadow-sm" : "hover:bg-[--surface]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <h3 className="font-semibold">{job.title}</h3>
-                            <p className="mt-1 text-sm opacity-90">
-                              {job.company} - {job.location}
-                            </p>
-                          </div>
-                          <span
-                            className="rounded-md border px-2 py-0.5 text-xs"
-                            style={{ borderColor: "var(--border)" }}
-                          >
-                            {JOB_TYPE_LABEL[job.type]}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-xs opacity-80">
-                          {new Date(job.postedAt).toLocaleDateString()}
-                        </p>
-                      </button>
-                    </li>
-                  );
-                })
-              )}
-            </ul>
-          </div>
-        </aside>
+              <div className="flex min-w-[180px] flex-col gap-2">
+                <label htmlFor="job-type-filter" className="text-sm font-medium text-white">
+                  Job type
+                </label>
+                <select
+                  id="job-type-filter"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
+                >
+                  <option className="text-black" value="">
+                    All types
+                  </option>
+                  <option className="text-black" value="FULL_TIME">
+                    Full-time
+                  </option>
+                  <option className="text-black" value="PART_TIME">
+                    Part-time
+                  </option>
+                  <option className="text-black" value="CONTRACT">
+                    Contract
+                  </option>
+                  <option className="text-black" value="INTERNSHIP">
+                    Internship
+                  </option>
+                </select>
+              </div>
 
-        <section className="flex-1 overflow-y-auto p-6">
-          {!selectedJob ? (
-            <div className="card">Select a job to view details.</div>
-          ) : (
-            <article className="card-wide flex h-full flex-col gap-6">
-              <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold">{selectedJob.title}</h2>
-                  <p className="opacity-90">
-                    {selectedJob.company} - {selectedJob.location}
-                    {selectedJob.remote ? " | Remote" : ""}
-                  </p>
-                </div>
+              <div className="flex min-w-[180px] flex-col gap-2 text-white">
+                <label htmlFor="job-location-filter" className="text-sm font-medium text-white">
+                  Location
+                </label>
+                <input
+                  id="job-location-filter"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Location"
+                  className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+                />
+              </div>
+
+              <div className="flex min-w-[160px] flex-col gap-2 text-white">
+                <span className="text-sm font-medium text-white">Remote</span>
+                <label
+                  htmlFor="remote-only-toggle"
+                  className="flex h-11 items-center gap-2 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-white"
+                >
+                  <input
+                    id="remote-only-toggle"
+                    type="checkbox"
+                    checked={remoteOnly}
+                    onChange={(e) => setRemoteOnly(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  Remote only
+                </label>
+              </div>
+
+              <div className="flex flex-col gap-2 md:ml-auto">
+                <span className="text-sm font-medium text-white opacity-0">Actions</span>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className="rounded-md border px-2 py-1 text-xs"
-                    style={{ borderColor: "var(--border)" }}
+                  <Button
+                    className={`h-11 rounded-xl border px-4 text-sm font-semibold transition ${
+                      showSavedOnly
+                        ? "border-white bg-white/10 text-white"
+                        : "border-white text-white hover:bg-white/10"
+                    }`}
+                    onClick={() => setShowSavedOnly((prev) => !prev)}
                   >
-                    {JOB_TYPE_LABEL[selectedJob.type]}
-                  </span>
-                  <span
-                    className="rounded-md border px-2 py-1 text-xs"
-                    style={{ borderColor: "var(--border)" }}
+                    {showSavedOnly ? "All jobs" : "View saved jobs"}
+                  </Button>
+                  <Button
+                    className="btn-outline-brand h-11"
+                    onClick={() => {
+                      setQ("");
+                      setType("");
+                      setRemoteOnly(false);
+                      setLocation("");
+                      setShowSavedOnly(false);
+                    }}
                   >
-                    Posted {new Date(selectedJob.postedAt).toLocaleDateString()}
-                  </span>
+                    Reset
+                  </Button>
                 </div>
-              </header>
-
-              <section>
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Key skills</h3>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedJob.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-xl px-3 py-1 text-xs"
-                      style={{ backgroundColor: "var(--brandBlue)", color: "#fff" }}
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </section>
-
-              <section className="space-y-2">
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">About this role</h3>
-                <p className="leading-relaxed">{selectedJob.description}</p>
-              </section>
-
-              <div className="mt-auto flex flex-wrap gap-3">
-                <Button
-                  className="btn-brand"
-                  onClick={handleApply}
-                  isLoading={isApplying}
-                  disabled={!selectedJob || hasApplied}
-                >
-                  {hasApplied ? "Applied" : "Apply"}
-                </Button>
-                <Button
-                  className={isJobSaved(selectedJob.id) ? "btn-brand bg-white text-[--brand]" : "btn-outline-brand"}
-                  onClick={() => toggleSaveJob(selectedJob.id)}
-                >
-                  {isJobSaved(selectedJob.id) ? "Unsave" : "Save"}
-                </Button>
-                <Button className="btn-outline-brand">Share</Button>
               </div>
+            </div>
+            {loadError ? (
+              <div className="mt-3 rounded-lg border border-yellow-400 bg-yellow-400/10 px-3 py-2 text-xs text-yellow-100">
+                {loadError}
+              </div>
+            ) : null}
+          </div>
+        </div>
 
-              {applyError ? (
-                <p className="text-sm text-red-500">{applyError}</p>
-              ) : null}
-              {applySuccess ? (
-                <p className="text-sm text-green-500">{applySuccess}</p>
-              ) : null}
-            </article>
-          )}
-        </section>
-      </div>
-      <Footer />
+        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden md:flex-row">
+          <aside
+            className="w-full border-b md:w-80 md:max-w-xs md:flex-shrink-0 md:border-b-0 md:border-r"
+            style={{ borderColor: "var(--border)" }}
+            aria-label="Job list"
+          >
+            <div className="h-full overflow-y-auto">
+              <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
+                {isLoading ? (
+                  <li className="p-4 text-sm opacity-80">Loading jobs...</li>
+                ) : filteredJobs.length === 0 ? (
+                  <li className="p-4 text-sm opacity-80">
+                    {showSavedOnly
+                      ? "You haven't saved any jobs yet."
+                      : noJobsAvailable
+                      ? "No job listings are available yet."
+                      : "No results. Try adjusting filters."}
+                  </li>
+                ) : (
+                  filteredJobs.map((job: Job) => {
+                    const active = job.id === selectedJob?.id;
+                    return (
+                      <li key={job.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedJobId(job.id)}
+                          className={`w-full p-4 text-left transition ${
+                            active ? "bg-[--surface] shadow-sm" : "hover:bg-[--surface]"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <h3 className="font-semibold">{job.title}</h3>
+                              <p className="mt-1 text-sm opacity-90">
+                                {job.company} - {job.location}
+                              </p>
+                            </div>
+                            <span
+                              className="rounded-md border px-2 py-0.5 text-xs"
+                              style={{ borderColor: "var(--border)" }}
+                            >
+                              {JOB_TYPE_LABEL[job.type]}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-xs opacity-80">
+                            {new Date(job.postedAt).toLocaleDateString()}
+                          </p>
+                        </button>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+            </div>
+          </aside>
+
+          <section className="flex-1 overflow-y-auto p-6">
+            {!selectedJob ? (
+              <div className="card">Select a job to view details.</div>
+            ) : (
+              <article className="card-wide flex h-full flex-col gap-6">
+                <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-semibold">{selectedJob.title}</h2>
+                    <p className="opacity-90">
+                      {selectedJob.company} - {selectedJob.location}
+                      {selectedJob.remote ? " | Remote" : ""}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className="rounded-md border px-2 py-1 text-xs"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      {JOB_TYPE_LABEL[selectedJob.type]}
+                    </span>
+                    <span
+                      className="rounded-md border px-2 py-1 text-xs"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      Posted {new Date(selectedJob.postedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </header>
+
+                <section>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">
+                    Key skills
+                  </h3>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedJob.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-xl px-3 py-1 text-xs"
+                        style={{ backgroundColor: "var(--brandBlue)", color: "#fff" }}
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-2">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">
+                    About this role
+                  </h3>
+                  <p className="leading-relaxed">{selectedJob.description}</p>
+                </section>
+
+                <div className="mt-auto flex flex-wrap gap-3">
+                  <Button
+                    className="btn-brand"
+                    onClick={handleApply}
+                    isLoading={isApplying}
+                    disabled={!selectedJob || hasApplied}
+                  >
+                    {hasApplied ? "Applied" : "Apply"}
+                  </Button>
+                  <Button
+                    className={
+                      isJobSaved(selectedJob.id)
+                        ? "btn-brand bg-white text-[--brand]"
+                        : "btn-outline-brand"
+                    }
+                    onClick={() => toggleSaveJob(selectedJob.id)}
+                  >
+                    {isJobSaved(selectedJob.id) ? "Unsave" : "Save"}
+                  </Button>
+                  <Button className="btn-outline-brand">Share</Button>
+                </div>
+
+                {applyError ? <p className="text-sm text-red-500">{applyError}</p> : null}
+                {applySuccess ? (
+                  <p className="text-sm text-green-500">{applySuccess}</p>
+                ) : null}
+              </article>
+            )}
+          </section>
+        </div>
+        <Footer />
       </main>
     </>
   );
