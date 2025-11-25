@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getToken } from "next-auth/jwt";
 import { z } from "zod";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fetchLinkedInPreview } from "@/lib/linkedin";
 
@@ -139,3 +139,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

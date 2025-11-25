@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { Buffer } from "node:buffer";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function extractBase64(dataUrl: string): string {
@@ -45,7 +45,7 @@ export async function GET() {
   const fileType = user.profile?.resumeFileType || "application/pdf";
   const fileNameHeader = encodeURIComponent(resumeFileName);
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type": fileType,
       "Content-Length": buffer.length.toString(),
@@ -54,4 +54,5 @@ export async function GET() {
     },
   });
 }
+
 

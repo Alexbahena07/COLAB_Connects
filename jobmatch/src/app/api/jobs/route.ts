@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const createJobSchema = z.object({
@@ -179,3 +179,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create job" }, { status: 500 });
   }
 }
+

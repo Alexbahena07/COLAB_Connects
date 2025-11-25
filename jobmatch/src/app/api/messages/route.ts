@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 type MessageRequestPayload = {
   applicantId: string;
@@ -83,3 +83,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to reach messaging service" }, { status: 502 });
   }
 }
+

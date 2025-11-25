@@ -62,17 +62,24 @@ const normalizeSkillsInput = (value: string) =>
 const parseJob = (job: unknown): CompanyJob | null => {
   if (!job || typeof job !== "object") return null;
   const raw = job as Record<string, unknown>;
+
   const id = typeof raw.id === "string" ? raw.id : null;
   const title = typeof raw.title === "string" ? raw.title : null;
   const location = typeof raw.location === "string" ? raw.location : null;
   const description = typeof raw.description === "string" ? raw.description : null;
+
   const postedAtValue = raw.postedAt;
-  const postedAt =
-    typeof postedAtValue === "string"
-      ? postedAtValue
-      : postedAtValue instanceof Date
-      ? postedAtValue.toISOString()
-      : new Date(postedAtValue ?? Date.now()).toISOString();
+  let postedAt: string;
+
+  if (typeof postedAtValue === "string") {
+    postedAt = postedAtValue;
+  } else if (postedAtValue instanceof Date) {
+    postedAt = postedAtValue.toISOString();
+  } else if (typeof postedAtValue === "number") {
+    postedAt = new Date(postedAtValue).toISOString();
+  } else {
+    postedAt = new Date().toISOString();
+  }
 
   if (!id || !title || !location || !description) return null;
 
@@ -91,6 +98,7 @@ const parseJob = (job: unknown): CompanyJob | null => {
     skills,
   };
 };
+
 
 export default function CompanyJobsPage() {
   const [companyJobs, setCompanyJobs] = useState<CompanyJob[]>([]);

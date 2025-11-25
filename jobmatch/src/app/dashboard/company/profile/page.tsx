@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import CompanyProfileForm from "@/app/onboarding/company/company-form";
 import Header from "@/components/ui/Header_with_Icons";
 
@@ -30,3 +30,4 @@ export default async function CompanyProfilePage() {
     </>
   );
 }
+

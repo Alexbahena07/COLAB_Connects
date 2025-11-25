@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getToken } from "next-auth/jwt";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { fetchLinkedInPreview } from "@/lib/linkedin";
 
 export async function GET(request: NextRequest) {
@@ -24,3 +24,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed to load LinkedIn data" }, { status: 502 });
   }
 }
+
