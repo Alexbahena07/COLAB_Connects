@@ -28,12 +28,6 @@ export default function ProfileHeroActions({ redirectTo = "/dashboard/profile" }
         >
           Share
         </Button>
-        <Button
-          type="button"
-          className="border border-[--border] bg-[--surface] text-[--foreground] hover:bg-[--background] focus:ring-[--brandBlue] focus:ring-offset-[--surface]"
-        >
-          More
-        </Button>
       </div>
 
       {isDrawerOpen ? (
@@ -45,12 +39,12 @@ export default function ProfileHeroActions({ redirectTo = "/dashboard/profile" }
             className="h-full w-full max-w-xl overflow-y-auto border-l border-[--border] bg-[--surface] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <header className="sticky top-0 flex items-center justify-between border-b border-[--border] bg-[--surface] px-6 py-4">
-              <h2 className="text-lg font-semibold text-[--brand]">Edit Profile</h2>
+            <header className="sticky top-0 flex items-center justify-between border-b border-[--brandBlue] bg-[--brandBlue] px-6 py-4 text-white">
+              <h2 className="text-lg font-semibold">Edit Profile</h2>
               <Button
                 type="button"
                 onClick={() => setIsDrawerOpen(false)}
-                className="border border-transparent bg-transparent text-[--foreground] hover:bg-[--background] focus:ring-[--brandBlue] focus:ring-offset-[--surface]"
+                className="border border-transparent bg-transparent text-white hover:bg-[--brandBlue]/80 focus:ring-white focus:ring-offset-[--brandBlue]"
               >
                 Close
               </Button>

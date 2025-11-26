@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Button from "@/components/ui/Button";
 import ProfileHeroActions, { OpenToWorkToggle } from "@/components/profile/ProfileHeroActions";
 import Header from "@/components/ui/Header_with_Icons";
 import Footer from "@/components/ui/Footer";
@@ -409,17 +408,7 @@ export default async function StudentProfilePage() {
                 )}
               </SectionCard>
 
-              <SectionCard
-                title="Skills"
-                action={
-                  <Button
-                    type="button"
-                    className="border border-[--brandBlue] bg-[--surface] px-3 py-1 text-xs text-[--brand] hover:bg-[--background]"
-                  >
-                    Add skill
-                  </Button>
-                }
-              >
+              <SectionCard title="Skills">
                 {skills.length ? (
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill) => (

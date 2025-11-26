@@ -382,7 +382,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
               <button
                 type="button"
                 onClick={cancelResumeRemoval}
-                className="rounded-md border border-[--brand] px-2 py-1 font-semibold text-[--brand] hover:bg-[--background]/20"
+                className="rounded-md border border-[--brandBlue] px-2 py-1 font-semibold text-[--brand] hover:bg-[--brandBlue] hover:text-white"
               >
                 Keep current resume
               </button>
@@ -394,7 +394,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
         <div className="mt-4 space-y-2">
           <label
             htmlFor="resume-upload"
-            className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-[--border] bg-[--surface] px-4 py-3 text-sm font-semibold text-[--brand] hover:bg-[--background]/40"
+            className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-[--border] bg-[--surface] px-4 py-3 text-sm font-semibold text-[--brand] hover:bg-[--brandBlue] hover:text-white"
           >
             <span>{resumeFile ? "Replace selected PDF" : "Upload PDF"}</span>
             <span className="text-xs font-normal text-[--foreground]/70">Max 5MB</span>
@@ -425,7 +425,9 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       <section className="rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-medium">Degrees</h2>
-          <button type="button" className="text-sm rounded-lg border px-3 py-1 hover:bg-gray-50"
+          <button
+            type="button"
+            className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
             onClick={() => deg.append({ school: "", degree: "", field: "", startDate: "", endDate: "" })}>
             Add degree
           </button>
@@ -465,7 +467,9 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       <section className="rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-medium">Certificates</h2>
-          <button type="button" className="text-sm rounded-lg border px-3 py-1 hover:bg-gray-50"
+          <button
+            type="button"
+            className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
             onClick={() => cert.append({ name: "", issuer: "", issuedAt: "", credentialId: "", credentialUrl: "" })}>
             Add certificate
           </button>
@@ -492,7 +496,9 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       <section className="rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-medium">Work history</h2>
-          <button type="button" className="text-sm rounded-lg border px-3 py-1 hover:bg-gray-50"
+          <button
+            type="button"
+            className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
             onClick={() => exp.append({ title: "", company: "", startDate: "", endDate: "", description: "" })}>
             Add role
           </button>
@@ -517,12 +523,8 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
 
       {/* Skills with Autocomplete (no level) */}
       <section className="rounded-xl border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3">
           <h2 className="font-medium">Skills</h2>
-          <button type="button" className="text-sm rounded-lg border px-3 py-1 hover:bg-gray-50"
-            onClick={() => skl.append({ name: "", years: undefined })}>
-            Add skill
-          </button>
         </div>
         <div className="space-y-4">
           {skl.fields.map((f, i) => (

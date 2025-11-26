@@ -39,7 +39,7 @@ export default function Footer() {
           </p>
           <a
             href="mailto:coordinator@colabconnects.org"
-            className="font-semibold text-[--brandBlue] hover:underline"
+            className="font-semibold text-white underline"
           >
             coordinator@colabconnects.org
           </a>
