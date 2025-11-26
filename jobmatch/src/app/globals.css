@@ -7,12 +7,11 @@
 :root {
   --brand: #30183e;
   --brandBlue: #759bad;
-  --background: #759bad;
-  --foreground: #30183e;
-  --surface: #ffffff;
-  --border: #e7e3ea;
+  --background: #30183e;
+  --foreground: #f2f2f2;
+  --surface: #759bad;
+  --border: #2a2431;
 }
-
 
 
 
@@ -34,15 +33,6 @@
 
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #30183e;
-    --foreground: #f2f2f2;
-    --surface: #759bad;
-    --border: #2a2431;
-  }
 }
 
 /* === Base element styles === */

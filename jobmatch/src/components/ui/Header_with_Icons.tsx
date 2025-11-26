@@ -9,12 +9,13 @@ export default function Header() {
   const isCompany = pathname?.startsWith("/dashboard/company");
   const applicationHref = isCompany ? "/dashboard/company/application" : "/dashboard/application";
   const jobListingsHref = "/dashboard";
+  const logoHref = isCompany ? "/dashboard/company" : "/dashboard";
 
   return (
     <header className="bg-[--brand] text-[--brand]">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         {/* Logo on the left, centered vertically */}
-        <Link href="/" className="flex items-center">
+        <Link href={logoHref} className="flex items-center">
           <Image
             src="/COLAB_logo_reverse.png"
             alt="COLAB connects logo"
@@ -143,23 +144,6 @@ export default function Header() {
                   <path d="M5 18.5a7 7 0 0 1 14 0" />
                 </svg>
                 <span className="text-xs font-semibold">Company Info</span>
-              </Link>
-              <Link
-                href="/dashboard/company/messages"
-                className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                <svg
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  className="h-8 w-8"
-                >
-                  <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H9l-3.5 3.5V6.5Z" />
-                </svg>
-                <span className="text-xs font-semibold">View Messages</span>
               </Link>
             </>
           )}
