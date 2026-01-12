@@ -354,23 +354,23 @@ export default function CompanyJobsPage() {
  return (
   <>
     <Header />
-    <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+    <main className="flex min-h-screen flex-col bg-[--background] text-white">
       {/* Top bar */}
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
         <div className="flex w-full items-center justify-between gap-4 px-6 py-6">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[--brandBlue]/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[--surface]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[--surface]" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[--brandBlue]/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
               Company jobs
             </div>
-            <h1 className="text-2xl font-semibold text-[--surface]">Manage job listings</h1>
-            <p className="text-sm text-[--surface]/80">
+            <h1 className="text-2xl font-semibold text-white">Manage job listings</h1>
+            <p className="text-sm text-white/80">
               Review your open roles and publish new opportunities for students.
             </p>
           </div>
           <Link
             href="/dashboard/company"
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-[--surface] px-4 text-sm font-semibold text-[--surface] transition hover:bg-[--surface]/10"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 px-4 text-sm font-semibold text-white transition hover:bg-white/10"
           >
             Back to dashboard
           </Link>
@@ -384,8 +384,8 @@ export default function CompanyJobsPage() {
           <section className="flex w-full flex-col gap-4 rounded-3xl border border-[--border] bg-[--surface] p-6 shadow-sm">
             <header className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-[--brand]">Your job listings</h2>
-                <p className="text-sm text-[--foreground]/70">
+                <h2 className="text-lg font-semibold text-white">Your job listings</h2>
+                <p className="text-sm text-white/70">
                   {companyJobs.length === 0
                     ? "You haven't published any roles yet."
                     : `Managing ${companyJobs.length} job${
@@ -399,8 +399,8 @@ export default function CompanyJobsPage() {
                   value={jobsFilter}
                   onChange={(event) => setJobsFilter(event.target.value)}
                   placeholder="Search by title, location, or skill..."
-                  className="h-10 bg-[--brandBlue]/10 text-[--foreground]"
-                  labelClassName="text-[--foreground]"
+                  className="h-10 bg-[--brandBlue]/10 text-white placeholder:text-white/60"
+                  labelClassName="text-white"
                 />
               </div>
             </header>
@@ -414,11 +414,11 @@ export default function CompanyJobsPage() {
 
             <div className="mt-2">
               {isLoadingJobs ? (
-                <p className="text-sm text-[--foreground]/70">Loading job listings...</p>
+                <p className="text-sm text-white/70">Loading job listings...</p>
               ) : jobsError ? (
                 <p className="text-sm text-red-500">{jobsError}</p>
               ) : filteredJobs.length === 0 ? (
-                <p className="text-sm text-[--foreground]/70">
+                <p className="text-sm text-white/70">
                   No jobs match this filter. Try adjusting your search.
                 </p>
               ) : (
@@ -430,21 +430,21 @@ export default function CompanyJobsPage() {
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="space-y-1">
-                          <h3 className="text-base font-semibold text-[--brand]">
+                          <h3 className="text-base font-semibold text-white">
                             {job.title}
                           </h3>
-                          <p className="text-xs text-[--foreground]/70">
+                          <p className="text-xs text-white/70">
                             {job.location} | {getJobTypeLabel(job.type)}{" "}
                             {job.remote ? "| Remote friendly" : ""}
                           </p>
-                          <p className="text-xs text-[--foreground]/60">
+                          <p className="text-xs text-white/60">
                             Posted {new Date(job.postedAt).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="flex flex-wrap justify-end gap-2">
                           <Button
                             type="button"
-                            className="btn-outline-brand border-[--brandBlue] text-[--brand] hover:bg-[--brandBlue]/10"
+                            className="btn-outline-brand border-white/60 text-white hover:bg-white/10"
                             onClick={() => handleSelectJobToEdit(job.id)}
                             disabled={isSubmitting && editingJobId === job.id}
                           >
@@ -470,7 +470,7 @@ export default function CompanyJobsPage() {
                           {job.skills.map((skill) => (
                             <span
                               key={`${job.id}-${skill}`}
-                              className="rounded-full border border-[--border] bg-[--brandBlue]/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[--brandBlue]"
+                              className="rounded-full border border-white/20 bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90"
                             >
                               {skill}
                             </span>
@@ -602,12 +602,12 @@ export default function CompanyJobsPage() {
               </p>
 
               <div className="flex flex-wrap gap-2">
-                <Button type="submit" className="btn-brand" isLoading={isSubmitting}>
+                <Button type="submit" className="btn-brand border border-white" isLoading={isSubmitting}>
                   {editingJobId ? "Update job" : "Publish job"}
                 </Button>
               <Button
                 type="button"
-                className="btn-outline-brand border-white text-white hover:bg-white/10"
+                className="btn-brand border border-white"
                 onClick={() => resetJobForm({ clearEditing: true, clearSuccess: true })}
                 disabled={isSubmitting}
               >
@@ -627,8 +627,8 @@ export default function CompanyJobsPage() {
       {jobPendingDeletion ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-[--border] bg-[--surface] p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-[--brand]">Delete job listing</h3>
-            <p className="mt-2 text-sm text-[--foreground]/80">
+            <h3 className="text-lg font-semibold text-white">Delete job listing</h3>
+            <p className="mt-2 text-sm text-white/80">
               Are you sure you want to remove this job? Students will no longer be able to view
               or apply once it is deleted.
             </p>

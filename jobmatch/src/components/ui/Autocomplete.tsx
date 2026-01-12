@@ -9,6 +9,10 @@ type Props = {
   placeholder?: string;
   options: string[];        // source list
   minChars?: number;        // start suggesting after N chars
+  labelClassName?: string;
+  inputClassName?: string;
+  panelClassName?: string;
+  optionClassName?: string;
 };
 
 export default function Autocomplete({
@@ -18,6 +22,10 @@ export default function Autocomplete({
   placeholder,
   options,
   minChars = 2,
+  labelClassName = "text-gray-700",
+  inputClassName = "border-gray-300",
+  panelClassName = "border-gray-200 bg-white",
+  optionClassName = "hover:bg-gray-50",
 }: Props) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState(value);
@@ -43,7 +51,7 @@ export default function Autocomplete({
 
   return (
     <div className="space-y-1" ref={wrapRef}>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className={`block text-sm font-medium ${labelClassName}`}>{label}</label>
       <div className="relative">
         <input
           value={q}
@@ -59,15 +67,15 @@ export default function Autocomplete({
             onChange(q);
           }}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+          className={`w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-black/10 ${inputClassName}`}
         />
         {open && suggestions.length > 0 && (
-          <ul className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-xl border border-gray-200 bg-white shadow">
+          <ul className={`absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-xl border shadow ${panelClassName}`}>
             {suggestions.map((s) => (
               <li key={s}>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                  className={`w-full text-left px-3 py-2 ${optionClassName}`}
                   onMouseDown={(e) => e.preventDefault()} // prevent input blur before click
                   onClick={() => {
                     onChange(s);

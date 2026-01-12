@@ -10,6 +10,10 @@ type ResumePayload = {
   dataUrl: string;
 };
 
+type AvatarPayload = {
+  dataUrl: string;
+};
+
 type DegreePayload = {
   school: string;
   degree: string | null;
@@ -69,6 +73,21 @@ function normalizeResumePayload(input: unknown): ResumePayload | null {
   if (dataUrl.length > 15_000_000) return null;
 
   return { fileName, fileType, dataUrl };
+}
+
+function normalizeAvatarPayload(input: unknown): AvatarPayload | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+  const dataUrl = typeof raw.dataUrl === "string" ? raw.dataUrl.trim() : "";
+  if (!dataUrl) return null;
+  const lower = dataUrl.toLowerCase();
+  const isImage =
+    lower.startsWith("data:image/jpeg") ||
+    lower.startsWith("data:image/png") ||
+    lower.startsWith("data:image/webp");
+  if (!isImage) return null;
+  if (dataUrl.length > 3_000_000) return null;
+  return { dataUrl };
 }
 
 const toDateOrNull = (value: unknown): Date | null => {
@@ -162,6 +181,7 @@ export async function POST(req: Request) {
     experiences = [],
     skills = [],
     resume,
+    avatar,
   } = body;
 
   // Validate and type profile from body
@@ -190,6 +210,17 @@ if (rawProfile && typeof rawProfile === "object") {
     if (!resumePayload) {
       return NextResponse.json(
         { error: "Invalid resume payload. Upload a PDF smaller than 10MB." },
+        { status: 400 }
+      );
+    }
+  }
+
+  let avatarPayload: AvatarPayload | null = null;
+  if (avatar !== undefined) {
+    avatarPayload = normalizeAvatarPayload(avatar);
+    if (!avatarPayload) {
+      return NextResponse.json(
+        { error: "Invalid profile photo. Upload a JPG, PNG, or WebP under 3MB." },
         { status: 400 }
       );
     }
@@ -238,6 +269,13 @@ if (rawProfile && typeof rawProfile === "object") {
           resumeData: resumePayload?.dataUrl ?? null,
         },
       });
+
+      if (avatarPayload) {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { image: avatarPayload.dataUrl },
+        });
+      }
 
       // Degrees: replace
       await tx.degree.deleteMany({ where: { userId: user.id } });

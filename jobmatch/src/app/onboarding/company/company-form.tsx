@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-
-const STORAGE_KEY = "company-profile";
 
 const CompanyProfileSchema = z.object({
   companyName: z.string().min(2, "Enter your company name"),
@@ -27,6 +25,8 @@ type CompanyProfileFormData = z.infer<typeof CompanyProfileSchema>;
 
 export default function CompanyProfileForm() {
   const router = useRouter();
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -45,36 +45,81 @@ export default function CompanyProfileForm() {
   });
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (!saved) return;
-      const parsed = JSON.parse(saved);
-      reset({
-        companyName: parsed.companyName ?? "",
-        website: parsed.website ?? "",
-        headquarters: parsed.headquarters ?? "",
-        teamSize: parsed.teamSize ?? "",
-        hiringFocus: parsed.hiringFocus ?? "",
-        about: parsed.about ?? "",
-      });
-    } catch (error) {
-      console.error("Failed to load saved company profile", error);
-    }
+    let active = true;
+    const loadProfile = async () => {
+      try {
+        const response = await fetch("/api/companies/profile", { cache: "no-store" });
+        const payload = await response.json().catch(() => null);
+        if (!active) return;
+        if (!response.ok) {
+          setLoadError(
+            typeof payload?.error === "string"
+              ? payload.error
+              : "We couldn't load your company profile."
+          );
+          return;
+        }
+        const profile = payload?.profile ?? {};
+        reset({
+          companyName: profile.companyName ?? "",
+          website: profile.website ?? "",
+          headquarters: profile.headquarters ?? "",
+          teamSize: profile.teamSize ?? "",
+          hiringFocus: profile.industry ?? "",
+          about: profile.bio ?? "",
+        });
+        setLoadError(null);
+      } catch (error) {
+        console.error("Failed to load company profile", error);
+        if (!active) return;
+        setLoadError("We couldn't load your company profile.");
+      }
+    };
+    loadProfile();
+    return () => {
+      active = false;
+    };
   }, [reset]);
 
   const onSubmit = async (values: CompanyProfileFormData) => {
-    // Placeholder submit - plug into API when ready
-    console.log("Company onboarding submission", values);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    setLoadError(null);
+    setSaveMessage(null);
+    const response = await fetch("/api/companies/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        companyName: values.companyName,
+        website: values.website,
+        headquarters: values.headquarters,
+        teamSize: values.teamSize,
+        industry: values.hiringFocus,
+        bio: values.about,
+      }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      setLoadError(
+        typeof payload?.error === "string"
+          ? payload.error
+          : "We couldn't save your company profile."
+      );
+      return;
     }
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    router.push("/dashboard/company");
+    setSaveMessage("Company profile saved.");
   };
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+      {loadError ? (
+        <div className="rounded-lg border border-red-400 bg-red-500/5 px-3 py-2 text-sm text-red-600">
+          {loadError}
+        </div>
+      ) : null}
+      {saveMessage ? (
+        <div className="rounded-lg border border-green-400 bg-green-500/5 px-3 py-2 text-sm text-green-600">
+          {saveMessage}
+        </div>
+      ) : null}
       <Input
         label="Company name"
         placeholder="Acme Labs"
@@ -93,7 +138,7 @@ export default function CompanyProfileForm() {
         />
         <Input
           label="Headquarters"
-          placeholder="City, Country"
+          placeholder="City, State"
           {...register("headquarters")}
           error={errors.headquarters?.message}
         />
@@ -101,7 +146,7 @@ export default function CompanyProfileForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700" htmlFor="company-team-size">
+          <label className="block text-sm font-medium text-[--foreground]" htmlFor="company-team-size">
             Company size
           </label>
           <select
@@ -109,12 +154,12 @@ export default function CompanyProfileForm() {
             className="h-11 w-full rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
             {...register("teamSize")}
           >
-            <option value="">Select size</option>
-            <option value="1-10">1-10</option>
-            <option value="11-50">11-50</option>
-            <option value="51-200">51-200</option>
-            <option value="201-500">201-500</option>
-            <option value="500+">500+</option>
+            <option value="" className="bg-white text-black">Select size</option>
+            <option value="1-10" className="bg-white text-black">1-10</option>
+            <option value="11-50" className="bg-white text-black">11-50</option>
+            <option value="51-200" className="bg-white text-black">51-200</option>
+            <option value="201-500" className="bg-white text-black">201-500</option>
+            <option value="500+" className="bg-white text-black">500+</option>
           </select>
           {errors.teamSize ? (
             <p className="text-xs text-red-600">{errors.teamSize.message}</p>
@@ -122,25 +167,25 @@ export default function CompanyProfileForm() {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700" htmlFor="company-industry">
+          <label className="block text-sm font-medium text-[--foreground]" htmlFor="company-industry">
             Industry
           </label>
           <select
             id="company-industry"
-            className="h-11 w-full rounded-xl border border-white bg-[--surface] px-3 text-sm text-black"
+            className="h-11 w-full rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
             {...register("hiringFocus")}
           >
-            <option value="">Select industry</option>
-            <option value="Accounting">Accounting</option>
-            <option value="Corporate Finance">Corporate Finance</option>
-            <option value="Hedge Funds">Hedge Funds</option>
-            <option value="Investment Banking">Investment Banking</option>
-            <option value="Management Consulting">Management Consulting</option>
-            <option value="Private Credit">Private Credit</option>
-            <option value="Private Equity">Private Equity</option>
-            <option value="Real Estate/Real Assets">Real Estate/Real Assets</option>
-            <option value="Start-ups">Start-ups</option>
-            <option value="Venture Capital">Venture Capital</option>
+            <option value="" className="bg-white text-black">Select industry</option>
+            <option value="Accounting" className="bg-white text-black">Accounting</option>
+            <option value="Corporate Finance" className="bg-white text-black">Corporate Finance</option>
+            <option value="Hedge Funds" className="bg-white text-black">Hedge Funds</option>
+            <option value="Investment Banking" className="bg-white text-black">Investment Banking</option>
+            <option value="Management Consulting" className="bg-white text-black">Management Consulting</option>
+            <option value="Private Credit" className="bg-white text-black">Private Credit</option>
+            <option value="Private Equity" className="bg-white text-black">Private Equity</option>
+            <option value="Real Estate/Real Assets" className="bg-white text-black">Real Estate/Real Assets</option>
+            <option value="Start-ups" className="bg-white text-black">Start-ups</option>
+            <option value="Venture Capital" className="bg-white text-black">Venture Capital</option>
           </select>
           {errors.hiringFocus ? (
             <p className="text-xs text-red-600">{errors.hiringFocus.message}</p>
@@ -149,7 +194,7 @@ export default function CompanyProfileForm() {
       </div>
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-700" htmlFor="company-about">
+        <label className="block text-sm font-medium text-[--foreground]" htmlFor="company-about">
           About your company
         </label>
         <textarea

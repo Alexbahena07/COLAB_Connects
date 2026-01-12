@@ -129,6 +129,32 @@ export async function POST(request: Request) {
         }
       }
 
+      const followers = await tx.companyFollow.findMany({
+        where: { companyId: companyUser.id },
+        select: { userId: true },
+      });
+
+      if (followers.length > 0) {
+        await tx.jobPostEvent.createMany({
+          data: followers.map((f) => ({
+            userId: f.userId,
+            companyId: companyUser.id,
+            jobId: job.id,
+            jobTitle: job.title,
+          })),
+        });
+
+        await tx.notification.createMany({
+          data: followers.map((f) => ({
+            userId: f.userId,
+            companyId: companyUser.id,
+            jobId: job.id,
+            jobTitle: job.title,
+            type: "NEW_JOB",
+          })),
+        });
+      }
+
       return job.id;
     });
 

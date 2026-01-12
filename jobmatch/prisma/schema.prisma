@@ -9,37 +9,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum AccountType {
   STUDENT
   COMPANY
 }
 
+enum NotificationType {
+  NEW_JOB
+}
+
+enum NotificationFrequency {
+  NONE
+  DAILY
+  WEEKLY
+}
+
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  accountType   AccountType @default(STUDENT)
-  linkedinUrl   String?
-  linkedinId    String?   @unique
+  id                    String                @id @default(cuid())
+  name                  String?
+  email                 String?               @unique
+  emailVerified         DateTime?
+  image                 String?
+  password              String?
+  accountType           AccountType           @default(STUDENT)
+  notificationFrequency NotificationFrequency @default(WEEKLY)
+  linkedinUrl           String?
+  linkedinId            String?               @unique
 
   // Existing NextAuth relations
   accounts Account[]
   sessions Session[]
 
   // 🔽 Add these back-relations for your profile data
-  profile      Profile?
-  companyProfile CompanyProfile?
-  degrees      Degree[]
-  certificates Certificate[]
-  experiences  Experience[]
-  userSkills   UserSkill[]
-  jobs         Job[]
-  jobApplications     JobApplication[] @relation("ApplicantApplications")
+  profile              Profile?
+  companyProfile       CompanyProfile?
+  degrees              Degree[]
+  certificates         Certificate[]
+  experiences          Experience[]
+  userSkills           UserSkill[]
+  jobs                 Job[]
+  jobApplications      JobApplication[] @relation("ApplicantApplications")
   receivedApplications JobApplication[] @relation("CompanyApplications")
+  companyFollows       CompanyFollow[]  @relation("CompanyFollows")
+  companyFollowers     CompanyFollow[]  @relation("CompanyFollowers")
+  notifications        Notification[]   @relation("UserNotifications")
+
+  //for notifications
+  postedJobEvents      JobPostEvent[] @relation("UserPostedJobEvents")
+  companyJobPostEvents JobPostEvent[] @relation("CompanyPostedJobEvents")
+  sentNotifications    Notification[] @relation("CompanyNotifications")
 }
 
 model Account {
@@ -107,22 +125,22 @@ model Degree {
 }
 
 model Certificate {
-  id              String    @id @default(cuid())
-  userId          String
-  name            String
-  issuer          String?
-  issuedAt        DateTime?
-  expirationDate  DateTime?
-  credentialId    String?
-  credentialUrl   String?
-  externalId      String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  userId         String
+  name           String
+  issuer         String?
+  issuedAt       DateTime?
+  expirationDate DateTime?
+  credentialId   String?
+  credentialUrl  String?
+  externalId     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@unique([userId, externalId])
+  @@index([userId])
 }
 
 model Experience {
@@ -141,8 +159,8 @@ model Experience {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@unique([userId, externalId])
+  @@index([userId])
 }
 
 /**
@@ -172,14 +190,14 @@ model UserSkill {
 }
 
 model CompanyProfile {
-  id            String @id @default(cuid())
-  userId        String @unique
-  companyName   String
-  website       String?
-  headquarters  String?
-  teamSize      String?
-  hiringFocus   String?
-  about         String?
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  companyName  String
+  website      String?
+  headquarters String?
+  teamSize     String?
+  hiringFocus  String?
+  about        String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -201,9 +219,13 @@ model Job {
   description String
   postedAt    DateTime @default(now())
 
-  company User      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  skills  JobSkill[]
+  company      User             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  skills       JobSkill[]
   applications JobApplication[]
+
+  //for notifications
+  jobPostEvents JobPostEvent[]
+  notifications Notification[]
 
   @@index([companyId])
   @@index([postedAt])
@@ -237,4 +259,56 @@ model JobApplication {
   @@unique([jobId, applicantId])
   @@index([companyId])
   @@index([applicantId])
+}
+
+model CompanyFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  companyId String
+  createdAt DateTime @default(now())
+
+  user    User @relation("CompanyFollows", fields: [userId], references: [id], onDelete: Cascade)
+  company User @relation("CompanyFollowers", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+  @@index([companyId])
+  @@index([userId])
+}
+
+model JobPostEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  companyId String
+  jobId     String
+  jobTitle  String
+  createdAt DateTime @default(now())
+  emailedAt DateTime?
+
+  user    User @relation("UserPostedJobEvents", fields: [userId], references: [id], onDelete: Cascade)
+  company User @relation("CompanyPostedJobEvents", fields: [companyId], references: [id], onDelete: Cascade)
+  job     Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([jobId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  jobId     String?
+  companyId String?
+  jobTitle  String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user    User  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  job     Job?  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  company User? @relation("CompanyNotifications", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([jobId])
+  @@index([readAt])
 }
