@@ -10,6 +10,7 @@ const defaultPayload = {
   experiences: [] as Array<Record<string, string>>,
   skills: [] as Array<{ name: string; years: number | null }>,
   resume: null as null | { fileName: string; fileType: string },
+  avatarUrl: null as string | null,
 };
 
 const toDateInput = (value: Date | null): string => {
@@ -26,6 +27,7 @@ export async function GET() {
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: {
+      image: true,
       profile: true,
       degrees: true,
       certificates: true,
@@ -64,6 +66,7 @@ export async function GET() {
             fileType: profileWithResume.resumeFileType ?? "application/pdf",
           }
         : null,
+    avatarUrl: user.image ?? null,
     degrees: user.degrees.map((degree) => ({
       school: degree.school ?? "",
       degree: degree.degree ?? "",

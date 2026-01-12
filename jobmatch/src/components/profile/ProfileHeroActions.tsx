@@ -39,7 +39,7 @@ export default function ProfileHeroActions({ redirectTo = "/dashboard/profile" }
             className="h-full w-full max-w-xl overflow-y-auto border-l border-[--border] bg-[--surface] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <header className="sticky top-0 flex items-center justify-between border-b border-[--brandBlue] bg-[--brandBlue] px-6 py-4 text-white">
+            <header className="flex items-center justify-between border-b border-[--brandBlue] bg-[--brandBlue] px-6 py-4 text-white shadow-md">
               <h2 className="text-lg font-semibold">Edit Profile</h2>
               <Button
                 type="button"

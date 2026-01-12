@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ProfileHeroActions, { OpenToWorkToggle } from "@/components/profile/ProfileHeroActions";
+import NotificationPreferenceCard from "@/components/profile/NotificationPreferenceCard";
 import Header from "@/components/ui/Header_with_Icons";
 import Footer from "@/components/ui/Footer";
 
@@ -259,6 +260,10 @@ export default async function StudentProfilePage() {
                     next. Use Edit Profile to add a headline or summary.
                   </p>
                 )}
+              </SectionCard>
+
+              <SectionCard title="Notifications">
+                <NotificationPreferenceCard />
               </SectionCard>
 
               <SectionCard

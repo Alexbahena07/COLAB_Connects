@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import NotificationBell from "@/components/ui/NotificationBell";
 
 export default function Header() {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export default function Header() {
           />
         </Link>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <Link
             href={applicationHref}
             className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"

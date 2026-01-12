@@ -12,70 +12,102 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[--brand] opacity-95" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[--brand] via-[#3a1f4d] to-[--brandBlue]" />
+        <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div className="relative mx-auto max-w-6xl px-6 py-24 text-white">
           <div className="grid items-center gap-10 md:grid-cols-2">
             <div>
-              <h1 className="text-4xl font-bold leading-tight md:text-5xl font-serif">
-                About Us
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
+                COLAB connects
+              </p>
+              <h1 className="mt-3 text-4xl font-bold leading-tight md:text-5xl font-serif">
+                A hiring hub built for student talent and growing teams.
               </h1>
-              <p className="mt-4 text-lg text-[--surface]/90">
-                A metrics-first marketplace that matches companies with job candidates using
-                verified skills, accomplishments, and performance signals—far beyond résumé
-                keywords. Companies can easily post job listings to connect with top student
-                talent, while students can explore and apply directly to opportunities that
-                align with their skills and career goals.
+              <p className="mt-4 text-lg text-white/85">
+                Students search and apply to curated roles, save favorites, and follow
+                companies. Employers publish jobs, review applicants by skill, and tell
+                their story with a polished company profile.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-xl border border-white/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Log in
-                </Link>
-                <Link
                   href="/register"
                   className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[--brand] transition hover:opacity-90"
                 >
-                  Register
+                  Join as a student
+                </Link>
+                <Link
+                  href="/register?type=company"
+                  className="inline-flex items-center justify-center rounded-xl border border-white/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Join as a company
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+                >
+                  Log in
                 </Link>
               </div>
-
-        
             </div>
 
-            {/* Hero mock panel */}
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4">
+            {/* Hero mock panels */}
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">Top Matches</h3>
+                  <h3 className="text-sm font-semibold">Student dashboard</h3>
                   <span className="rounded-md bg-white/15 px-2 py-1 text-xs">
-                    Live Metrics
+                    Search + Apply
                   </span>
                 </div>
                 <ul className="mt-4 space-y-3 text-sm">
                   {[
-                    { name: "Alex B · Full-stack", score: 92, skills: "TS, React, Node" },
-                    { name: "Sam K · Data Eng", score: 88, skills: "Python, SQL, AWS" },
-                    { name: "Mia L · Frontend", score: 84, skills: "Next.js, Tailwind" },
-                  ].map((c) => (
+                    { title: "Frontend Engineer", company: "Nova Labs", meta: "Remote - Full-time" },
+                    { title: "Data Engineer", company: "Acme Analytics", meta: "Remote - Full-time" },
+                    { title: "Software Intern", company: "BrightStart", meta: "Austin - Internship" },
+                  ].map((job) => (
                     <li
-                      key={c.name}
+                      key={job.title}
                       className="rounded-lg border border-white/15 bg-white/10 p-3"
                     >
-                      <div className="flex items-center justify-between">
-                        <span>{c.name}</span>
-                        <span className="rounded bg-[--surface] px-2 py-0.5 text-xs font-bold text-[--brand]">
-                          {c.score}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-white/80">{c.skills}</p>
+                      <p className="font-semibold">{job.title}</p>
+                      <p className="text-white/80">{job.company}</p>
+                      <p className="text-xs text-white/70">{job.meta}</p>
                     </li>
                   ))}
                 </ul>
-                <div className="mt-5 h-2 w-full rounded-full bg-white/20">
-                  <div className="h-2 w-2/3 rounded-full bg-[--surface]" />
+                <div className="mt-4 flex items-center gap-2 text-xs text-white/70">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-300" />
+                  Save, share, and follow companies
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold">Company workspace</h3>
+                  <span className="rounded-md bg-white/15 px-2 py-1 text-xs">
+                    Review applicants
+                  </span>
+                </div>
+                <ul className="mt-4 space-y-3 text-sm">
+                  {[
+                    { name: "Jamie Lee", role: "Product Designer", skills: "Figma, UX, Branding" },
+                    { name: "Priya Shah", role: "Data Analyst", skills: "SQL, Python, Tableau" },
+                  ].map((candidate) => (
+                    <li
+                      key={candidate.name}
+                      className="rounded-lg border border-white/15 bg-white/10 p-3"
+                    >
+                      <p className="font-semibold">{candidate.name}</p>
+                      <p className="text-white/80">{candidate.role}</p>
+                      <p className="text-xs text-white/70">{candidate.skills}</p>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 flex items-center gap-2 text-xs text-white/70">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-sky-200" />
+                  Filter applicants by skill and save top picks
                 </div>
               </div>
             </div>
@@ -85,15 +117,24 @@ export default function Home() {
 
       {/* How it works */}
       <section className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="text-2xl font-bold text-[--brand]">How it works</h2>
+        <h2 className="text-2xl font-bold text-[--brand]">How COLAB works</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {[
-            { title: "Show your proof", desc: "Candidates connect LinkedIn and add degrees, certificates, projects, and skills." },
-            { title: "Search by skills", desc: "Companies filter by required skills, certs, location, and availability—instantly." },
-            { title: "See Match Scores", desc: "Transparent scoring explains why a candidate fits: skills, experience, and signals." },
+            {
+              title: "Build your profile",
+              desc: "Students import LinkedIn data, add skills, and upload a resume so companies see proof fast.",
+            },
+            {
+              title: "Search and apply",
+              desc: "Filter by role, type, location, or remote. Save and share jobs you want to revisit.",
+            },
+            {
+              title: "Hire with context",
+              desc: "Companies publish roles, review applicants, and save promising candidates by skill.",
+            },
           ].map((c) => (
             <div key={c.title} className="card">
-              <div className="mb-3 inline-block rounded-lg px-2 py-1 text-xs font-semibold bg-[--brandBlue] text-white">
+              <div className="mb-3 inline-block rounded-lg bg-[--brandBlue] px-2 py-1 text-xs font-semibold text-white">
                 {c.title}
               </div>
               <p className="text-[--brandBlue]">{c.desc}</p>
@@ -102,15 +143,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Metrics highlight */}
-      <section className="py-14 bg-[--surface]">
+      {/* Product highlight */}
+      <section className="bg-[--surface] py-14">
         <div className="mx-auto max-w-6xl px-6">
           <div className="card-wide">
             <div className="grid items-center gap-8 md:grid-cols-2">
               <div>
-                <h3 className="text-xl font-bold text-[--brand]">Live Skills Demand</h3>
+                <h3 className="text-xl font-bold text-[--brand]">Built for real workflows</h3>
                 <p className="mt-2 text-[--brandBlue]">
-                  Track which skills are rising, which are saturated, and how your profile stacks up.
+                  Students track applications and get notified when new roles go live.
+                  Companies manage listings, review applicants, and keep follow-ups organized.
                 </p>
                 <div className="mt-6 flex gap-3">
                   <Link href="/register">
@@ -122,28 +164,19 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Tiny bar list mock */}
-              <div className="rounded-xl border p-4 border-[--border]">
+              <div className="rounded-xl border border-[--border] p-4">
                 {[
-                  { skill: "TypeScript", pct: 90, tone: "var(--brand)" },
-                  { skill: "React", pct: 82, tone: "var(--brandBlue)" },
-                  { skill: "Python", pct: 74, tone: "#7297A6" },
-                  { skill: "SQL", pct: 66, tone: "#83748C" },
+                  { title: "Saved jobs", value: "Quick access to top picks" },
+                  { title: "Notifications", value: "New roles from followed companies" },
+                  { title: "Applicant review", value: "Skill-first candidate lists" },
+                  { title: "Company profile", value: "Share mission and hiring focus" },
                 ].map((row) => (
-                  <div key={row.skill} className="mb-3">
-                    <div className="flex items-center justify-between text-sm text-[--brandBlue]">
-                      <span>{row.skill}</span>
-                      <span>{row.pct}%</span>
-                    </div>
-                    <div className="mt-1 h-2 w-full rounded-full bg-[--surface]">
-                      <div
-                        className="h-2 rounded-full"
-                        style={{ width: `${row.pct}%`, backgroundColor: row.tone }}
-                      />
-                    </div>
+                  <div key={row.title} className="mb-3 rounded-lg border border-[--border] bg-white/5 p-3">
+                    <p className="text-sm font-semibold text-[--brand]">{row.title}</p>
+                    <p className="text-xs text-[--brandBlue]">{row.value}</p>
                   </div>
                 ))}
-                <p className="mt-3 text-xs text-[--brandBlue]">* Sample data for illustration</p>
+                <p className="mt-3 text-xs text-[--brandBlue]">Sample modules available today</p>
               </div>
             </div>
           </div>
@@ -156,7 +189,7 @@ export default function Home() {
           <div className="card">
             <h3 className="text-lg font-semibold text-[--brand]">For Candidates</h3>
             <p className="mt-2 text-[--brandBlue]">
-              Build a credible skills profile, connect LinkedIn, and see your Match Score rise as you add proof.
+              Build a credible skills profile, connect LinkedIn, and apply to roles with a single dashboard.
             </p>
             <Link href="/register">
               <Button className="mt-4 btn-brand">Create Profile</Button>
@@ -165,7 +198,7 @@ export default function Home() {
           <div className="card">
             <h3 className="text-lg font-semibold text-[--brand]">For Companies</h3>
             <p className="mt-2 text-[--brandBlue]">
-              Filter by skills and requirements. Save searches, view Match Scores, and focus on the right people.
+              Publish jobs, review applicants by skill, and showcase your team to student talent.
             </p>
             <Link href="/register?type=company">
               <Button className="mt-4 btn-outline-brand">Start Recruiting</Button>

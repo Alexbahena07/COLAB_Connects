@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header_with_Icons";
@@ -9,6 +10,7 @@ import Footer from "@/components/ui/Footer";
 type Job = {
   id: string;
   title: string;
+  companyId: string;
   company: string;
   location: string;
   type: "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
@@ -22,6 +24,7 @@ const MOCK_JOBS: Job[] = [
   {
     id: "1",
     title: "Frontend Engineer (React/Next.js)",
+    companyId: "company-1",
     company: "Nova Labs",
     location: "Chicago, IL",
     type: "FULL_TIME",
@@ -34,6 +37,7 @@ const MOCK_JOBS: Job[] = [
   {
     id: "2",
     title: "Data Engineer",
+    companyId: "company-2",
     company: "Acme Analytics",
     location: "Remote",
     type: "FULL_TIME",
@@ -46,6 +50,7 @@ const MOCK_JOBS: Job[] = [
   {
     id: "3",
     title: "Software Engineer Intern",
+    companyId: "company-3",
     company: "BrightStart",
     location: "Austin, TX",
     type: "INTERNSHIP",
@@ -81,6 +86,11 @@ export default function DashboardPage() {
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [applySuccess, setApplySuccess] = useState<string | null>(null);
+  const [isFollowingCompany, setIsFollowingCompany] = useState(false);
+  const [isLoadingFollow, setIsLoadingFollow] = useState(false);
+  const [followError, setFollowError] = useState<string | null>(null);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -104,6 +114,7 @@ export default function DashboardPage() {
 
               const id = typeof raw.id === "string" ? raw.id : null;
               const title = typeof raw.title === "string" ? raw.title : null;
+              const companyId = typeof raw.companyId === "string" ? raw.companyId : null;
               const company = typeof raw.company === "string" ? raw.company : null;
               const jobLocation = typeof raw.location === "string" ? raw.location : null;
               const description =
@@ -114,6 +125,7 @@ export default function DashboardPage() {
               if (
                 !id ||
                 !title ||
+                !companyId ||
                 !company ||
                 !jobLocation ||
                 !description ||
@@ -153,6 +165,7 @@ export default function DashboardPage() {
               return {
                 id,
                 title,
+                companyId,
                 company,
                 location: jobLocation,
                 type: rawType as Job["type"],
@@ -225,13 +238,62 @@ export default function DashboardPage() {
       ? filteredJobs.find((job: Job) => job.id === selectedJobId)
       : filteredJobs[0]) ?? null;
 
+  const selectedCompanyId = selectedJob?.companyId ?? null;
+
   const hasApplied = selectedJob ? appliedJobIds.has(selectedJob.id) : false;
 
   useEffect(() => {
     setApplyError(null);
     setApplySuccess(null);
     setIsApplying(false);
-  }, [selectedJobId]);
+    setFollowError(null);
+    setShareMessage(null);
+    setShareError(null);
+  }, [selectedJob?.companyId]);
+
+  useEffect(() => {
+    let active = true;
+    const loadFollowStatus = async () => {
+      if (!selectedCompanyId) {
+        setIsFollowingCompany(false);
+        return;
+      }
+      setIsLoadingFollow(true);
+      try {
+        const response = await fetch(`/api/companies/${selectedCompanyId}/follow`, {
+          cache: "no-store",
+        });
+        const payload = await response.json().catch(() => null);
+        if (!active) return;
+
+        if (!response.ok) {
+          const errorMessage =
+            typeof payload?.error === "string"
+              ? payload.error
+              : "We couldn't load follow status.";
+          setFollowError(errorMessage);
+          setIsFollowingCompany(false);
+          return;
+        }
+
+        setIsFollowingCompany(Boolean(payload?.isFollowing));
+      } catch (error) {
+        console.error("Failed to load follow status", error);
+        if (!active) return;
+        setFollowError("We couldn't load follow status.");
+        setIsFollowingCompany(false);
+      } finally {
+        if (active) {
+          setIsLoadingFollow(false);
+        }
+      }
+    };
+
+    loadFollowStatus();
+    return () => {
+      active = false;
+    };
+  }, [selectedCompanyId]);
 
   const noJobsAvailable =
     !isLoading &&
@@ -305,6 +367,70 @@ export default function DashboardPage() {
       setApplyError("We couldn't reach the application service. Please try again.");
     } finally {
       setIsApplying(false);
+    }
+  };
+
+  const toggleFollowCompany = async () => {
+    if (!selectedJob?.companyId) return;
+    setFollowError(null);
+    setIsLoadingFollow(true);
+
+    try {
+      const response = await fetch(`/api/companies/${selectedJob.companyId}/follow`, {
+        method: isFollowingCompany ? "DELETE" : "POST",
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorMessage =
+          typeof payload?.error === "string"
+            ? payload.error
+            : "We couldn't update the follow status.";
+        setFollowError(errorMessage);
+        return;
+      }
+
+      setIsFollowingCompany(Boolean(payload?.followed));
+    } catch (error) {
+      console.error("Failed to update follow status", error);
+      setFollowError("We couldn't update the follow status.");
+    } finally {
+      setIsLoadingFollow(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!selectedJob) return;
+    setShareMessage(null);
+    setShareError(null);
+
+    const origin =
+      typeof window !== "undefined" && window.location?.origin
+        ? window.location.origin
+        : "";
+    const shareUrl = `${origin}/dashboard?jobId=${selectedJob.id}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: selectedJob.title,
+          text: `${selectedJob.company} is hiring for ${selectedJob.title}.`,
+          url: shareUrl,
+        });
+        setShareMessage("Share sheet opened.");
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareMessage("Job link copied to clipboard.");
+        return;
+      }
+
+      setShareError("Sharing is not supported on this device.");
+    } catch (error) {
+      console.error("Failed to share job", error);
+      setShareError("We couldn't share this job. Try copying the link.");
     }
   };
 
@@ -442,11 +568,11 @@ export default function DashboardPage() {
                   filteredJobs.map((job: Job) => {
                     const active = job.id === selectedJob?.id;
                     return (
-                      <li key={job.id}>
+                      <li key={job.id} className="p-4">
                         <button
                           type="button"
                           onClick={() => setSelectedJobId(job.id)}
-                          className={`w-full p-4 text-left transition ${
+                          className={`w-full rounded-xl p-3 text-left transition ${
                             active ? "bg-[--surface] shadow-sm" : "hover:bg-[--surface]"
                           }`}
                         >
@@ -468,6 +594,12 @@ export default function DashboardPage() {
                             {new Date(job.postedAt).toLocaleDateString()}
                           </p>
                         </button>
+                        <Link
+                          href={`/companies/${job.companyId}`}
+                          className="mt-2 inline-flex text-xs font-semibold text-[--brandBlue] underline underline-offset-2"
+                        >
+                          View company profile
+                        </Link>
                       </li>
                     );
                   })
@@ -488,6 +620,12 @@ export default function DashboardPage() {
                       {selectedJob.company} - {selectedJob.location}
                       {selectedJob.remote ? " | Remote" : ""}
                     </p>
+                    <Link
+                      href={`/companies/${selectedJob.companyId}`}
+                      className="mt-2 inline-flex text-sm font-semibold text-[--brandBlue] underline underline-offset-2"
+                    >
+                      View company profile
+                    </Link>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span
@@ -529,7 +667,7 @@ export default function DashboardPage() {
                   <p className="leading-relaxed">{selectedJob.description}</p>
                 </section>
 
-                <div className="mt-auto flex flex-wrap gap-3">
+                <div className="mt-auto flex flex-wrap items-end justify-between gap-3">
                   <Button
                     className="btn-brand"
                     onClick={handleApply}
@@ -540,18 +678,66 @@ export default function DashboardPage() {
                   </Button>
                   <Button
                     className={
-                      isJobSaved(selectedJob.id)
+                      isFollowingCompany
                         ? "btn-brand bg-white text-[--brand]"
                         : "btn-outline-brand"
                     }
-                    onClick={() => toggleSaveJob(selectedJob.id)}
+                    onClick={toggleFollowCompany}
+                    isLoading={isLoadingFollow}
+                    disabled={!selectedJob?.companyId}
                   >
-                    {isJobSaved(selectedJob.id) ? "Unsave" : "Save"}
+                    {isFollowingCompany ? "Unfollow" : "Follow company"}
                   </Button>
-                  <Button className="btn-outline-brand">Share</Button>
+                  <div className="ml-auto flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleSaveJob(selectedJob.id)}
+                      className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border transition ${
+                        isJobSaved(selectedJob.id)
+                          ? "border-white bg-white text-[--brand]"
+                          : "border-[--brandBlue] text-[--brandBlue] hover:bg-[--brandBlue]/10"
+                      }`}
+                      aria-label={isJobSaved(selectedJob.id) ? "Unsave job" : "Save job"}
+                    >
+                      <svg
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        className="h-5 w-5"
+                      >
+                        <path d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1Z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[--brandBlue] text-[--brandBlue] transition hover:bg-[--brandBlue]/10"
+                      aria-label="Share job"
+                      onClick={handleShare}
+                    >
+                      <svg
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        className="h-5 w-5"
+                      >
+                        <path d="M7 12v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-7" />
+                        <path d="M12 3v12" />
+                        <path d="m8.5 6.5 3.5-3.5 3.5 3.5" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {applyError ? <p className="text-sm text-red-500">{applyError}</p> : null}
+                {followError ? <p className="text-sm text-red-500">{followError}</p> : null}
+                {shareError ? <p className="text-sm text-red-500">{shareError}</p> : null}
+                {shareMessage ? <p className="text-sm text-green-500">{shareMessage}</p> : null}
                 {applySuccess ? (
                   <p className="text-sm text-green-500">{applySuccess}</p>
                 ) : null}

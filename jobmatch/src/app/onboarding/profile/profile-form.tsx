@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { useEffect, useState, useRef, type ChangeEvent } from "react";
+import { useEffect, useState, useRef, type ChangeEvent, type PointerEvent } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Input from "@/components/ui/Input";
@@ -76,6 +76,9 @@ type ResumeMetadata = {
   fileType?: string | null;
 } | null;
 
+const AVATAR_SIZE = 160;
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
+
 const DEFAULT_VALUES: FormData = {
   profile: { firstName: "", lastName: "", headline: "", desiredLocation: "" },
   degrees: [],
@@ -127,6 +130,7 @@ type ProfileResponse = {
   }>;
   skills?: Array<{ name?: string; years?: number | null }>;
   resume?: { fileName?: string; fileType?: string | null } | null;
+  avatarUrl?: string | null;
 };
 
 export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormProps) {
@@ -139,6 +143,20 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
   const [existingResume, setExistingResume] = useState<ResumeMetadata>(null);
   const [pendingResumeRemoval, setPendingResumeRemoval] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 });
+  const [imageDims, setImageDims] = useState<{ width: number; height: number } | null>(
+    null
+  );
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const avatarImageRef = useRef<HTMLImageElement | null>(null);
+  const dragRef = useRef<{ x: number; y: number; startX: number; startY: number } | null>(
+    null
+  );
+  const previousAvatarUrlRef = useRef<string | null>(null);
 
   const { register, control, handleSubmit, formState: { isSubmitting }, reset } =
     useForm<FormData>({
@@ -192,6 +210,12 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
         setPendingResumeRemoval(false);
         setResumeFile(null);
         setResumeError(null);
+        setAvatarUrl(typeof data?.avatarUrl === "string" ? data.avatarUrl : null);
+        setAvatarFile(null);
+        setAvatarError(null);
+        setCropZoom(1);
+        setCropOffset({ x: 0, y: 0 });
+        setImageDims(null);
       } catch (error) {
         console.error(error);
         setLoadError("We couldn't load your saved profile. You can still make updates below.");
@@ -201,6 +225,12 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
         setPendingResumeRemoval(false);
         setResumeFile(null);
         setResumeError(null);
+        setAvatarUrl(null);
+        setAvatarFile(null);
+        setAvatarError(null);
+        setCropZoom(1);
+        setCropOffset({ x: 0, y: 0 });
+        setImageDims(null);
       } finally {
         if (active) setLoading(false);
       }
@@ -216,6 +246,12 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
   const clearResumeInput = () => {
     if (resumeInputRef.current) {
       resumeInputRef.current.value = "";
+    }
+  };
+
+  const clearAvatarInput = () => {
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = "";
     }
   };
 
@@ -252,6 +288,125 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
     setResumeFile(file);
   };
 
+  const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
+
+  const getScaled = () => {
+    if (!imageDims) return null;
+    const baseScale = Math.max(AVATAR_SIZE / imageDims.width, AVATAR_SIZE / imageDims.height);
+    const scale = baseScale * cropZoom;
+    return {
+      scale,
+      width: imageDims.width * scale,
+      height: imageDims.height * scale,
+    };
+  };
+
+  const clampOffset = (offset: { x: number; y: number }) => {
+    const scaled = getScaled();
+    if (!scaled) return offset;
+    const minX = Math.min(0, AVATAR_SIZE - scaled.width);
+    const minY = Math.min(0, AVATAR_SIZE - scaled.height);
+    return {
+      x: clamp(offset.x, minX, 0),
+      y: clamp(offset.y, minY, 0),
+    };
+  };
+
+  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setAvatarError(null);
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+    const file = files.item(0);
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Upload a JPG or PNG image.");
+      clearAvatarInput();
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatarError("Profile photo must be 2MB or smaller.");
+      clearAvatarInput();
+      return;
+    }
+    const nextUrl = URL.createObjectURL(file);
+    setAvatarUrl(nextUrl);
+    setAvatarFile(file);
+    setCropZoom(1);
+    setCropOffset({ x: 0, y: 0 });
+    setImageDims(null);
+  };
+
+  useEffect(() => {
+    const previous = previousAvatarUrlRef.current;
+    if (previous && previous.startsWith("blob:") && previous !== avatarUrl) {
+      URL.revokeObjectURL(previous);
+    }
+    previousAvatarUrlRef.current = avatarUrl;
+  }, [avatarUrl]);
+
+  useEffect(() => {
+    setCropOffset((prev) => clampOffset(prev));
+  }, [cropZoom, imageDims]);
+
+  const handleAvatarImageLoad = () => {
+    const img = avatarImageRef.current;
+    if (!img) return;
+    const dims = { width: img.naturalWidth, height: img.naturalHeight };
+    setImageDims(dims);
+    const baseScale = Math.max(AVATAR_SIZE / dims.width, AVATAR_SIZE / dims.height);
+    const width = dims.width * baseScale * cropZoom;
+    const height = dims.height * baseScale * cropZoom;
+    setCropOffset({
+      x: (AVATAR_SIZE - width) / 2,
+      y: (AVATAR_SIZE - height) / 2,
+    });
+  };
+
+  const handleDragStart = (event: PointerEvent<HTMLDivElement>) => {
+    if (!imageDims) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      x: cropOffset.x,
+      y: cropOffset.y,
+      startX: event.clientX,
+      startY: event.clientY,
+    };
+  };
+
+  const handleDragMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current) return;
+    const next = {
+      x: dragRef.current.x + (event.clientX - dragRef.current.startX),
+      y: dragRef.current.y + (event.clientY - dragRef.current.startY),
+    };
+    setCropOffset(clampOffset(next));
+  };
+
+  const handleDragEnd = (event: PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragRef.current = null;
+  };
+
+  const getCroppedAvatar = () => {
+    if (!avatarImageRef.current || !imageDims) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = AVATAR_SIZE;
+    canvas.height = AVATAR_SIZE;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    const baseScale = Math.max(AVATAR_SIZE / imageDims.width, AVATAR_SIZE / imageDims.height);
+    const scale = baseScale * cropZoom;
+    const drawWidth = imageDims.width * scale;
+    const drawHeight = imageDims.height * scale;
+    ctx.drawImage(avatarImageRef.current, cropOffset.x, cropOffset.y, drawWidth, drawHeight);
+    return canvas.toDataURL("image/jpeg", 0.9);
+  };
+
   const markResumeForRemoval = () => {
     setPendingResumeRemoval(true);
     setExistingResume(null);
@@ -274,6 +429,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
     if (loading) return;
 
     setResumeError(null);
+    setAvatarError(null);
     if (pendingResumeRemoval && !resumeFile) {
       setResumeError("Upload a new resume before removing the current one.");
       return;
@@ -309,6 +465,14 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       experiences: stripEmpty(data.experiences),
       skills: stripEmpty(data.skills),
     };
+    if (avatarFile) {
+      const avatarDataUrl = getCroppedAvatar();
+      if (!avatarDataUrl) {
+        setAvatarError("We couldn't crop that photo. Try again.");
+        return;
+      }
+      payload.avatar = { dataUrl: avatarDataUrl };
+    }
     if (resumePayload) {
       payload.resume = resumePayload;
     }
@@ -326,20 +490,133 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
       {loadError ? (
-        <p className="rounded-lg border border-yellow-400 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">{loadError}</p>
+        <p className="rounded-lg border border-yellow-400 bg-yellow-400/10 px-3 py-2 text-sm text-[--foreground]">
+          {loadError}
+        </p>
       ) : null}
 
       {loading ? (
-        <p className="rounded-lg border border-[--border] bg-[--surface] px-3 py-2 text-sm opacity-80">Loading saved profile...</p>
+        <p className="rounded-lg border border-[--border] bg-[--surface] px-3 py-2 text-sm text-[--foreground]/80">
+          Loading saved profile...
+        </p>
       ) : null}
 
       {/* Basic Profile */}
-      <section className="rounded-xl border border-gray-200 p-4">
-        <h2 className="font-medium mb-3">Basic Info</h2>
+      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[--brand]">
+          Basic info
+        </h2>
+          <div className="mb-4 flex flex-wrap items-start gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-white">Profile photo</p>
+              <div
+              className="relative h-40 w-40 overflow-hidden rounded-full border border-white/30 bg-[--surface] shadow-sm ring-2 ring-white/10"
+              style={{ touchAction: "none" }}
+              onPointerDown={handleDragStart}
+              onPointerMove={handleDragMove}
+              onPointerUp={handleDragEnd}
+              onPointerLeave={handleDragEnd}
+            >
+              {avatarUrl ? (
+                <img
+                  ref={avatarImageRef}
+                  src={avatarUrl}
+                  alt="Profile preview"
+                  onLoad={handleAvatarImageLoad}
+                  className="absolute left-0 top-0 select-none cursor-grab active:cursor-grabbing"
+                  style={
+                    imageDims
+                      ? {
+                          width: imageDims.width * (getScaled()?.scale ?? 1),
+                          height: imageDims.height * (getScaled()?.scale ?? 1),
+                          transform: `translate(${cropOffset.x}px, ${cropOffset.y}px)`,
+                        }
+                      : { width: "100%", height: "100%", objectFit: "cover" }
+                  }
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xs text-[--foreground]/70">
+                  Upload a photo
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                htmlFor="avatar-upload"
+                className="cursor-pointer rounded-xl border border-[--brandBlue] px-3 py-2 text-xs font-semibold text-[--brand] hover:bg-[--brandBlue] hover:text-white"
+              >
+                Choose photo
+              </label>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={avatarInputRef}
+                onChange={handleAvatarChange}
+                disabled={formDisabled}
+              />
+              {avatarUrl ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAvatarUrl(null);
+                    setAvatarFile(null);
+                    setImageDims(null);
+                    setCropZoom(1);
+                    setCropOffset({ x: 0, y: 0 });
+                    clearAvatarInput();
+                  }}
+                  className="rounded-xl border border-[--border] px-3 py-2 text-xs font-semibold text-[--foreground] hover:bg-[--surface]"
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <div className="min-w-[240px] flex-1 space-y-2">
+            <label className="text-xs font-semibold text-white/80" htmlFor="avatar-zoom">
+              Zoom
+            </label>
+            <input
+              id="avatar-zoom"
+              type="range"
+              min={1}
+              max={3}
+              step={0.05}
+              value={cropZoom}
+              onChange={(event) => setCropZoom(Number(event.target.value))}
+              className="w-full accent-[--brandBlue]"
+              disabled={!avatarUrl}
+            />
+            <p className="text-xs text-white/70">
+              Drag the image to reposition the crop.
+            </p>
+            {avatarError ? <p className="text-xs text-red-600">{avatarError}</p> : null}
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-3">
-          <Input label="First name" {...register("profile.firstName")} />
-          <Input label="Last name" {...register("profile.lastName")} />
-          <Input label="Headline" placeholder="e.g., Full‑stack Engineer" {...register("profile.headline")} />
+          
+          <Input
+            label="First name"
+            labelClassName="text-white"
+            className="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
+            {...register("profile.firstName")}
+          />
+          
+          <Input
+            label="Last name"
+            labelClassName="text-white"
+            className="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
+            {...register("profile.lastName")}
+          />
+          <Input
+            label="Headline"
+            placeholder="e.g., Full-stack Engineer"
+            labelClassName="text-white"
+            className="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
+            {...register("profile.headline")}
+          />
 
           {/* Desired work location with Autocomplete */}
           <Controller
@@ -350,8 +627,12 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                 label="Desired work location"
                 value={field.value || ""}
                 onChange={field.onChange}
-                placeholder="Start typing a city…"
+                placeholder="Start typing a city"
                 options={CITY_OPTIONS}
+                labelClassName="text-white"
+                inputClassName="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
+                panelClassName="border-white/10 bg-[--surface]"
+                optionClassName="text-[--foreground] hover:bg-[--background]"
               />
             )}
           />
@@ -359,11 +640,15 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Resume upload */}
-      <section className="rounded-xl border border-gray-200 p-4">
+      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-medium">Resume (PDF)</h2>
-            <p className="text-sm text-gray-600">Upload a PDF of your resume (max 5MB). Required for students.</p>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+              Resume (PDF)
+            </h2>
+            <p className="text-sm text-[--foreground]/70">
+              Upload a PDF of your resume (max 5MB). Required for students.
+            </p>
           </div>
           {existingResume ? (
             <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -422,9 +707,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Degrees */}
-      <section className="rounded-xl border border-gray-200 p-4">
+      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium">Degrees</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+            Degrees
+          </h2>
           <button
             type="button"
             className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
@@ -464,9 +751,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Certificates (unchanged inputs) */}
-      <section className="rounded-xl border border-gray-200 p-4">
+      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium">Certificates</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+            Certificates
+          </h2>
           <button
             type="button"
             className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
@@ -493,9 +782,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Experience (unchanged) */}
-      <section className="rounded-xl border border-gray-200 p-4">
+      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium">Work history</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+            Work history
+          </h2>
           <button
             type="button"
             className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
@@ -522,9 +813,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Skills with Autocomplete (no level) */}
-      <section className="rounded-xl border border-gray-200 p-4">
+      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
         <div className="mb-3">
-          <h2 className="font-medium">Skills</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+            Skills
+          </h2>
         </div>
         <div className="space-y-4">
           {skl.fields.map((f, i) => (
