@@ -6,7 +6,7 @@ import Footer from "@/components/ui/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[--surface] text-[--brand]">
+    <main className="min-h-screen bg-[--surface] text-[--foreground]">
       {/* Top bar */}
       <Header />
 
@@ -31,23 +31,14 @@ export default function Home() {
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[--brand] transition hover:opacity-90"
-                >
-                  Join as a student
+                <Link href="/register">
+                  <Button className="btn-brand border border-white">Join as a student</Button>
                 </Link>
-                <Link
-                  href="/register?type=company"
-                  className="inline-flex items-center justify-center rounded-xl border border-white/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Join as a company
+                <Link href="/register?type=company">
+                  <Button className="btn-brand border border-white">Join as a company</Button>
                 </Link>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-                >
-                  Log in
+                <Link href="/login">
+                  <Button className="btn-brand border border-white">Log in</Button>
                 </Link>
               </div>
             </div>
