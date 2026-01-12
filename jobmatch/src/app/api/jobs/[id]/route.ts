@@ -30,7 +30,7 @@ const normalizeSkills = (skills: string[]) =>
   );
 
 // ----------------------------------------
-// PATCH — Update Job
+// PATCH - Update Job
 // ----------------------------------------
 export async function PATCH(request: Request, context: RouteContext) {
   const { id: jobId } = await context.params;
@@ -157,7 +157,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 }
 
 // ----------------------------------------
-// DELETE — Delete Job
+// DELETE - Delete Job
 // ----------------------------------------
 export async function DELETE(_request: Request, context: RouteContext) {
   const { id: jobId } = await context.params;

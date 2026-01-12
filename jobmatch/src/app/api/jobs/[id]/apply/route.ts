@@ -108,9 +108,9 @@ const formatApplicant = (applicant: ApplicantWithRelations) => {
 
 export async function POST(
   _request: Request,
-  context: { params: Promise<{ id: string }> }   // ⬅️ key change
+  context: { params: Promise<{ id: string }> }   // key change
 ) {
-  const { id: jobId } = await context.params;     // ⬅️ and this
+  const { id: jobId } = await context.params;     // and this
 
   const session = await getServerSession(authOptions);
   const user = session?.user;
