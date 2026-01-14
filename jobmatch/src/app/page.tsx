@@ -125,7 +125,7 @@ export default function Home() {
             },
           ].map((c) => (
             <div key={c.title} className="card">
-              <div className="mb-3 inline-block rounded-lg bg-[--brandBlue] px-2 py-1 text-xs font-semibold text-white">
+              <div className="mb-3 inline-block rounded-lg bg-[--brandBlue] px-3 py-1 text-lg font-semibold text-white">
                 {c.title}
               </div>
               <p className="text-[--brandBlue]">{c.desc}</p>
