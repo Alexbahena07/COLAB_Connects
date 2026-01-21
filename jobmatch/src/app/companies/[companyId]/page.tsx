@@ -53,7 +53,7 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-[--background] text-white">
+      <main className="flex min-h-screen flex-col bg-[var(--background)] text-white">
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>

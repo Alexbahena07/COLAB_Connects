@@ -114,7 +114,7 @@ export default function LinkedInImportClient() {
 
   if (state.loading) {
     return (
-      <div className="rounded-3xl border border-[--border] bg-[--surface] p-6 text-sm opacity-80">
+      <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 text-sm opacity-80">
         Loading your LinkedIn data...
       </div>
     );
@@ -133,15 +133,15 @@ export default function LinkedInImportClient() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-[--border] bg-[--surface] p-6 shadow-sm">
+      <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-[--brand]">Experiences</h2>
+            <h2 className="text-2xl font-semibold text-[var(--brand)]">Experiences</h2>
             <p className="text-sm opacity-70">Select which roles to import.</p>
           </div>
           <Button
             type="button"
-            className="border border-[--border] bg-[--surface] text-[--brand]"
+            className="border border-[var(--border)] bg-[var(--surface)] text-[var(--brand)]"
             onClick={() => {
               const ids = experiences.map((exp) => exp.id);
               const currentlyAllSelected = ids.every((id) => selectedExperiences.has(id));
@@ -161,7 +161,7 @@ export default function LinkedInImportClient() {
             {experiences.map((exp) => (
               <li
                 key={exp.id}
-                className="rounded-2xl border border-[--border] bg-white/60 p-4 shadow-sm"
+                className="rounded-2xl border border-[var(--border)] bg-white/60 p-4 shadow-sm"
               >
                 <label className="flex items-start gap-3">
                   <input
@@ -171,7 +171,7 @@ export default function LinkedInImportClient() {
                     className="mt-1 h-4 w-4"
                   />
                   <div>
-                    <p className="text-lg font-semibold text-[--brand]">{exp.title}</p>
+                    <p className="text-lg font-semibold text-[var(--brand)]">{exp.title}</p>
                     <p className="text-sm opacity-80">{exp.company}</p>
                     <p className="text-xs uppercase tracking-wide opacity-60">
                       {formatSpan(exp.startDate, exp.endDate)}
@@ -187,15 +187,15 @@ export default function LinkedInImportClient() {
         )}
       </section>
 
-      <section className="rounded-3xl border border-[--border] bg-[--surface] p-6 shadow-sm">
+      <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-[--brand]">Certifications</h2>
+            <h2 className="text-2xl font-semibold text-[var(--brand)]">Certifications</h2>
             <p className="text-sm opacity-70">Keep proof of credentials up to date.</p>
           </div>
           <Button
             type="button"
-            className="border border-[--border] bg-[--surface] text-[--brand]"
+            className="border border-[var(--border)] bg-[var(--surface)] text-[var(--brand)]"
             onClick={() => {
               const ids = certifications.map((cert) => cert.id);
               const currentlyAllSelected = ids.every((id) => selectedCertifications.has(id));
@@ -217,7 +217,7 @@ export default function LinkedInImportClient() {
             {certifications.map((cert) => (
               <li
                 key={cert.id}
-                className="rounded-2xl border border-[--border] bg-white/60 p-4 shadow-sm"
+                className="rounded-2xl border border-[var(--border)] bg-white/60 p-4 shadow-sm"
               >
                 <label className="flex items-start gap-3">
                   <input
@@ -227,7 +227,7 @@ export default function LinkedInImportClient() {
                     className="mt-1 h-4 w-4"
                   />
                   <div>
-                    <p className="text-lg font-semibold text-[--brand]">{cert.name}</p>
+                    <p className="text-lg font-semibold text-[var(--brand)]">{cert.name}</p>
                     {cert.issuer ? (
                       <p className="text-sm opacity-80">Issuer: {cert.issuer}</p>
                     ) : null}
@@ -248,7 +248,7 @@ export default function LinkedInImportClient() {
       <div className="flex flex-wrap items-center gap-4">
         <Button
           type="button"
-          className="bg-[--brand] text-white disabled:opacity-50"
+          className="bg-[var(--brand)] text-white disabled:opacity-50"
           onClick={handleSave}
           disabled={!hasSelection || saving}
           isLoading={saving}

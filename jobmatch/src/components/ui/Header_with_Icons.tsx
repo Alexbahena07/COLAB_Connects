@@ -13,7 +13,7 @@ export default function Header() {
   const logoHref = isCompany ? "/dashboard/company" : "/dashboard";
 
   return (
-    <header className="bg-[--brand] text-[--brand]">
+    <header className="bg-[var(--brand)] text-[var(--brand)]">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         {/* Logo on the left, centered vertically */}
         <Link href={logoHref} className="flex items-center">

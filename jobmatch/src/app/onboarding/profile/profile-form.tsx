@@ -490,27 +490,27 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
       {loadError ? (
-        <p className="rounded-lg border border-yellow-400 bg-yellow-400/10 px-3 py-2 text-sm text-[--foreground]">
+        <p className="rounded-lg border border-yellow-400 bg-yellow-400/10 px-3 py-2 text-sm text-[var(--foreground)]">
           {loadError}
         </p>
       ) : null}
 
       {loading ? (
-        <p className="rounded-lg border border-[--border] bg-[--surface] px-3 py-2 text-sm text-[--foreground]/80">
+        <p className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]/80">
           Loading saved profile...
         </p>
       ) : null}
 
       {/* Basic Profile */}
-      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[--brand]">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--brand)]">
           Basic info
         </h2>
           <div className="mb-4 flex flex-wrap items-start gap-4">
             <div className="space-y-2">
               <p className="text-sm font-semibold text-white">Profile photo</p>
               <div
-              className="relative h-40 w-40 overflow-hidden rounded-full border border-white/30 bg-[--surface] shadow-sm ring-2 ring-white/10"
+              className="relative h-40 w-40 overflow-hidden rounded-full border border-white/30 bg-[var(--surface)] shadow-sm ring-2 ring-white/10"
               style={{ touchAction: "none" }}
               onPointerDown={handleDragStart}
               onPointerMove={handleDragMove}
@@ -535,7 +535,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                   }
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-[--foreground]/70">
+                <div className="flex h-full w-full items-center justify-center text-xs text-[var(--foreground)]/70">
                   Upload a photo
                 </div>
               )}
@@ -543,7 +543,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
             <div className="flex flex-wrap items-center gap-2">
               <label
                 htmlFor="avatar-upload"
-                className="cursor-pointer rounded-xl border border-[--brandBlue] px-3 py-2 text-xs font-semibold text-[--brand] hover:bg-[--brandBlue] hover:text-white"
+                className="cursor-pointer rounded-xl border border-[var(--brandBlue)] px-3 py-2 text-xs font-semibold text-[var(--brand)] hover:bg-[var(--brandBlue)] hover:text-white"
               >
                 Choose photo
               </label>
@@ -567,7 +567,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                     setCropOffset({ x: 0, y: 0 });
                     clearAvatarInput();
                   }}
-                  className="rounded-xl border border-[--border] px-3 py-2 text-xs font-semibold text-[--foreground] hover:bg-[--surface]"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--surface)]"
                 >
                   Remove
                 </button>
@@ -586,7 +586,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
               step={0.05}
               value={cropZoom}
               onChange={(event) => setCropZoom(Number(event.target.value))}
-              className="w-full accent-[--brandBlue]"
+              className="w-full accent-[var(--brandBlue)]"
               disabled={!avatarUrl}
             />
             <p className="text-xs text-white/70">
@@ -600,21 +600,21 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
           <Input
             label="First name"
             labelClassName="text-white"
-            className="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
+            className="border-white/30 bg-[var(--surface)] text-white placeholder:text-white/70 focus:ring-white/30"
             {...register("profile.firstName")}
           />
           
           <Input
             label="Last name"
             labelClassName="text-white"
-            className="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
+            className="border-white/30 bg-[var(--surface)] text-white placeholder:text-white/70 focus:ring-white/30"
             {...register("profile.lastName")}
           />
           <Input
             label="Headline"
             placeholder="e.g., Full-stack Engineer"
             labelClassName="text-white"
-            className="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
+            className="border-white/30 bg-[var(--surface)] text-white placeholder:text-white/70 focus:ring-white/30"
             {...register("profile.headline")}
           />
 
@@ -630,9 +630,9 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                 placeholder="Start typing a city"
                 options={CITY_OPTIONS}
                 labelClassName="text-white"
-                inputClassName="border-white/30 bg-[--surface] text-white placeholder:text-white/70 focus:ring-white/30"
-                panelClassName="border-white/10 bg-[--surface]"
-                optionClassName="text-[--foreground] hover:bg-[--background]"
+                inputClassName="border-white/30 bg-[var(--surface)] text-white placeholder:text-white/70 focus:ring-white/30"
+                panelClassName="border-white/10 bg-[var(--surface)]"
+                optionClassName="text-[var(--foreground)] hover:bg-[var(--background)]"
               />
             )}
           />
@@ -640,13 +640,13 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Resume upload */}
-      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand)]">
               Resume (PDF)
             </h2>
-            <p className="text-sm text-[--foreground]/70">
+            <p className="text-sm text-[var(--foreground)]/70">
               Upload a PDF of your resume (max 5MB). Required for students.
             </p>
           </div>
@@ -667,22 +667,22 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
               <button
                 type="button"
                 onClick={cancelResumeRemoval}
-                className="rounded-md border border-[--brandBlue] px-2 py-1 font-semibold text-[--brand] hover:bg-[--brandBlue] hover:text-white"
+                className="rounded-md border border-[var(--brandBlue)] px-2 py-1 font-semibold text-[var(--brand)] hover:bg-[var(--brandBlue)] hover:text-white"
               >
                 Keep current resume
               </button>
             </div>
           ) : (
-            <span className="text-xs font-semibold text-[--brand]">Required</span>
+            <span className="text-xs font-semibold text-[var(--brand)]">Required</span>
           )}
         </div>
         <div className="mt-4 space-y-2">
           <label
             htmlFor="resume-upload"
-            className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-[--border] bg-[--surface] px-4 py-3 text-sm font-semibold text-[--brand] hover:bg-[--brandBlue] hover:text-white"
+            className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold text-[var(--brand)] hover:bg-[var(--brandBlue)] hover:text-white"
           >
             <span>{resumeFile ? "Replace selected PDF" : "Upload PDF"}</span>
-            <span className="text-xs font-normal text-[--foreground]/70">Max 5MB</span>
+            <span className="text-xs font-normal text-[var(--foreground)]/70">Max 5MB</span>
           </label>
           <input
             id="resume-upload"
@@ -694,27 +694,27 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
             disabled={formDisabled}
           />
           {resumeFile ? (
-            <p className="text-xs text-[--foreground]">Selected file: {resumeFile.name}</p>
+            <p className="text-xs text-[var(--foreground)]">Selected file: {resumeFile.name}</p>
           ) : pendingResumeRemoval && storedResume ? (
-            <p className="text-xs text-[--foreground]/80">Resume removal pending. Choose a PDF above to replace it.</p>
+            <p className="text-xs text-[var(--foreground)]/80">Resume removal pending. Choose a PDF above to replace it.</p>
           ) : existingResume ? (
-            <p className="text-xs text-[--foreground]/80">Current resume: {existingResume.fileName}</p>
+            <p className="text-xs text-[var(--foreground)]/80">Current resume: {existingResume.fileName}</p>
           ) : (
-            <p className="text-xs text-[--foreground]/80">No resume uploaded yet.</p>
+            <p className="text-xs text-[var(--foreground)]/80">No resume uploaded yet.</p>
           )}
           {resumeError ? <p className="text-xs text-red-600">{resumeError}</p> : null}
         </div>
       </section>
 
       {/* Degrees */}
-      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand)]">
             Degrees
           </h2>
           <button
             type="button"
-            className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
+            className="text-sm rounded-lg border border-[var(--brandBlue)] px-3 py-1 text-[var(--brand)] hover:bg-[var(--brandBlue)] hover:text-white"
             onClick={() => deg.append({ school: "", degree: "", field: "", startDate: "", endDate: "" })}>
             Add degree
           </button>
@@ -751,14 +751,14 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Certificates (unchanged inputs) */}
-      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand)]">
             Certificates
           </h2>
           <button
             type="button"
-            className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
+            className="text-sm rounded-lg border border-[var(--brandBlue)] px-3 py-1 text-[var(--brand)] hover:bg-[var(--brandBlue)] hover:text-white"
             onClick={() => cert.append({ name: "", issuer: "", issuedAt: "", credentialId: "", credentialUrl: "" })}>
             Add certificate
           </button>
@@ -782,14 +782,14 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Experience (unchanged) */}
-      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand)]">
             Work history
           </h2>
           <button
             type="button"
-            className="text-sm rounded-lg border border-[--brandBlue] px-3 py-1 text-[--brand] hover:bg-[--brandBlue] hover:text-white"
+            className="text-sm rounded-lg border border-[var(--brandBlue)] px-3 py-1 text-[var(--brand)] hover:bg-[var(--brandBlue)] hover:text-white"
             onClick={() => exp.append({ title: "", company: "", startDate: "", endDate: "", description: "" })}>
             Add role
           </button>
@@ -813,9 +813,9 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       {/* Skills with Autocomplete (no level) */}
-      <section className="rounded-2xl border border-[--border] bg-[--surface] p-4">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <div className="mb-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[--brand]">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--brand)]">
             Skills
           </h2>
         </div>
@@ -847,7 +847,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       </section>
 
       <div className="flex justify-end">
-        <Button type="submit" isLoading={formDisabled} disabled={formDisabled} className="bg-[--brand] text-white">
+        <Button type="submit" isLoading={formDisabled} disabled={formDisabled} className="bg-[var(--brand)] text-white">
           Save and continue
         </Button>
       </div>

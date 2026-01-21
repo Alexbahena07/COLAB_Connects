@@ -12,7 +12,7 @@ export default async function ProfileOnboarding() {
   return (
     <>
       <Header />
-      <main className="min-h-screen grid place-items-center bg-[--brand] px-4">
+      <main className="min-h-screen grid place-items-center bg-[var(--brand)] px-4">
         <div className="card-wide">
         <h1 className="text-2xl font-semibold mb-1">Set up your profile</h1>
         <p className="text-sm text-gray-600 mb-6">

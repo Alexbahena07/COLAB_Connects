@@ -37,6 +37,7 @@ export async function GET(request: Request) {
         select: {
           id: true,
           name: true,
+          image: true,
           companyProfile: {
             select: {
               companyName: true,
@@ -57,6 +58,7 @@ export async function GET(request: Request) {
     title: job.title,
     companyId: job.company.id,
     company: job.company.companyProfile?.companyName ?? job.company.name ?? "Unknown company",
+    companyImage: job.company.image ?? null,
     location: job.location,
     type: job.type,
     remote: job.remote,
@@ -164,6 +166,7 @@ export async function POST(request: Request) {
         company: {
           select: {
             name: true,
+            image: true,
             companyProfile: {
               select: {
                 companyName: true,
@@ -190,6 +193,7 @@ export async function POST(request: Request) {
           title: createdJob.title,
           companyId: createdJob.companyId,
           company: createdJob.company.companyProfile?.companyName ?? createdJob.company.name ?? "Unknown company",
+          companyImage: createdJob.company.image ?? null,
           location: createdJob.location,
           type: createdJob.type,
           remote: createdJob.remote,

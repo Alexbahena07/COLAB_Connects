@@ -146,12 +146,12 @@ export default function CompanyProfileForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-[--foreground]" htmlFor="company-team-size">
+          <label className="block text-sm font-medium text-[var(--foreground)]" htmlFor="company-team-size">
             Company size
           </label>
           <select
             id="company-team-size"
-            className="h-11 w-full rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--foreground)]"
             {...register("teamSize")}
           >
             <option value="" className="bg-white text-black">Select size</option>
@@ -167,12 +167,12 @@ export default function CompanyProfileForm() {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-[--foreground]" htmlFor="company-industry">
+          <label className="block text-sm font-medium text-[var(--foreground)]" htmlFor="company-industry">
             Industry
           </label>
           <select
             id="company-industry"
-            className="h-11 w-full rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--foreground)]"
             {...register("hiringFocus")}
           >
             <option value="" className="bg-white text-black">Select industry</option>
@@ -194,13 +194,13 @@ export default function CompanyProfileForm() {
       </div>
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-[--foreground]" htmlFor="company-about">
+        <label className="block text-sm font-medium text-[var(--foreground)]" htmlFor="company-about">
           About your company
         </label>
         <textarea
           id="company-about"
           rows={5}
-          className="w-full rounded-xl border border-[--border] bg-[--surface] px-3 py-2 text-sm text-[--foreground]"
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
           placeholder="Share a quick overview, mission, and what students can expect."
           {...register("about")}
         />

@@ -13,7 +13,7 @@ export default async function CompanyProfilePage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-[--brand] px-4 py-10 text-white">
+      <main className="min-h-screen bg-[var(--brand)] px-4 py-10 text-white">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <div className="flex flex-wrap items-center gap-6">
           <CompanyProfilePhotoEditor initialImage={profilePhoto} />

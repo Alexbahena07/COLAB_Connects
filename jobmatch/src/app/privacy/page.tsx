@@ -3,21 +3,21 @@ import Footer from "@/components/ui/Footer";
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[--surface] text-[--foreground]">
+    <main className="min-h-screen bg-[var(--surface)] text-[var(--foreground)]">
       <Header />
       <section className="mx-auto w-full max-w-4xl px-6 py-16">
         <div className="space-y-10">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[--brand]/70">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--brand)]/70">
               COLAB Connects
             </p>
-            <h1 className="text-3xl font-bold text-[--brand] md:text-4xl">
+            <h1 className="text-3xl font-bold text-[var(--brand)] md:text-4xl">
               Privacy Policy
             </h1>
-            <p className="text-sm text-[--foreground]/70">Last updated: [1/20/2026]</p>
+            <p className="text-sm text-[var(--foreground)]/70">Last updated: [1/20/2026]</p>
           </div>
 
-          <div className="space-y-6 text-sm leading-6 text-[--foreground]/90">
+          <div className="space-y-6 text-sm leading-6 text-[var(--foreground)]/90">
             <p>
               COLAB Connects ("COLAB Connects," "we," "our," or "us") respects your privacy
               and is committed to protecting your personal information. This Privacy Policy
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
             </p>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[--brand]">Information We Collect</h2>
+              <h2 className="text-lg font-semibold text-[var(--brand)]">Information We Collect</h2>
               <p>We collect information you choose to provide, including:</p>
               <ul className="list-disc space-y-2 pl-5">
                 <li>Name, email address, and account credentials</li>
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[--brand]">How We Use Your Information</h2>
+              <h2 className="text-lg font-semibold text-[var(--brand)]">How We Use Your Information</h2>
               <p>We use your information to:</p>
               <ul className="list-disc space-y-2 pl-5">
                 <li>Create and maintain your COLAB Connects profile</li>
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[--brand]">
+              <h2 className="text-lg font-semibold text-[var(--brand)]">
                 Third-Party Data &amp; Data Portability
               </h2>
               <p>If you choose to import data from third-party platforms:</p>
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[--brand]">Data Retention</h2>
+              <h2 className="text-lg font-semibold text-[var(--brand)]">Data Retention</h2>
               <p>
                 We retain personal data only for as long as your account is active or as needed
                 to provide services. You may delete your account at any time, which will remove
@@ -77,7 +77,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[--brand]">Your Rights</h2>
+              <h2 className="text-lg font-semibold text-[var(--brand)]">Your Rights</h2>
               <p>You have the right to:</p>
               <ul className="list-disc space-y-2 pl-5">
                 <li>Access your personal data</li>
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[--brand]">Data Security</h2>
+              <h2 className="text-lg font-semibold text-[var(--brand)]">Data Security</h2>
               <p>
                 We implement reasonable technical and organizational measures to protect your
                 information from unauthorized access, loss, or misuse.
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-[--brand]">Contact Us</h2>
+              <h2 className="text-lg font-semibold text-[var(--brand)]">Contact Us</h2>
               <p>If you have questions or requests regarding privacy or data usage, contact us at:</p>
               <p className="font-semibold">Email: coordinator@colabconnects.org</p>
             </div>

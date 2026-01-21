@@ -354,12 +354,12 @@ export default function CompanyJobsPage() {
  return (
   <>
     <Header />
-    <main className="flex min-h-screen flex-col bg-[--background] text-white">
+    <main className="flex min-h-screen flex-col bg-[var(--background)] text-white">
       {/* Top bar */}
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
         <div className="flex w-full items-center justify-between gap-4 px-6 py-6">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[--brandBlue]/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--brandBlue)]/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
               <span className="h-1.5 w-1.5 rounded-full bg-white" />
               Company jobs
             </div>
@@ -381,7 +381,7 @@ export default function CompanyJobsPage() {
       <div className="flex w-full flex-1 flex-col gap-6 px-6 py-8">
         <div className="grid w-full gap-6 lg:grid-cols-[1.5fr,1fr] xl:grid-cols-[1.6fr,1fr]">
           {/* LEFT: Your job listings */}
-          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[--border] bg-[--surface] p-6 shadow-sm">
+          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
             <header className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-white">Your job listings</h2>
@@ -399,7 +399,7 @@ export default function CompanyJobsPage() {
                   value={jobsFilter}
                   onChange={(event) => setJobsFilter(event.target.value)}
                   placeholder="Search by title, location, or skill..."
-                  className="h-10 bg-[--brandBlue]/10 text-white placeholder:text-white/60"
+                  className="h-10 bg-[var(--brandBlue)]/10 text-white placeholder:text-white/60"
                   labelClassName="text-white"
                 />
               </div>
@@ -426,7 +426,7 @@ export default function CompanyJobsPage() {
                   {filteredJobs.map((job) => (
                     <li
                       key={job.id}
-                      className="rounded-2xl border border-[--border] bg-[--brandBlue]/5 px-4 py-3 shadow-sm transition hover:border-[--brandBlue]/60 hover:shadow-md"
+                      className="rounded-2xl border border-[var(--border)] bg-[var(--brandBlue)]/5 px-4 py-3 shadow-sm transition hover:border-[var(--brandBlue)]/60 hover:shadow-md"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="space-y-1">
@@ -485,7 +485,7 @@ export default function CompanyJobsPage() {
           </section>
 
           {/* RIGHT: Post / edit job */}
-          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[--brandBlue] bg-[--brandBlue] p-6 text-white shadow-sm">
+          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[var(--brandBlue)] bg-[var(--brandBlue)] p-6 text-white shadow-sm">
             <header className="space-y-1">
               <h2 className="text-lg font-semibold">
                 {editingJobId ? "Edit job" : "Post a new job"}
@@ -626,7 +626,7 @@ export default function CompanyJobsPage() {
       {/* Delete confirmation dialog */}
       {jobPendingDeletion ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-[--border] bg-[--surface] p-6 shadow-lg">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-lg">
             <h3 className="text-lg font-semibold text-white">Delete job listing</h3>
             <p className="mt-2 text-sm text-white/80">
               Are you sure you want to remove this job? Students will no longer be able to view
