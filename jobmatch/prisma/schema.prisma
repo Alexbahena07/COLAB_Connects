@@ -58,6 +58,9 @@ model User {
   postedJobEvents      JobPostEvent[] @relation("UserPostedJobEvents")
   companyJobPostEvents JobPostEvent[] @relation("CompanyPostedJobEvents")
   sentNotifications    Notification[] @relation("CompanyNotifications")
+
+  savedCandidates  SavedCandidate[] @relation("CompanySavedCandidates")
+  savedByCompanies SavedCandidate[] @relation("CandidateSavedCandidates")
 }
 
 model Account {
@@ -273,6 +276,20 @@ model CompanyFollow {
   @@unique([userId, companyId])
   @@index([companyId])
   @@index([userId])
+}
+
+model SavedCandidate {
+  id          String   @id @default(cuid())
+  companyId   String
+  candidateId String
+  createdAt   DateTime @default(now())
+
+  company   User @relation("CompanySavedCandidates", fields: [companyId], references: [id], onDelete: Cascade)
+  candidate User @relation("CandidateSavedCandidates", fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, candidateId])
+  @@index([companyId])
+  @@index([candidateId])
 }
 
 model JobPostEvent {

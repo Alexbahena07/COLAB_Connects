@@ -110,6 +110,24 @@ export default function Header() {
                 <span className="text-xs font-semibold">Applicants</span>
               </Link>
               <Link
+                href="/dashboard/company/candidates"
+                className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  className="h-8 w-8"
+                >
+                  <circle cx="11" cy="11" r="6" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+                <span className="text-xs font-semibold">Candidates</span>
+              </Link>
+              <Link
                 href="/dashboard/company/jobs"
                 className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
               >

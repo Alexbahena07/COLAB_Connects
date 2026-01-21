@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,6 +55,7 @@ async function fileToDataUrl(file: File): Promise<string> {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -62,6 +63,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
       resolver: zodResolver(RegisterSchema),
@@ -71,6 +73,15 @@ export default function RegisterPage() {
 
   const accountType = watch("accountType");
   const selectedPhoto = watch("profilePhoto") as FileList | undefined;
+
+  useEffect(() => {
+    const accountTypeParam = searchParams?.get("type");
+    if (accountTypeParam === "company") {
+      setValue("accountType", "company", { shouldValidate: true });
+    } else if (accountTypeParam === "candidate") {
+      setValue("accountType", "student", { shouldValidate: true });
+    }
+  }, [searchParams, setValue]);
 
   useEffect(() => {
     if (!selectedPhoto || selectedPhoto.length === 0) {
@@ -137,7 +148,8 @@ export default function RegisterPage() {
     });
 
     if (signin && !signin.error) {
-      const nextRoute = data.accountType === "company" ? "/dashboard/company" : "/onboarding/profile";
+      const nextRoute =
+        data.accountType === "company" ? "/dashboard/company/candidates" : "/onboarding/profile";
       router.push(nextRoute);
     } else {
       // If auto-login fails (should be rare), fall back to login page
@@ -163,7 +175,7 @@ export default function RegisterPage() {
         <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
           <fieldset className="rounded-xl border border-[--border] bg-[--surface] p-4">
             <legend className="px-1 text-sm font-semibold text-[--foreground]">Account type</legend>
-            <p className="mt-1 text-xs text-gray-600">Tell us whether you&apos;re joining as a student or on behalf of a company.</p>
+            <p className="mt-1 text-xs text-gray-600">Tell us whether you&apos;re joining as a candidate or on behalf of a company.</p>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label
@@ -177,7 +189,7 @@ export default function RegisterPage() {
                   aria-describedby="account-type-student"
                 />
                 <span id="account-type-student">
-                  <span className="font-semibold text-[--foreground]">Student</span>
+                  <span className="font-semibold text-[--foreground]">Candidate</span>
                   <span className="mt-1 block text-xs text-gray-600">Personalized profile builder and job-matching tools.</span>
                 </span>
               </label>
