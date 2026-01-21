@@ -393,7 +393,7 @@ export default function CompanyJobsPage() {
                       } visible to students.`}
                 </p>
               </div>
-              <div className="min-w-[240px]">
+              <div className="min-w-60">
                 <Input
                   label="Filter jobs"
                   value={jobsFilter}
@@ -444,7 +444,7 @@ export default function CompanyJobsPage() {
                         <div className="flex flex-wrap justify-end gap-2">
                           <Button
                             type="button"
-                            className="btn-outline-brand !border-white/60 !text-white hover:bg-white/10"
+                            className="btn-outline-brand !border-white/60! text-white! hover:bg-white/10"
                             onClick={() => handleSelectJobToEdit(job.id)}
                             disabled={isSubmitting && editingJobId === job.id}
                           >
@@ -452,7 +452,7 @@ export default function CompanyJobsPage() {
                           </Button>
                           <Button
                             type="button"
-                            className="btn-outline-brand !border-red-400 !text-red-400 hover:bg-red-500/10"
+                            className="btn-outline-brand border-red-400! text-red-400! hover:bg-red-500/10"
                             onClick={() => {
                               setJobPendingDeletion(job.id);
                               setDeleteError(null);

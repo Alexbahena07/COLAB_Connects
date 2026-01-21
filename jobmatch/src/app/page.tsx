@@ -12,7 +12,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[--brand] via-[#3a1f4d] to-[--brandBlue]" />
+        <div className="absolute inset-0 bg-linear-to-br from-[--brand] via-[#3a1f4d] to-[--brandBlue]" />
         <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div className="relative mx-auto max-w-6xl px-6 py-24 text-white">
@@ -22,17 +22,17 @@ export default function Home() {
                 COLAB connects
               </p>
               <h1 className="mt-3 text-4xl font-bold leading-tight md:text-5xl font-serif">
-                A hiring hub built for student talent and growing teams.
+                A hiring hub built for early-career finance talent and growing teams.
               </h1>
               <p className="mt-4 text-lg text-white/85">
-                Students search and apply to curated roles, save favorites, and follow
+                Candidates search and apply to curated roles, save favorites, and follow
                 companies. Employers publish jobs, review applicants by skill, and tell
                 their story with a polished company profile.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/register">
-                  <Button className="btn-brand border border-white">Join as a student</Button>
+                  <Button className="btn-brand border border-white">Join as a candidate</Button>
                 </Link>
                 <Link href="/register?type=company">
                   <Button className="btn-brand border border-white">Join as a company</Button>
@@ -47,7 +47,7 @@ export default function Home() {
             <div className="space-y-4">
               <div className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">Student dashboard</h3>
+                  <h3 className="text-sm font-semibold">Candidate dashboard</h3>
                   <span className="rounded-md bg-white/15 px-2 py-1 text-xs">
                     Search + Apply
                   </span>
@@ -113,7 +113,7 @@ export default function Home() {
           {[
             {
               title: "Build your profile",
-              desc: "Students import LinkedIn data, add skills, and upload a resume so companies see proof fast.",
+              desc: "Candidates import LinkedIn data, add skills, and upload a resume so companies see proof fast.",
             },
             {
               title: "Search and apply",
@@ -142,7 +142,7 @@ export default function Home() {
               <div>
                 <h3 className="text-xl font-bold text-[--brand]">Built for real workflows</h3>
                 <p className="mt-2 text-[--brandBlue]">
-                  Students track applications and get notified when new roles go live.
+                  Candidates track applications and get notified when new roles go live.
                   Companies manage listings, review applicants, and keep follow-ups organized.
                 </p>
                 <div className="mt-6 flex gap-3">
@@ -189,7 +189,7 @@ export default function Home() {
           <div className="card">
             <h3 className="text-lg font-semibold text-[--brand]">For Companies</h3>
             <p className="mt-2 text-[--brandBlue]">
-              Publish jobs, review applicants by skill, and showcase your team to student talent.
+              Publish jobs, review applicants by skill, and showcase your team to early-career talent.
             </p>
             <Link href="/register?type=company">
               <Button className="mt-4 btn-outline-brand">Start Recruiting</Button>

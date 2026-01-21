@@ -8,7 +8,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-12 border-t border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]">
+    <footer className="mt-12 border-t border-border bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 md:flex-row md:justify-between">
         {/* Left: Logo + blurb */}
         <div className="space-y-4 md:max-w-sm">
@@ -35,26 +35,26 @@ export default function Footer() {
 
         {/* Middle: Contact + social */}
         <div className="space-y-4 text-sm">
-          <h3 className="text-base font-semibold text-[var(--brand)]">Contact us</h3>
+          <h3 className="text-base font-semibold text-brand">Contact us</h3>
           <p className="opacity-80">
             Questions about the Career Forum or partnerships? Reach out anytime.
           </p>
 
           <a
             href="mailto:coordinator@colabconnects.org"
-            className="font-semibold text-[var(--foreground)] underline"
+            className="font-semibold text-foreground underline"
           >
             coordinator@colabconnects.org
           </a>
 
           <div className="mt-4 space-y-2">
-            <h4 className="text-sm font-semibold text-[var(--foreground)]">Follow us</h4>
+            <h4 className="text-sm font-semibold text-foreground">Follow us</h4>
             <div className="flex items-center gap-3 text-sm">
               <a
                 href="https://www.linkedin.com/company/colab-connects-org/?viewAsMember=true"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--brandBlue)] px-3 py-1 text-xs font-semibold text-white shadow-sm hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full bg-brandBlue px-3 py-1 text-xs font-semibold text-white shadow-sm hover:opacity-90"
               >
                 {/* svg ... */}
                 <span>LinkedIn</span>
@@ -64,7 +64,7 @@ export default function Footer() {
                 href="https://www.instagram.com/colabconnectsorg/"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--brandBlue)] px-3 py-1 text-xs font-semibold text-white shadow-sm hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full bg-brandBlue px-3 py-1 text-xs font-semibold text-white shadow-sm hover:opacity-90"
               >
                 {/* svg ... */}
                 <span>Instagram</span>
@@ -76,7 +76,7 @@ export default function Footer() {
         {/* Right: Newsletter + nav links */}
         <div className="space-y-5 md:min-w-[260px]">
           <div>
-            <h3 className="text-base font-semibold text-[var(--brand)]">
+            <h3 className="text-base font-semibold text-brand">
               Subscribe to our newsletter
             </h3>
             <p className="mt-1 text-xs opacity-80">
@@ -93,7 +93,7 @@ export default function Footer() {
                 type="email"
                 required
                 placeholder="Email address"
-                className="h-10 flex-1 rounded-xl border border-[var(--border)] bg-[color-mix(in_oklab,var(--background),transparent_95%)] px-3 text-sm outline-none focus:border-[var(--brand)]"
+                className="h-10 flex-1 rounded-xl border border-border bg-[color-mix(in_oklab,var(--background),transparent_95%)] px-3 text-sm outline-none focus:border-brand"
               />
               <button type="submit" className="btn-brand h-10 px-4 text-sm">
                 Subscribe
@@ -107,7 +107,7 @@ export default function Footer() {
           </div>
 
           <nav>
-            <ul className="flex flex-wrap gap-3 text-[11px] text-[var(--surface)]">
+            <ul className="flex flex-wrap gap-3 text-[11px] text-surface">
               <li><Link href="/" className="hover:underline">Home</Link></li>
               <li><Link href="/about" className="hover:underline">About Us</Link></li>
               <li><Link href="/events" className="hover:underline">Events</Link></li>

@@ -6,6 +6,6 @@ export default async function CompanyOnboarding() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  redirect("/dashboard/company");
+  redirect("/dashboard/company/candidates");
 }
 

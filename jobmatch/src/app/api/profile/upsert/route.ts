@@ -163,7 +163,7 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, profile: { select: { resumeData: true } } },
+    select: { id: true, accountType: true, profile: { select: { resumeData: true } } },
   });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -231,7 +231,7 @@ if (rawProfile && typeof rawProfile === "object") {
     | null;
   const hasExistingResume = Boolean(profileWithResume?.resumeData);
 
-  if (!resumePayload && !hasExistingResume) {
+  if (!resumePayload && !hasExistingResume && user.accountType !== "COMPANY") {
     return NextResponse.json(
       { error: "Please upload your resume as a PDF to continue." },
       { status: 400 }
