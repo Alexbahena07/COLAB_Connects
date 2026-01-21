@@ -5,7 +5,10 @@
   },
 
   "scripts": {
+    "postinstall": "prisma generate",
+    "build": "prisma generate && next build",
     "digest:daily": "curl \"http://localhost:3000/api/notifications/digest?frequency=DAILY&commit=true\"",
     "digest:weekly": "curl \"http://localhost:3000/api/notifications/digest?frequency=WEEKLY&commit=true\""
   }
+
 }
