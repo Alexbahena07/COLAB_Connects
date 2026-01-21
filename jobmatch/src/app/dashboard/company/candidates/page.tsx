@@ -220,7 +220,7 @@ export default function CompanyCandidatesPage() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+      <main className="flex min-h-screen flex-col bg-background text-foreground">
         <div className="border-b" style={{ borderColor: "var(--border)" }}>
           <div className="mx-auto w-full max-w-6xl px-4 py-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -403,7 +403,7 @@ export default function CompanyCandidatesPage() {
                           type="button"
                           onClick={() => setSelectedCandidateId(candidate.id)}
                           className={`w-full p-4 text-left transition ${
-                            active ? "bg-[--surface] ring-1 ring-[--brandBlue]" : "hover:bg-[--surface]"
+                            active ? "bg-surface ring-1 ring-brandBlue" : "hover:bg-surface"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -414,7 +414,7 @@ export default function CompanyCandidatesPage() {
                               </p>
                             </div>
                             {saved ? (
-                              <span className="rounded-md bg-[--brandBlue] px-2 py-0.5 text-xs text-white">
+                              <span className="rounded-md bg-brandBlue px-2 py-0.5 text-xs text-white">
                                 Saved
                               </span>
                             ) : null}
@@ -462,7 +462,7 @@ export default function CompanyCandidatesPage() {
                       type="button"
                       className={
                         savedCandidateIds.has(selectedCandidate.id)
-                          ? "btn-brand h-10 bg-white text-[--brand]"
+                          ? "btn-brand h-10 bg-white text-[var(--brand)]"
                           : "btn-outline-brand h-10"
                       }
                       onClick={() => toggleSave(selectedCandidate.id)}
@@ -504,7 +504,7 @@ export default function CompanyCandidatesPage() {
                     selectedCandidate.experiences.map((experience) => (
                       <div
                         key={experience.id}
-                        className="rounded-xl border border-[--border] bg-[--surface] p-4"
+                        className="rounded-xl border border-border bg-surface p-4"
                       >
                         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                           <div>
@@ -545,7 +545,7 @@ export default function CompanyCandidatesPage() {
                     selectedCandidate.degrees.map((degree) => (
                       <div
                         key={degree.id}
-                        className="rounded-xl border border-[--border] bg-[--surface] p-4"
+                        className="rounded-xl border border-border bg-surface p-4"
                       >
                         <p className="font-semibold">{degree.school ?? "School not specified"}</p>
                         <p className="text-sm opacity-80">
@@ -565,7 +565,7 @@ export default function CompanyCandidatesPage() {
             )}
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-[--foreground]/70">
+              <p className="text-xs text-foreground/70">
                 Page {page} of {totalPages}
               </p>
               <div className="flex items-center gap-2">

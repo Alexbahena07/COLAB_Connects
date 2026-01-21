@@ -1,7 +1,7 @@
+/* src/app/globals.css */
+
 /* === Tailwind (must be first) === */
 @import "tailwindcss";
-
-
 
 /* === Theme tokens === */
 :root {
@@ -12,8 +12,6 @@
   --surface: #759bad;
   --border: #2a2431;
 }
-
-
 
 @theme inline {
   /* Colors */
@@ -37,19 +35,24 @@
 
 /* === Base element styles === */
 @layer base {
-  html, body {
+  html,
+  body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-serif);
     letter-spacing: 0.2px;
   }
 
-  a { color: inherit; }
-    a:hover { text-decoration: underline; 
+  a {
+    color: inherit;
   }
+
   a:hover {
     text-decoration: underline;
   }
@@ -57,7 +60,12 @@
 
 /* Print: prefer Mrs Eaves Roman if available */
 @media print {
-  body, h1, h2, h3, h4, p {
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
     font-family: "Mrs Eaves Roman", "Libre Baskerville", Times, serif !important;
     color: #2a2431 !important;
   }
@@ -71,33 +79,36 @@
   }
 
   .card {
-  @apply w-full max-w-md rounded-2xl p-6 shadow-sm border;
-  background-color: var(--surface);
-  border-color: var(--border);
-  color: var(--foreground);
-}
+    @apply w-full max-w-md rounded-2xl p-6 shadow-sm border;
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--foreground);
+  }
 
-.card-wide {
-  @apply w-full max-w-2xl rounded-2xl p-6 shadow-sm border;
-  background-color: var(--surface);
-  border-color: var(--border);
-  color: var(--foreground);
-}
-
+  .card-wide {
+    @apply w-full max-w-2xl rounded-2xl p-6 shadow-sm border;
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--foreground);
+  }
 
   /* Buttons */
   .btn-brand {
     @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold text-white;
     background-color: var(--brand);
   }
-  .btn-brand:hover { opacity: 0.95; }
+
+  .btn-brand:hover {
+    opacity: 0.95;
+  }
 
   .btn-outline-brand {
     @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold;
     color: var(--brand);
     border: 1px solid var(--brand);
   }
+
   .btn-outline-brand:hover {
-    background-color: #759bad; /* subtle purple tint */
+    background-color: #759bad;
   }
 }

@@ -18,13 +18,13 @@ export default function ProfileHeroActions({ redirectTo = "/dashboard/profile" }
         <Button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
-          className="bg-[--brand] text-white hover:opacity-90 focus:ring-[--brand] focus:ring-offset-[--surface]"
+          className="bg-[var(--brand)] text-white hover:opacity-90 focus:ring-[var(--brand)] focus:ring-offset-[var(--surface)]"
         >
           Edit Profile
         </Button>
         <Button
           type="button"
-          className="border border-[--border] bg-[--surface] text-[--foreground] hover:bg-[--background] focus:ring-[--brandBlue] focus:ring-offset-[--surface]"
+          className="border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--background)] focus:ring-[var(--brandBlue)] focus:ring-offset-[var(--surface)]"
         >
           Share
         </Button>
@@ -36,15 +36,15 @@ export default function ProfileHeroActions({ redirectTo = "/dashboard/profile" }
           onClick={() => setIsDrawerOpen(false)}
         >
           <div
-            className="h-full w-full max-w-xl overflow-y-auto border-l border-[--border] bg-[--surface] shadow-2xl"
+            className="h-full w-full max-w-xl overflow-y-auto border-l border-[var(--border)] bg-[var(--surface)] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <header className="flex items-center justify-between border-b border-[--brandBlue] bg-[--brandBlue] px-6 py-4 text-white shadow-md">
+            <header className="flex items-center justify-between border-b border-[var(--brandBlue)] bg-[var(--brandBlue)] px-6 py-4 text-white shadow-md">
               <h2 className="text-lg font-semibold">Edit Profile</h2>
               <Button
                 type="button"
                 onClick={() => setIsDrawerOpen(false)}
-                className="border border-transparent bg-transparent text-white hover:bg-[--brandBlue]/80 focus:ring-white focus:ring-offset-[--brandBlue]"
+                className="border border-transparent bg-transparent text-white hover:bg-[var(--brandBlue)]/80 focus:ring-white focus:ring-offset-[var(--brandBlue)]"
               >
                 Close
               </Button>
@@ -70,16 +70,16 @@ export function OpenToWorkToggle() {
       aria-checked={enabled}
       onClick={() => setEnabled((state) => !state)}
       className={clsx(
-        "flex items-center gap-2 rounded-full border border-[--border] px-3 py-1 text-xs font-semibold transition",
+        "flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1 text-xs font-semibold transition",
         enabled
-          ? "bg-[--brandBlue] text-white shadow-sm"
-          : "bg-[--surface] text-[--foreground] opacity-80 hover:opacity-100"
+          ? "bg-[var(--brandBlue)] text-white shadow-sm"
+          : "bg-[var(--surface)] text-[var(--foreground)] opacity-80 hover:opacity-100"
       )}
     >
       <span
         className={clsx(
           "inline-block h-2.5 w-2.5 rounded-full transition",
-          enabled ? "bg-white" : "bg-[--border]"
+          enabled ? "bg-white" : "bg-[var(--border)]"
         )}
       />
       {enabled ? "Open to work" : "Not openly looking"}

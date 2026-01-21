@@ -50,7 +50,7 @@ export default function LoginPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen grid place-items-center bg-[--brand] px-4">
+      <main className="min-h-screen grid place-items-center bg-[var(--brand)] px-4">
                     
       <div className="card">
         <h1 className="text-2xl font-semibold mb-1">Welcome back</h1>

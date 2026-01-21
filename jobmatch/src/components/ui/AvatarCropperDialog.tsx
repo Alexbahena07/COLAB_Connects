@@ -173,18 +173,18 @@ export default function AvatarCropperDialog({
       aria-modal="true"
       aria-label="Edit profile photo"
     >
-      <div className="w-full max-w-3xl rounded-2xl border border-[--border] bg-[--surface] p-6 text-[--foreground] shadow-xl">
+      <div className="w-full max-w-3xl rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--foreground)] shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[--brand]">Edit profile photo</h2>
-            <p className="text-xs text-[--foreground]/70">
+            <h2 className="text-lg font-semibold text-[var(--brand)]">Edit profile photo</h2>
+            <p className="text-xs text-[var(--foreground)]/70">
               Drag to reposition and use the zoom slider to refine the crop.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-[--border] px-3 py-1 text-xs font-semibold hover:bg-[--surface]"
+            className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-semibold hover:bg-[var(--surface)]"
             aria-label="Close photo editor"
           >
             Close
@@ -194,7 +194,7 @@ export default function AvatarCropperDialog({
         <div className="mt-6 grid gap-6 md:grid-cols-[1fr,220px]">
           <div>
             <div
-              className="relative mx-auto h-[320px] w-[320px] overflow-hidden rounded-2xl border border-[--border] bg-black/30"
+              className="relative mx-auto h-[320px] w-[320px] overflow-hidden rounded-2xl border border-[var(--border)] bg-black/30"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
@@ -220,7 +220,7 @@ export default function AvatarCropperDialog({
             </div>
 
             <div className="mt-4 flex items-center gap-3">
-              <label htmlFor="zoom-range" className="text-xs font-semibold text-[--foreground]">
+              <label htmlFor="zoom-range" className="text-xs font-semibold text-[var(--foreground)]">
                 Zoom
               </label>
               <input
@@ -231,17 +231,17 @@ export default function AvatarCropperDialog({
                 step={0.01}
                 value={zoom}
                 onChange={(event) => handleZoomChange(Number(event.target.value))}
-                className="w-full accent-[--brand]"
+                className="w-full accent-[var(--brand)]"
               />
             </div>
           </div>
 
           <div className="flex flex-col items-center gap-4">
             <div className="flex flex-col items-center gap-2">
-              <span className="text-xs uppercase tracking-wide text-[--foreground]/70">
+              <span className="text-xs uppercase tracking-wide text-[var(--foreground)]/70">
                 Preview
               </span>
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border border-[--border] bg-black/30">
+              <div className="relative h-24 w-24 overflow-hidden rounded-full border border-[var(--border)] bg-black/30">
                 <img
                   src={imageSrc}
                   alt="Cropped preview"
@@ -276,7 +276,7 @@ export default function AvatarCropperDialog({
                 Cancel
               </Button>
             </div>
-            <p className="text-xs text-[--foreground]/70">
+            <p className="text-xs text-[var(--foreground)]/70">
               The crop is saved as a square 512x512 image.
             </p>
           </div>

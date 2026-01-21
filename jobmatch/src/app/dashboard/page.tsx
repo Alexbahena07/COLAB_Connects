@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header_with_Icons";
@@ -12,6 +13,7 @@ type Job = {
   title: string;
   companyId: string;
   company: string;
+  companyImage?: string | null;
   location: string;
   type: "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
   remote: boolean;
@@ -26,6 +28,7 @@ const MOCK_JOBS: Job[] = [
     title: "Frontend Engineer (React/Next.js)",
     companyId: "company-1",
     company: "Nova Labs",
+    companyImage: null,
     location: "Chicago, IL",
     type: "FULL_TIME",
     remote: true,
@@ -39,6 +42,7 @@ const MOCK_JOBS: Job[] = [
     title: "Data Engineer",
     companyId: "company-2",
     company: "Acme Analytics",
+    companyImage: null,
     location: "Remote",
     type: "FULL_TIME",
     remote: true,
@@ -52,6 +56,7 @@ const MOCK_JOBS: Job[] = [
     title: "Software Engineer Intern",
     companyId: "company-3",
     company: "BrightStart",
+    companyImage: null,
     location: "Austin, TX",
     type: "INTERNSHIP",
     remote: false,
@@ -70,6 +75,16 @@ const JOB_TYPE_LABEL: Record<Job["type"], string> = {
 };
 
 const JOB_TYPE_VALUES: Job["type"][] = ["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP"];
+
+const getCompanyInitials = (company: string) => {
+  const trimmed = company.trim();
+  if (!trimmed) return "CO";
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+};
 
 export default function DashboardPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -116,6 +131,8 @@ export default function DashboardPage() {
               const title = typeof raw.title === "string" ? raw.title : null;
               const companyId = typeof raw.companyId === "string" ? raw.companyId : null;
               const company = typeof raw.company === "string" ? raw.company : null;
+              const companyImage =
+                typeof raw.companyImage === "string" ? raw.companyImage : null;
               const jobLocation = typeof raw.location === "string" ? raw.location : null;
               const description =
                 typeof raw.description === "string" ? raw.description : null;
@@ -167,6 +184,7 @@ export default function DashboardPage() {
                 title,
                 companyId,
                 company,
+                companyImage,
                 location: jobLocation,
                 type: rawType as Job["type"],
                 remote: Boolean(raw.remote),
@@ -437,7 +455,7 @@ export default function DashboardPage() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+      <main className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)]">
         <div className="border-b" style={{ borderColor: "var(--border)" }}>
           <div className="mx-auto w-full max-w-6xl px-4 py-4">
             <div className="flex flex-wrap items-end gap-4">
@@ -460,7 +478,7 @@ export default function DashboardPage() {
                   id="job-type-filter"
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
+                  className="h-11 rounded-xl border border-white bg-[var(--surface)] px-3 text-sm text-white"
                 >
                   <option className="text-black" value="">
                     All types
@@ -489,7 +507,7 @@ export default function DashboardPage() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="Location"
-                  className="h-11 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+                  className="h-11 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--foreground)]"
                 />
               </div>
 
@@ -497,7 +515,7 @@ export default function DashboardPage() {
                 <span className="text-sm font-medium text-white">Remote</span>
                 <label
                   htmlFor="remote-only-toggle"
-                  className="flex h-11 items-center gap-2 rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-white"
+                  className="flex h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-white"
                 >
                   <input
                     id="remote-only-toggle"
@@ -567,21 +585,38 @@ export default function DashboardPage() {
                 ) : (
                   filteredJobs.map((job: Job) => {
                     const active = job.id === selectedJob?.id;
+                    const initials = getCompanyInitials(job.company);
                     return (
                       <li key={job.id} className="p-4">
                         <button
                           type="button"
                           onClick={() => setSelectedJobId(job.id)}
                           className={`w-full rounded-xl p-3 text-left transition ${
-                            active ? "bg-[--surface] shadow-sm" : "hover:bg-[--surface]"
+                            active ? "bg-[var(--surface)] shadow-sm" : "hover:bg-[var(--surface)]"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <h3 className="font-semibold">{job.title}</h3>
-                              <p className="mt-1 text-sm opacity-90">
-                                {job.company} - {job.location}
-                              </p>
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/5 text-xs font-semibold uppercase text-white/70">
+                                {job.companyImage ? (
+                                  <Image
+                                    src={job.companyImage}
+                                    alt={`${job.company} logo`}
+                                    width={40}
+                                    height={40}
+                                    className="h-10 w-10 object-cover"
+                                    unoptimized
+                                  />
+                                ) : (
+                                  <span>{initials}</span>
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold">{job.title}</h3>
+                                <p className="mt-1 text-sm opacity-90">
+                                  {job.company} - {job.location}
+                                </p>
+                              </div>
                             </div>
                             <span
                               className="rounded-md border px-2 py-0.5 text-xs"
@@ -596,7 +631,7 @@ export default function DashboardPage() {
                         </button>
                         <Link
                           href={`/companies/${job.companyId}`}
-                          className="mt-2 inline-flex text-xs font-semibold text-[--brandBlue] underline underline-offset-2"
+                          className="mt-2 inline-flex text-xs font-semibold text-[var(--brandBlue)] underline underline-offset-2"
                         >
                           View company profile
                         </Link>
@@ -622,9 +657,23 @@ export default function DashboardPage() {
                     </p>
                     <Link
                       href={`/companies/${selectedJob.companyId}`}
-                      className="mt-2 inline-flex text-sm font-semibold text-[--brandBlue] underline underline-offset-2"
+                      className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[var(--brandBlue)] underline underline-offset-2"
                     >
-                      View company profile
+                      <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-[var(--brandBlue)]/40 bg-[var(--brandBlue)]/10 text-[11px] font-semibold uppercase text-[var(--brandBlue)]">
+                        {selectedJob.companyImage ? (
+                          <Image
+                            src={selectedJob.companyImage}
+                            alt={`${selectedJob.company} logo`}
+                            width={24}
+                            height={24}
+                            className="h-6 w-6 object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <span>{getCompanyInitials(selectedJob.company)}</span>
+                        )}
+                      </span>
+                      <span>View company profile</span>
                     </Link>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -679,7 +728,7 @@ export default function DashboardPage() {
                   <Button
                     className={
                       isFollowingCompany
-                        ? "btn-brand bg-white text-[--brand]"
+                        ? "btn-brand bg-white text-[var(--brand)]"
                         : "btn-outline-brand"
                     }
                     onClick={toggleFollowCompany}
@@ -694,8 +743,8 @@ export default function DashboardPage() {
                       onClick={() => toggleSaveJob(selectedJob.id)}
                       className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border transition ${
                         isJobSaved(selectedJob.id)
-                          ? "border-white bg-white text-[--brand]"
-                          : "border-[--brandBlue] text-[--brandBlue] hover:bg-[--brandBlue]/10"
+                          ? "border-white bg-white text-[var(--brand)]"
+                          : "border-[var(--brandBlue)] text-[var(--brandBlue)] hover:bg-[var(--brandBlue)]/10"
                       }`}
                       aria-label={isJobSaved(selectedJob.id) ? "Unsave job" : "Save job"}
                     >
@@ -713,7 +762,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       type="button"
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[--brandBlue] text-[--brandBlue] transition hover:bg-[--brandBlue]/10"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--brandBlue)] text-[var(--brandBlue)] transition hover:bg-[var(--brandBlue)]/10"
                       aria-label="Share job"
                       onClick={handleShare}
                     >

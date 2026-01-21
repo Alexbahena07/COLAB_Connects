@@ -314,7 +314,7 @@ export default function CompanyDashboardPage() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-[--background] text-[--foreground]">
+      <main className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)]">
         <div className="border-b" style={{ borderColor: "var(--border)" }}>
           <div className="mx-auto w-full max-w-6xl px-4 py-4">
             <div className="flex flex-wrap items-end gap-4">
@@ -337,7 +337,7 @@ export default function CompanyDashboardPage() {
                   id="filter-skill"
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
-                  className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
+                  className="h-11 rounded-xl border border-white bg-[var(--surface)] px-3 text-sm text-white"
                 >
                   <option className="text-black" value="">
                     All skills
@@ -358,7 +358,7 @@ export default function CompanyDashboardPage() {
                   id="filter-job"
                   value={selectedJobId}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="h-11 rounded-xl border border-white bg-[--surface] px-3 text-sm text-white"
+                  className="h-11 rounded-xl border border-white bg-[var(--surface)] px-3 text-sm text-white"
                 >
                   <option className="text-black" value="">
                     Select a job
@@ -438,7 +438,7 @@ export default function CompanyDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedApplicationId(candidate.applicationId)}
-                          className={`w-full p-4 text-left transition ${active ? "bg-[--surface] ring-1 ring-[--brandBlue]" : "hover:bg-[--surface]"}`}
+                          className={`w-full p-4 text-left transition ${active ? "bg-[var(--surface)] ring-1 ring-[var(--brandBlue)]" : "hover:bg-[var(--surface)]"}`}
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div>
@@ -449,7 +449,7 @@ export default function CompanyDashboardPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               {saved ? (
-                                <span className="rounded-md bg-[--brandBlue] px-2 py-0.5 text-xs text-white">
+                                <span className="rounded-md bg-[var(--brandBlue)] px-2 py-0.5 text-xs text-white">
                                   Saved
                                 </span>
                               ) : null}
@@ -497,7 +497,7 @@ export default function CompanyDashboardPage() {
                   <div className="flex flex-col items-start gap-2 text-sm opacity-90 md:items-end">
                     <span>{selectedApplicant.applicant.email ?? "Email unavailable"}</span>
                     {selectedJob ? <span>Job: {selectedJob.title}</span> : null}
-                    <span className="rounded-full border border-[--border] px-3 py-1 text-xs">
+                    <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs">
                       Application ID: {selectedApplicant.applicationId}
                     </span>
                   </div>
@@ -529,7 +529,7 @@ export default function CompanyDashboardPage() {
                     <p className="text-sm opacity-80">No experience listed.</p>
                   ) : (
                     selectedApplicant.applicant.experiences.map((item) => (
-                      <div key={item.id} className="rounded-xl border border-[--border] bg-[--surface] p-4">
+                      <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
                         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                           <div>
                             <p className="font-semibold">{item.title ?? "Role not specified"}</p>
@@ -552,7 +552,7 @@ export default function CompanyDashboardPage() {
                     <p className="text-sm opacity-80">No education details listed.</p>
                   ) : (
                     selectedApplicant.applicant.degrees.map((degree) => (
-                      <div key={degree.id} className="rounded-xl border border-[--border] bg-[--surface] p-4">
+                      <div key={degree.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
                         <p className="font-semibold">{degree.school}</p>
                         <p className="text-sm opacity-80">
                           {[degree.degree, degree.field].filter(Boolean).join(" • ") || "Degree not specified"}
@@ -571,7 +571,7 @@ export default function CompanyDashboardPage() {
                     <p className="text-sm opacity-80">No certificates listed.</p>
                   ) : (
                     selectedApplicant.applicant.certificates.map((cert) => (
-                      <div key={cert.id} className="rounded-xl border border-[--border] bg-[--surface] p-4">
+                      <div key={cert.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
                         <p className="font-semibold">{cert.name}</p>
                         <p className="text-sm opacity-80">{cert.issuer ?? "Issuer not provided"}</p>
                         <p className="text-xs opacity-70">
@@ -583,7 +583,7 @@ export default function CompanyDashboardPage() {
                             href={cert.credentialUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs text-[--brandBlue] underline"
+                            className="text-xs text-[var(--brandBlue)] underline"
                           >
                             Credential link
                           </a>
@@ -601,7 +601,7 @@ export default function CompanyDashboardPage() {
                     type="button"
                     className={
                       isSaved(selectedApplicant.applicationId)
-                        ? "btn-brand h-11 bg-white text-[--brand]"
+                        ? "btn-brand h-11 bg-white text-[var(--brand)]"
                         : "btn-outline-brand h-11"
                     }
                     disabled={!selectedApplicant}

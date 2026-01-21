@@ -184,7 +184,7 @@ export default function NotificationsPage() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-[--background] text-white">
+      <main className="flex min-h-screen flex-col bg-[var(--background)] text-white">
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -263,8 +263,8 @@ export default function NotificationsPage() {
                     key={item.id}
                     className={`relative rounded-2xl border px-4 py-3 transition ${
                       isUnread
-                        ? "border-[--brandBlue] bg-[--brandBlue]/10"
-                        : "border-[--border] bg-white/5 text-white/70"
+                        ? "border-[var(--brandBlue)] bg-[var(--brandBlue)]/10"
+                        : "border-[var(--border)] bg-white/5 text-white/70"
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -278,7 +278,7 @@ export default function NotificationsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         {isUnread && (
-                          <span className="rounded-full bg-[--brandBlue]/20 px-2 py-1 text-[10px] font-semibold text-[--brandBlue]">
+                          <span className="rounded-full bg-[var(--brandBlue)]/20 px-2 py-1 text-[10px] font-semibold text-[var(--brandBlue)]">
                             New
                           </span>
                         )}

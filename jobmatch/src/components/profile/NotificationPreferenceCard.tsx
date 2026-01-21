@@ -117,11 +117,11 @@ export default function NotificationPreferenceCard() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[--foreground]/80">
+      <p className="text-sm text-[var(--foreground)]/80">
         Choose how often you want a summary of new jobs from companies you follow.
       </p>
       <div className="space-y-2">
-        <label htmlFor="notification-frequency" className="text-sm font-medium text-[--foreground]">
+        <label htmlFor="notification-frequency" className="text-sm font-medium text-[var(--foreground)]">
           Frequency
         </label>
         <select
@@ -131,7 +131,7 @@ export default function NotificationPreferenceCard() {
             setFrequency(event.target.value as NotificationFrequency);
             setStatus(null);
           }}
-          className="h-11 w-full rounded-xl border border-[--border] bg-[--surface] px-3 text-sm text-[--foreground]"
+          className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--foreground)]"
           disabled={isLoading}
         >
           {OPTIONS.map((option) => (
@@ -141,7 +141,7 @@ export default function NotificationPreferenceCard() {
           ))}
         </select>
         {description ? (
-          <p className="text-xs text-[--foreground]/70">{description}</p>
+          <p className="text-xs text-[var(--foreground)]/70">{description}</p>
         ) : null}
       </div>
 

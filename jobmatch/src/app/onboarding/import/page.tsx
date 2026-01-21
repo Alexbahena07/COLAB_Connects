@@ -13,10 +13,10 @@ export default async function LinkedInImportPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-[--background] px-4 py-10 text-[--foreground]">
+      <main className="min-h-screen bg-[var(--background)] px-4 py-10 text-[var(--foreground)]">
       <div className="mx-auto max-w-4xl space-y-6">
-        <div className="rounded-3xl border border-[--border] bg-[--surface] p-6 shadow-sm">
-          <h1 className="text-3xl font-bold text-[--brand]">Review LinkedIn data</h1>
+        <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h1 className="text-3xl font-bold text-[var(--brand)]">Review LinkedIn data</h1>
           <p className="mt-2 text-sm opacity-80">
             Choose which experiences and certifications to add to your profile. You can safely re-import
             later—existing items will update rather than duplicate.
