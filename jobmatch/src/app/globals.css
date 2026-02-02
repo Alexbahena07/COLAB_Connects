@@ -109,6 +109,19 @@
   }
 
   .btn-outline-brand:hover {
-    background-color: #759bad;
+    background-color: var(--brandBlue);
+  }
+
+  .home-section {
+    @apply bg-background text-foreground;
+  }
+
+  .home-hero-bg {
+    background-color: var(--background);
+  }
+
+  .pill-brandBlue {
+    @apply inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold text-white;
+    background-color: var(--brandBlue);
   }
 }

@@ -6,18 +6,31 @@ import bcrypt from "bcrypt";
 
 export async function POST(req: Request) {
   try {
-    const { accountType, name, email, password, profilePhoto } = await req.json();
+    const { accountType, name, firstName, lastName, email, password, profilePhoto } = await req.json();
 
-    if (!name || !email || !password || !accountType) {
+    if (!email || !password || !accountType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const normalizedName = String(name).trim();
     const normalizedType = String(accountType).toLowerCase() === "company" ? "COMPANY" : "STUDENT";
+    const isCompany = normalizedType === "COMPANY";
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedFirstName = typeof firstName === "string" ? firstName.trim() : "";
+    const normalizedLastName = typeof lastName === "string" ? lastName.trim() : "";
+    const normalizedCompanyName = typeof name === "string" ? name.trim() : "";
+    const normalizedName = isCompany
+      ? normalizedCompanyName
+      : `${normalizedFirstName} ${normalizedLastName}`.trim();
 
-    if (!normalizedEmail || !normalizedName) {
+    if (!normalizedEmail) {
       return NextResponse.json({ error: "Invalid name or email" }, { status: 400 });
+    }
+    if (isCompany) {
+      if (!normalizedCompanyName) {
+        return NextResponse.json({ error: "Missing company name" }, { status: 400 });
+      }
+    } else if (!normalizedFirstName || !normalizedLastName) {
+      return NextResponse.json({ error: "Missing first or last name" }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
@@ -34,6 +47,16 @@ export async function POST(req: Request) {
         password: hashed,
         image: typeof profilePhoto === "string" ? profilePhoto : null,
         accountType: normalizedType,
+        ...(isCompany
+          ? {}
+          : {
+              profile: {
+                create: {
+                  firstName: normalizedFirstName,
+                  lastName: normalizedLastName,
+                },
+              },
+            }),
       },
       select: { id: true, email: true },
     });

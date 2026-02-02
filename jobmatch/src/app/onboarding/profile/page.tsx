@@ -12,17 +12,16 @@ export default async function ProfileOnboarding() {
   return (
     <>
       <Header />
-      <main className="min-h-screen grid place-items-center bg-[var(--brand)] px-4">
-        <div className="card-wide">
-        <h1 className="text-2xl font-semibold mb-1">Set up your profile</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          Add any info you like. Everything is optional—you can leave sections blank.
-        </p>
-        {/* Client form */}
-        <ProfileForm />
+      {/* No gradient here — keep it clean, consistent, and let the form cards do the work */}
+      <main className="min-h-screen bg-background text-foreground px-4 py-10">
+        <div className="mx-auto w-full max-w-6xl">
+          
+          
+
+          {/* Form renders its own sections/cards — keep page wrapper neutral */}
+          <ProfileForm />
         </div>
       </main>
     </>
   );
 }
-

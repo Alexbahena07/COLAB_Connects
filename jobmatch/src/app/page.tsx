@@ -6,12 +6,12 @@ import Footer from "@/components/ui/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <main className="min-h-screen bg-background text-foreground">
       <Header />
 
       {/* Hero */}
       <section className="relative flex min-h-screen items-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand)] via-[var(--background)] to-[var(--brandBlue)]" />
+        <div className="absolute inset-0 home-hero-bg" />
         <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
 
@@ -34,7 +34,7 @@ export default function Home() {
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/register">
-                  <Button className="btn-brand border border-white/20 bg-white text-[var(--brand)] hover:opacity-95">
+                  <Button className="btn-brand border border-white/20 bg-white text-brand hover:bg-white/15">
                     Join as a candidate
                   </Button>
                 </Link>
@@ -63,9 +63,21 @@ export default function Home() {
 
                 <ul className="mt-4 space-y-3 text-sm">
                   {[
-                    { title: "Frontend Engineer", company: "Nova Labs", meta: "Remote - Full-time" },
-                    { title: "Data Engineer", company: "Acme Analytics", meta: "Remote - Full-time" },
-                    { title: "Software Intern", company: "BrightStart", meta: "Austin - Internship" },
+                    {
+                      title: "Investment Analyst",
+                      company: "Northbridge Capital",
+                      meta: "New York - Full-time",
+                    },
+                    {
+                      title: "Risk & Compliance Associate",
+                      company: "Harborview Bank",
+                      meta: "Chicago - Full-time",
+                    },
+                    {
+                      title: "FP&A Intern",
+                      company: "Summit Wealth Partners",
+                      meta: "Boston - Internship",
+                    },
                   ].map((job) => (
                     <li
                       key={job.title}
@@ -94,8 +106,16 @@ export default function Home() {
 
                 <ul className="mt-4 space-y-3 text-sm">
                   {[
-                    { name: "Jamie Lee", role: "Product Designer", skills: "Figma, UX, Branding" },
-                    { name: "Priya Shah", role: "Data Analyst", skills: "SQL, Python, Tableau" },
+                    {
+                      name: "Jamie Lee",
+                      role: "Credit Analyst",
+                      skills: "DCF, Excel, Credit Memo",
+                    },
+                    {
+                      name: "Priya Shah",
+                      role: "Treasury Analyst",
+                      skills: "Cash Forecasting, SQL, Power BI",
+                    },
                   ].map((candidate) => (
                     <li
                       key={candidate.name}
@@ -121,10 +141,10 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section className="bg-[var(--surface)]">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h2 className="text-2xl font-bold text-[var(--brand)]">How COLAB works</h2>
-          <p className="mt-2 max-w-2xl text-sm text-[var(--foreground)]/90">
+      <section className="home-section">
+        <div className="mx-auto max-w-6xl px-6 py-16 ">
+          <h2 className="text-2xl font-bold text-foreground">How COLAB works</h2>
+          <p className="mt-2 max-w-2xl text-sm text-(--foreground)/90">
             A simple workflow for candidates and employers—built for early-career hiring.
           </p>
 
@@ -145,12 +165,12 @@ export default function Home() {
             ].map((c) => (
               <div
                 key={c.title}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-6 shadow-sm"
+                className="rounded-2xl border border-border bg-background p-6 shadow-sm"
               >
-                <div className="inline-flex rounded-lg bg-[var(--brandBlue)] px-3 py-1 text-sm font-semibold text-white">
+                <div className="pill-brandBlue">
                   {c.title}
                 </div>
-                <p className="mt-3 text-sm text-[var(--foreground)]/90">{c.desc}</p>
+                <p className="mt-3 text-sm text-(--foreground)/90">{c.desc}</p>
               </div>
             ))}
           </div>
@@ -158,12 +178,12 @@ export default function Home() {
       </section>
 
       {/* Product highlight */}
-      <section className="bg-[var(--background)] py-14">
+      <section className="home-section py-14">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="rounded-3xl border border-[var(--border)] bg-[var(--background)] p-8 shadow-sm ring-1 ring-white/5">
+          <div className="rounded-3xl border border-border bg-background p-8 shadow-sm ring-1 ring-white/5">
             <div className="grid items-center gap-8 md:grid-cols-2">
               {/* LEFT: brand block behind heading + copy */}
-              <div className="rounded-3xl bg-[var(--brand)] p-8 ring-1 ring-white/10">
+              <div className="rounded-3xl bg-brand p-8 ring-1 ring-white/10">
                 <h3 className="text-xl font-bold text-white">Built for real workflows</h3>
                 <p className="mt-2 text-white/90">
                   Candidates track applications and get notified when new roles go live.
@@ -172,12 +192,12 @@ export default function Home() {
 
                 <div className="mt-6 flex gap-3">
                   <Link href="/register">
-                    <Button className="btn-brand bg-[var(--brandBlue)] text-white hover:opacity-95">
+                    <Button className="btn-brand bg-brandBlue text-white hover:opacity-95">
                       Get Started
                     </Button>
                   </Link>
                   <Link href="/login">
-                    <Button className="btn-outline-brand !text-white !border-white/40 hover:bg-white/10">
+                    <Button className="btn-outline-brand text-white! border-white/40! hover:bg-white/10">
                       Log in
                     </Button>
                   </Link>
@@ -195,7 +215,7 @@ export default function Home() {
                   ].map((row) => (
                     <div
                       key={row.title}
-                      className="rounded-xl bg-[var(--brand)] p-4 shadow-sm ring-1 ring-white/10"
+                      className="rounded-xl bg-brand p-4 shadow-sm ring-1 ring-white/10"
                     >
                       <p className="text-sm font-semibold text-white">{row.title}</p>
                       <p className="text-xs text-white/85">{row.value}</p>
@@ -203,7 +223,7 @@ export default function Home() {
                   ))}
                 </div>
 
-                <p className="mt-4 text-xs text-[var(--foreground)]/75">
+                <p className="mt-4 text-xs text-(--foreground)/75">
                   Sample modules available today
                 </p>
               </div>
@@ -213,28 +233,28 @@ export default function Home() {
       </section>
 
       {/* Dual CTA */}
-      <section className="bg-[var(--surface)]">
+      <section className="home-section">
         <div className="mx-auto max-w-6xl px-6 py-16">
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-6 shadow-sm">
+            <div className="rounded-2xl border border-border bg-background p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-white">For Candidates</h3>
-              <p className="mt-2 text-[var(--foreground)]/90">
+              <p className="mt-2 text-(--foreground)/90">
                 Build a credible profile and apply to roles with a single dashboard.
               </p>
               <Link href="/register">
-                <Button className="mt-4 btn-brand bg-[var(--brandBlue)] text-white hover:opacity-95">
+                <Button className="mt-4 btn-brand bg-brandBlue text-white hover:opacity-95">
                   Create Profile
                 </Button>
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-6 shadow-sm">
+            <div className="rounded-2xl border border-border bg-background p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-white">For Companies</h3>
-              <p className="mt-2 text-[var(--foreground)]/90">
+              <p className="mt-2 text-(--foreground)/90">
                 Publish jobs, review applicants by skill, and showcase your team.
               </p>
               <Link href="/register?type=company">
-                <Button className="mt-4 btn-outline-brand !text-white !border-white/40 hover:bg-white/10">
+                <Button className="mt-4 btn-outline-brand text-white! border-white/40! hover:bg-white/10">
                   Start Recruiting
                 </Button>
               </Link>

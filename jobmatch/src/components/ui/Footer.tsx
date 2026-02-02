@@ -35,7 +35,7 @@ export default function Footer() {
 
         {/* Middle: Contact + social */}
         <div className="space-y-4 text-sm">
-          <h3 className="text-base font-semibold text-brand">Contact us</h3>
+          <h3 className="text-base font-semibold text-foreground">Contact us</h3>
           <p className="opacity-80">
             Questions about the Career Forum or partnerships? Reach out anytime.
           </p>
@@ -76,7 +76,7 @@ export default function Footer() {
         {/* Right: Newsletter + nav links */}
         <div className="space-y-5 md:min-w-[260px]">
           <div>
-            <h3 className="text-base font-semibold text-brand">
+            <h3 className="text-base font-semibold text-foreground">
               Subscribe to our newsletter
             </h3>
             <p className="mt-1 text-xs opacity-80">
@@ -107,7 +107,7 @@ export default function Footer() {
           </div>
 
           <nav>
-            <ul className="flex flex-wrap gap-3 text-[11px] text-surface">
+            <ul className="flex flex-wrap gap-3 text-[11px] text-foreground/70">
               <li><Link href="/" className="hover:underline">Home</Link></li>
               <li><Link href="/about" className="hover:underline">About Us</Link></li>
               <li><Link href="/events" className="hover:underline">Events</Link></li>
