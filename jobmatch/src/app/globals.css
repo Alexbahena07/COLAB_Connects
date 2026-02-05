@@ -10,7 +10,7 @@
   --background: #30183e;
   --foreground: #f2f2f2;
   --surface: #759bad;
-  --border: #2a2431;
+  --border: #f2f2f2;
 }
 
 @theme inline {
@@ -123,5 +123,17 @@
   .pill-brandBlue {
     @apply inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold text-white;
     background-color: var(--brandBlue);
+  }
+
+  .profile-edit {
+    display: none;
+  }
+
+  html.profile-editing .profile-edit {
+    display: block;
+  }
+
+  html.profile-editing .profile-view {
+    display: none;
   }
 }

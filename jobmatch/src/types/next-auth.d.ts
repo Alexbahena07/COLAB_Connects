@@ -5,6 +5,7 @@ declare module "next-auth" {
     user: {
       id: string;
       linkedinConnected?: boolean;
+      accountType?: "COMPANY" | "STUDENT";
     } & DefaultSession["user"];
   }
 

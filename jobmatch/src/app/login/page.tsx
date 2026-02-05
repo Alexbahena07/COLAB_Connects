@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -41,7 +41,11 @@ export default function LoginPage() {
     });
 
     if (res && !res.error) {
-      router.push("/dashboard");
+      const session = await getSession();
+      const accountType = session?.user?.accountType;
+      const nextRoute =
+        accountType === "COMPANY" ? "/dashboard/company/candidates" : "/dashboard/profile";
+      router.push(nextRoute);
     } else {
       setServerError("Invalid email or password");
     }
