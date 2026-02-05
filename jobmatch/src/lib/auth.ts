@@ -88,13 +88,18 @@ export const authOptions: NextAuthOptions = {
       try {
         const userId = token?.id as string | undefined;
         let dbUser:
-          | { name: string | null; email: string | null; image: string | null }
+          | {
+              name: string | null;
+              email: string | null;
+              image: string | null;
+              accountType: "COMPANY" | "STUDENT" | null;
+            }
           | null = null;
 
         if (userId) {
           dbUser = await prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, email: true, image: true },
+            select: { name: true, email: true, image: true, accountType: true },
           });
         }
 
@@ -106,6 +111,7 @@ export const authOptions: NextAuthOptions = {
             name: dbUser?.name ?? session.user?.name ?? undefined,
             email: dbUser?.email ?? session.user?.email ?? undefined,
             image: dbUser?.image ?? session.user?.image ?? undefined,
+            accountType: dbUser?.accountType ?? (session.user as { accountType?: string })?.accountType,
             linkedinConnected,
           },
         };
@@ -118,6 +124,7 @@ export const authOptions: NextAuthOptions = {
             name: session.user?.name,
             email: session.user?.email,
             image: session.user?.image,
+            accountType: (session.user as { accountType?: string })?.accountType,
             linkedinConnected: session.user?.linkedinConnected,
           },
         };

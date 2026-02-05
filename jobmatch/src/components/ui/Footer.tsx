@@ -8,7 +8,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-12 border-t border-border bg-background text-foreground">
+    <footer className="mt-12 border-t border-white bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 md:flex-row md:justify-between">
         {/* Left: Logo + blurb */}
         <div className="space-y-4 md:max-w-sm">
@@ -93,7 +93,7 @@ export default function Footer() {
                 type="email"
                 required
                 placeholder="Email address"
-                className="h-10 flex-1 rounded-xl border border-border bg-[color-mix(in_oklab,var(--background),transparent_95%)] px-3 text-sm outline-none focus:border-brand"
+                className="h-10 flex-1 rounded-xl border border-foreground bg-[color-mix(in_oklab,var(--background),transparent_95%)] px-3 text-sm outline-none focus:border-brand"
               />
               <button type="submit" className="btn-brand h-10 px-4 text-sm">
                 Subscribe
