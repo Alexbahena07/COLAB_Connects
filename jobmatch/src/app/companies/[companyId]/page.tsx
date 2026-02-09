@@ -1,9 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
 import Header from "@/components/ui/Header_with_Icons";
 import Footer from "@/components/ui/Footer";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import FollowCompanyButton from "./FollowCompanyButton";
 
 type CompanyProfilePageProps = {
   params: Promise<{ companyId: string }>;
@@ -21,6 +24,7 @@ const labelValue = (label: string, value: ReactNode) => (
 export default async function CompanyProfilePage({ params }: CompanyProfilePageProps) {
   const { companyId } = await params;
 
+  const session = await getServerSession(authOptions);
   const company = await prisma.user.findUnique({
     where: { id: companyId },
     select: {
@@ -43,6 +47,17 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
     notFound();
   }
 
+  const viewerId = typeof session?.user?.id === "string" ? session.user.id : null;
+  const canFollow = viewerId !== null && session?.user?.accountType === "STUDENT";
+  let initialIsFollowing = false;
+  if (canFollow) {
+    const follow = await prisma.companyFollow.findUnique({
+      where: { userId_companyId: { userId: viewerId, companyId } },
+      select: { id: true },
+    });
+    initialIsFollowing = Boolean(follow);
+  }
+
   const profile = company.companyProfile;
   const companyName = profile?.companyName ?? company.name ?? "Company";
   const website = profile?.website ?? null;
@@ -62,12 +77,20 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
               </p>
               <h1 className="mt-2 text-3xl font-semibold">{companyName}</h1>
             </div>
-            <Link
-              href="/dashboard"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-white/30 px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Back to jobs
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              {canFollow ? (
+                <FollowCompanyButton
+                  companyId={companyId}
+                  initialIsFollowing={initialIsFollowing}
+                />
+              ) : null}
+              <Link
+                href="/dashboard"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-white/30 px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Back to jobs
+              </Link>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">

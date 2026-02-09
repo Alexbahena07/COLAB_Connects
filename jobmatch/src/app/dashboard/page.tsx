@@ -79,7 +79,10 @@ export default function DashboardPage() {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [location, setLocation] = useState("");
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
 
@@ -222,6 +225,12 @@ export default function DashboardPage() {
 
   const selectedJob =
     (selectedJobId ? filteredJobs.find((job) => job.id === selectedJobId) : filteredJobs[0]) ?? null;
+  const hasApplied = selectedJob ? appliedJobIds.has(selectedJob.id) : false;
+
+  useEffect(() => {
+    setApplyError(null);
+    setIsApplying(false);
+  }, [selectedJobId]);
 
   const noJobsAvailable =
     !isLoading &&
@@ -255,6 +264,50 @@ export default function DashboardPage() {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join("");
+
+  const handleApply = async () => {
+    if (!selectedJob) return;
+    setApplyError(null);
+    setIsApplying(true);
+
+    try {
+      const response = await fetch(`/api/jobs/${selectedJob.id}/apply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jobTitle: selectedJob.title,
+          jobCompany: selectedJob.company,
+          jobLocation: selectedJob.location,
+          jobType: selectedJob.type,
+          jobRemote: selectedJob.remote,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorMessage =
+          typeof payload?.error === "string"
+            ? payload.error
+            : "We couldn't send your profile. Please try again.";
+        setApplyError(errorMessage);
+        return;
+      }
+
+      setAppliedJobIds((previous) => {
+        const next = new Set(previous);
+        next.add(selectedJob.id);
+        return next;
+      });
+    } catch (error) {
+      console.error("Failed to apply to job", error);
+      setApplyError("We couldn't reach the application service. Please try again.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   const handleShareJob = async (job: Job) => {
     setShareError(null);
@@ -534,7 +587,14 @@ export default function DashboardPage() {
               </section>
 
               <div className="mt-auto flex flex-wrap items-center gap-3">
-                <Button className="btn-brand h-10">Apply</Button>
+                <Button
+                  className="btn-brand h-10"
+                  onClick={handleApply}
+                  isLoading={isApplying}
+                  disabled={!selectedJob || hasApplied}
+                >
+                  {hasApplied ? "Applied" : "Apply"}
+                </Button>
                 {selectedJob.companyId ? (
                   <Link href={`/companies/${selectedJob.companyId}`}>
                     <Button className="btn-outline-brand h-10">
@@ -545,8 +605,8 @@ export default function DashboardPage() {
                 <Button
                   className={
                     isJobSaved(selectedJob.id)
-                      ? "btn-brand h-14 w-14 p-0 bg-white text-brand"
-                      : "btn-outline-brand h-14 w-14 p-0"
+                      ? "btn-brand h-10 w-10 p-0 bg-white text-brand"
+                      : "btn-outline-brand h-10 w-10 p-0"
                   }
                   onClick={() => toggleSaveJob(selectedJob.id)}
                   aria-label={isJobSaved(selectedJob.id) ? "Unsave job" : "Save job"}
@@ -555,17 +615,17 @@ export default function DashboardPage() {
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="1.7"
+                    strokeWidth="2.2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-10 w-10"
+                    className="h-7 w-7 scale-[2.5]"
                     aria-hidden="true"
                   >
                     <path d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1z" />
                   </svg>
                 </Button>
                 <Button
-                  className="btn-outline-brand h-14 w-14 p-0"
+                  className="btn-outline-brand h-10 w-10 p-0"
                   aria-label="Share job"
                   onClick={() => handleShareJob(selectedJob)}
                 >
@@ -573,10 +633,10 @@ export default function DashboardPage() {
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="1.7"
+                    strokeWidth="2.2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-10 w-10"
+                    className="h-7 w-7 scale-[2.5]"
                     aria-hidden="true"
                   >
                     <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
@@ -588,6 +648,7 @@ export default function DashboardPage() {
                   <span className="text-xs text-white/70">{shareNotice}</span>
                 ) : null}
                 {shareError ? <span className="text-xs text-red-400">{shareError}</span> : null}
+                {applyError ? <span className="text-xs text-red-400">{applyError}</span> : null}
               </div>
             </article>
           )}

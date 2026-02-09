@@ -194,38 +194,51 @@ export async function POST(
     };
 
     if (messagingApiUrl && isNewApplication) {
-      const response = await fetch(messagingApiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(applicationPayload),
-      });
+      try {
+        const response = await fetch(messagingApiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(applicationPayload),
+        });
 
-      const responsePayload = await response.json().catch(() => null);
+        const responsePayload = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        const errorMessage =
-          typeof responsePayload?.error === "string"
-            ? responsePayload.error
-            : `Messaging API returned ${response.status}`;
-        return NextResponse.json(
-          { error: errorMessage, application, forwarded: false },
-          { status: response.status }
-        );
+        if (!response.ok) {
+          const errorMessage =
+            typeof responsePayload?.error === "string"
+              ? responsePayload.error
+              : `Messaging API returned ${response.status}`;
+          console.error("[apply] Failed to forward application to messaging API:", errorMessage);
+          return NextResponse.json({
+            message:
+              "Application received. We couldn't notify the messaging service right now, but your application was recorded.",
+            application,
+            metadata: { forwarded: false, messagingError: errorMessage },
+          });
+        }
+
+        const successMessage =
+          typeof responsePayload?.message === "string"
+            ? responsePayload.message
+            : "Your application was sent to the company.";
+
+        return NextResponse.json({
+          message: successMessage,
+          application,
+          metadata: responsePayload,
+        });
+      } catch (messagingError) {
+        console.error("[apply] Failed to reach messaging API", messagingError);
+        return NextResponse.json({
+          message:
+            "Application received. We couldn't notify the messaging service right now, but your application was recorded.",
+          application,
+          metadata: { forwarded: false, messagingError: "unreachable" },
+        });
       }
-
-      const successMessage =
-        typeof responsePayload?.message === "string"
-          ? responsePayload.message
-          : "Your application was sent to the company.";
-
-      return NextResponse.json({
-        message: successMessage,
-        application,
-        metadata: responsePayload,
-      });
     }
 
     if (messagingApiUrl && !isNewApplication) {
