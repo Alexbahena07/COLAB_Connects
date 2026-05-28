@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# COLAB Connects
+
+A full-stack talent-matching platform that connects job seekers with recruiters through intelligent candidate discovery and recruiter dashboards.
+
+🔗 **[Live Site](https://www.colabconnects.app/)**
+
+---
+
+## Overview
+
+COLAB Connects streamlines the hiring process by giving recruiters a centralized dashboard to discover and evaluate candidates, while giving job seekers visibility into relevant opportunities. The platform includes a built-in notification system that delivers automated daily and weekly digests to keep users engaged without manual intervention.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js (App Router) |
+| Language | TypeScript |
+| Database ORM | Prisma |
+| Styling | Tailwind CSS |
+| Deployment | Vercel |
+| CI/CD | GitHub Actions + Vercel |
+
+---
+
+## Features
+
+- **Recruiter dashboards** — browse and filter candidate profiles with discovery tools built for hiring workflows
+- **Candidate matching** — job seekers surface to relevant recruiters based on profile data
+- **Automated notification digests** — Vercel cron jobs trigger daily (7am) and weekly (Monday 7am) email digests via a custom `/api/notifications/digest` endpoint
+- **CI/CD pipeline** — every push to `main` triggers an automated build and deployment through Vercel
+- **Type-safe data layer** — Prisma ORM with full TypeScript integration ensures schema consistency from database to UI
+
+---
+
+## Architecture Highlights
+
+The notification system uses Vercel's cron job scheduler to hit an internal API route on a defined schedule, decoupling digest delivery from user actions entirely. This means the platform stays active and re-engages users automatically without any backend server management.
+
+The project is structured around Next.js App Router conventions, with API routes, server components, and client components organized under the `jobmatch/` directory for clear separation of concerns.
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Clone the repo
+git clone https://github.com/Alexbahena07/COLAB_Connects.git
+cd COLAB_Connects/jobmatch
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Fill in your DATABASE_URL and any other required variables
+
+# Run Prisma migrations
+npx prisma migrate dev
+
+# Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment
 
-## Learn More
+The app is deployed on Vercel with automatic deployments on every push to `main`. The `vercel.json` config defines cron schedules for the notification digest system.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Author
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Alex Bahena** — Full-Stack Software Developer
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Portfolio: [alexbahena07.github.io/Portfolio](https://alexbahena07.github.io/Portfolio/)
+- LinkedIn: [linkedin.com/in/alexbahena](https://linkedin.com/in/alexbahena)
+- GitHub: [github.com/Alexbahena07](https://github.com/Alexbahena07)
