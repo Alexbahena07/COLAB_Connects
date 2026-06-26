@@ -165,15 +165,15 @@ export default function Home() {
 
       {/* How it works */}
       <section className="home-section" id="how-it-works">
-        <div className="mx-auto max-w-6xl px-6 py-16 ">
-          <h2 className="text-center text-2xl font-bold text-foreground">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="text-center text-4xl font-bold text-foreground md:text-5xl">
             How COLAB works
           </h2>
-          <p className="mt-2 max-w-2xl text-center text-sm text-(--foreground)/90 mx-auto">
+          <p className="mt-4 max-w-2xl text-center text-lg text-muted mx-auto">
             A simple workflow for candidates and employers—built for early-career hiring.
           </p>
 
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
             {[
               {
                 title: "Build your profile",
@@ -235,23 +235,71 @@ export default function Home() {
             ].map((c) => (
               <div
                 key={c.title}
-                className={`rounded-2xl border bg-background p-6 shadow-sm ${
-                  c.title === "Build your profile" ||
-                  c.title === "Search and apply" ||
-                  c.title === "Hire with context"
-                    ? "border-white"
-                    : "border-border"
-                }`}
+                className="rounded-2xl border border-border bg-background p-8 shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandBlue/10 text-brandBlue">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brandBlue/10 text-brandBlue">
                     {c.icon}
                   </div>
                   <div className="pill-brandBlue">{c.title}</div>
                 </div>
-                <p className="mt-3 text-sm text-(--foreground)/90">{c.desc}</p>
+                <p className="mt-4 text-base leading-relaxed text-foreground/85">{c.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Photo gallery */}
+      <section className="bg-brand/5 py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-10 text-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brandBlue/30 bg-brandBlue/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brandBlue">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+              Career Forum
+            </span>
+            <h2 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">
+              The Forum in Action
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-base text-muted">
+              Where next-generation finance talent meets industry leaders face to face.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-5">
+            <div className="overflow-hidden rounded-2xl shadow-md md:col-span-3">
+              <Image
+                src="/photos/registering.JPG"
+                alt="Attendees registering at the Career Forum"
+                width={960}
+                height={640}
+                className="h-64 w-full object-cover md:h-80"
+              />
+            </div>
+            <div className="overflow-hidden rounded-2xl shadow-md md:col-span-2">
+              <Image
+                src="/photos/group.JPG"
+                alt="Group of Career Forum participants"
+                width={640}
+                height={640}
+                className="h-64 w-full object-cover md:h-80"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <a
+              href="/dashboard/application"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Learn about the Career Forum
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
           </div>
         </div>
       </section>
@@ -324,7 +372,7 @@ export default function Home() {
               </div>
 
               {/* RIGHT: brand cards behind each feature row */}
-              <div className="rounded-3xl border-2 border-foreground/30 bg-white/5 p-6">
+              <div className="rounded-3xl border-2 border-border bg-surface p-6">
                 <div className="space-y-3">
                   {[
                     {
@@ -407,15 +455,15 @@ export default function Home() {
                   ].map((row) => (
                     <div
                       key={row.title}
-                      className="rounded-xl bg-brand p-4 shadow-sm ring-2 ring-foreground/30"
+                      className="rounded-xl bg-brand p-5 shadow-sm ring-2 ring-foreground/30"
                     >
-                      <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white/90">
-                          {row.icon}
+                      <div className="flex items-center gap-3 text-base font-semibold text-white">
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/90">
+                          <svg viewBox={row.icon.props.viewBox} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">{row.icon.props.children}</svg>
                         </span>
                         <span>{row.title}</span>
                       </div>
-                      <p className="text-xs text-white/85">{row.value}</p>
+                      <p className="mt-1 text-sm text-white/85">{row.value}</p>
                     </div>
                   ))}
                 </div>
@@ -429,7 +477,7 @@ export default function Home() {
         <section className="bg-background">
           <div className="mx-auto max-w-6xl px-6 py-16">
             <div className="flex flex-col gap-10">
-              <h3 className="text-center text-2xl font-semibold text-white md:text-3xl">
+              <h3 className="text-center text-2xl font-semibold text-foreground md:text-3xl">
                 Founding Partners
               </h3>
 

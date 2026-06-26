@@ -13,7 +13,7 @@ export default function Header() {
   const logoHref = "/dashboard/company";
 
   return (
-    <header className="bg-[var(--brand)] text-[var(--brand)]">
+    <header className="sticky top-0 z-50 bg-brand text-brand">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         {/* Logo on the left, centered vertically */}
         {isCompany ? (
@@ -59,7 +59,7 @@ export default function Header() {
               <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
               <path d="M9 12h6M9 16h6" />
             </svg>
-            <span className="text-xs font-semibold">Event Application</span>
+            <span className="text-xs font-semibold">Career Forum</span>
           </Link>
           {!isCompany ? (
             <Link

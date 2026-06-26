@@ -45,6 +45,7 @@ type SkillItem = {
 
 type SectionCardProps = {
   title: string;
+  icon?: ReactNode;
   children: ReactNode;
   action?: ReactNode;
 };
@@ -63,14 +64,21 @@ function rangeLabel(start: Date | null, end: Date | null): string | null {
   return `${startLabel} - ${endLabel}`;
 }
 
-function SectionCard({ title, action, children }: SectionCardProps) {
+function SectionCard({ title, icon, action, children }: SectionCardProps) {
   return (
     <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold tracking-tight text-brand uppercase">
-            {title}
-          </h2>
+          <div className="flex items-center gap-2">
+            {icon && (
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                {icon}
+              </span>
+            )}
+            <h2 className="text-lg font-semibold tracking-tight text-brand uppercase">
+              {title}
+            </h2>
+          </div>
           <div className="h-0.5 w-10 rounded-full bg-brandBlue" />
         </div>
         {action}
@@ -176,7 +184,7 @@ export default async function StudentProfilePage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-linear-to-b from-brand via-background to-background px-4 pb-16 pt-10 text-foreground">
+      <main className="min-h-screen bg-background px-4 pb-16 pt-10 text-foreground">
         <div className="mx-auto w-full max-w-6xl space-y-8">
           {/* Hero band */}
           <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-brandBlue px-6 pb-6 pt-10 shadow-lg">
@@ -218,14 +226,14 @@ export default async function StudentProfilePage() {
                     </p>
                   ) : (
                     <p className="mt-2 max-w-2xl text-sm text-[#fdfbff]/80">
-                      Add a short headline to quickly tell recruiters who you are and what you’re looking for.
+                      Add a short headline to quickly tell recruiters who you are and what you're looking for.
                     </p>
                   )}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 text-xs text-[#fdfbff]/90">
                   <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-300" />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
                     {location ? `Based in ${location}` : "Location not specified"}
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
@@ -233,7 +241,7 @@ export default async function StudentProfilePage() {
                   </span>
                   {skills.length > 0 ? (
                     <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                      <span className="h-1.5 w-1.5 rounded-full bg-brandBlue" />
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                       {skills.length} skills listed
                     </span>
                   ) : null}
@@ -247,13 +255,13 @@ export default async function StudentProfilePage() {
           </div>
 
           <div id="profile-edit" className="profile-edit">
-            <section className="rounded-3xl border border-white/20 bg-surface p-6 shadow-lg">
+            <section className="rounded-3xl border border-border bg-surface p-6 shadow-lg">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
                     Edit mode
                   </p>
-                  <h2 className="mt-1 text-2xl font-semibold text-white">Update your profile</h2>
+                  <h2 className="mt-1 text-2xl font-semibold text-foreground">Update your profile</h2>
                 </div>
                 <ProfileEditExitButton />
               </div>
@@ -267,7 +275,7 @@ export default async function StudentProfilePage() {
           <div id="profile-view" className="profile-view grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
             {/* Left column */}
             <section className="space-y-6">
-              <SectionCard title="About">
+              <SectionCard title="About" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}>
                 {aboutText ? (
                   <p className="text-sm leading-relaxed text-foreground/90">
                     {aboutText}
@@ -282,6 +290,7 @@ export default async function StudentProfilePage() {
 
               <SectionCard
                 title="Resume"
+                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>}
                 action={
                   resumeAvailable ? (
                     <a
@@ -305,7 +314,7 @@ export default async function StudentProfilePage() {
                       </p>
                     </div>
                     <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-brandBlue/10 text-brandBlue sm:flex">
-                      ⬇
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true"><path d="M12 5v14"/><path d="m7 15 5 5 5-5"/><path d="M5 20h14"/></svg>
                     </div>
                   </div>
                 ) : (
@@ -315,7 +324,7 @@ export default async function StudentProfilePage() {
                 )}
               </SectionCard>
 
-              <SectionCard title="Experience">
+              <SectionCard title="Experience" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>}>
                 {experiences.length ? (
                   <ol className="relative space-y-5 border-l border-dashed border-border/80 pl-5">
                     {experiences.map((experience) => {
@@ -351,7 +360,7 @@ export default async function StudentProfilePage() {
                 )}
               </SectionCard>
 
-              <SectionCard title="Education">
+              <SectionCard title="Education" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>}>
                 {degrees.length ? (
                   <div className="grid gap-4 md:grid-cols-2">
                     {degrees.map((degree) => {
@@ -384,7 +393,7 @@ export default async function StudentProfilePage() {
                 )}
               </SectionCard>
 
-              <SectionCard title="Licenses & Certifications">
+              <SectionCard title="Licenses & Certifications" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>}>
                 {certificates.length ? (
                   <div className="space-y-4">
                     {certificates.map((certificate) => {
@@ -427,7 +436,7 @@ export default async function StudentProfilePage() {
                 )}
               </SectionCard>
 
-              <SectionCard title="Skills">
+              <SectionCard title="Skills" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>}>
                 {skills.length ? (
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill) => (
@@ -453,10 +462,14 @@ export default async function StudentProfilePage() {
             {/* Right column */}
             <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
               <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
-                <h3 className="text-sm font-semibold uppercase tracking-wide">Contact</h3>
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  Contact
+                </h3>
                 <p className="mt-2 text-sm text-white/90">{session.user.email}</p>
                 <div className="mt-4 border-t border-dashed border-white/40 pt-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide">
+                  <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     Top skills
                   </h4>
                   {topSkills.length ? (
@@ -484,20 +497,21 @@ export default async function StudentProfilePage() {
               </div>
 
               <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
-                <h3 className="text-sm font-semibold uppercase tracking-wide">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
                   Suggested improvements
                 </h3>
                 <ul className="mt-3 space-y-2 text-sm text-white/90">
-                  <li className="flex gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
-                    <span>Add an “About” summary to share your story.</span>
+                  <li className="flex items-start gap-2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/70" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                    <span>Add an "About" summary to share your story.</span>
                   </li>
-                  <li className="flex gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                  <li className="flex items-start gap-2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/70" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
                     <span>Upload coursework or projects under Experience.</span>
                   </li>
-                  <li className="flex gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                  <li className="flex items-start gap-2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/70" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
                     <span>List certifications that validate your expertise.</span>
                   </li>
                 </ul>

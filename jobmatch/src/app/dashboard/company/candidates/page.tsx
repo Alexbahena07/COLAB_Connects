@@ -226,21 +226,21 @@ export default function CompanyCandidatesPage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
             
-                <h1 className="text-2xl font-semibold text-white">Search early-career talent</h1>
-                <p className="text-sm text-white/70">
+                <h1 className="text-2xl font-semibold text-foreground">Search early-career talent</h1>
+                <p className="text-sm text-muted">
                   Browse the full candidate pool and save profiles that match your hiring needs.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
-                  className="btn-outline-brand h-10 !border-white/60! text-white! hover:bg-white/10"
+                  className="btn-outline-brand h-10"
                   onClick={() => setShowSavedOnly((prev) => !prev)}
                   disabled={candidates.length === 0}
                 >
                   {showSavedOnly ? "Show all" : "Show saved"}
                 </Button>
                 <Button
-                  className="btn-outline-brand h-10 !border-white/60! text-white! hover:bg-white/10"
+                  className="btn-outline-brand h-10"
                   onClick={() => {
                     setDraftFilters(defaultFilters);
                     setFilters(defaultFilters);
@@ -260,8 +260,8 @@ export default function CompanyCandidatesPage() {
                   setDraftFilters((prev) => ({ ...prev, q: event.target.value }))
                 }
                 placeholder="Name, email, headline, skill"
-                className="h-11 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                className="h-11 border-border bg-surface text-foreground placeholder:text-muted"
+                labelClassName="text-foreground"
               />
               <Input
                 label="Location"
@@ -270,8 +270,8 @@ export default function CompanyCandidatesPage() {
                   setDraftFilters((prev) => ({ ...prev, location: event.target.value }))
                 }
                 placeholder="City, state, or remote"
-                className="h-11 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                className="h-11 border-border bg-surface text-foreground placeholder:text-muted"
+                labelClassName="text-foreground"
               />
               <Input
                 label="Skills (comma separated)"
@@ -280,11 +280,11 @@ export default function CompanyCandidatesPage() {
                   setDraftFilters((prev) => ({ ...prev, skills: event.target.value }))
                 }
                 placeholder="Excel, Modeling, Python"
-                className="h-11 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                className="h-11 border-border bg-surface text-foreground placeholder:text-muted"
+                labelClassName="text-foreground"
               />
               <div className="flex flex-col gap-2">
-                <label htmlFor="employment-type" className="text-sm font-medium text-white">
+                <label htmlFor="employment-type" className="text-sm font-medium text-foreground">
                   Employment type
                 </label>
                 <select
@@ -317,7 +317,7 @@ export default function CompanyCandidatesPage() {
                   setDraftFilters((prev) => ({ ...prev, ugYearsOutMin: event.target.value }))
                 }
                 className="h-10 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                labelClassName="text-foreground"
               />
               <Input
                 label="Years out (Undergrad max)"
@@ -328,7 +328,7 @@ export default function CompanyCandidatesPage() {
                   setDraftFilters((prev) => ({ ...prev, ugYearsOutMax: event.target.value }))
                 }
                 className="h-10 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                labelClassName="text-foreground"
               />
               <Input
                 label="Years out (Grad min)"
@@ -339,7 +339,7 @@ export default function CompanyCandidatesPage() {
                   setDraftFilters((prev) => ({ ...prev, gradYearsOutMin: event.target.value }))
                 }
                 className="h-10 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                labelClassName="text-foreground"
               />
               <Input
                 label="Years out (Grad max)"
@@ -350,7 +350,7 @@ export default function CompanyCandidatesPage() {
                   setDraftFilters((prev) => ({ ...prev, gradYearsOutMax: event.target.value }))
                 }
                 className="h-10 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                labelClassName="text-foreground"
               />
             </div>
 

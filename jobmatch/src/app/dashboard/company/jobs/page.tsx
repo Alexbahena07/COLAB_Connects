@@ -354,23 +354,23 @@ export default function CompanyJobsPage() {
  return (
   <>
     <Header />
-    <main className="flex min-h-screen flex-col bg-[var(--background)] text-white">
+    <main className="flex min-h-screen flex-col bg-[var(--background)] text-foreground">
       {/* Top bar */}
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
         <div className="flex w-full items-center justify-between gap-4 px-6 py-6">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--brandBlue)]/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-brandBlue/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brandBlue">
+              <span className="h-1.5 w-1.5 rounded-full bg-brandBlue" />
               Company jobs
             </div>
-            <h1 className="text-2xl font-semibold text-white">Manage job listings</h1>
-            <p className="text-sm text-white/80">
+            <h1 className="text-2xl font-semibold text-foreground">Manage job listings</h1>
+            <p className="text-sm text-muted">
               Review your open roles and publish new opportunities for students.
             </p>
           </div>
           <Link
             href="/dashboard/company"
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+            className="btn-outline-brand inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold transition"
           >
             Back to dashboard
           </Link>
@@ -384,8 +384,8 @@ export default function CompanyJobsPage() {
           <section className="flex w-full flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
             <header className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-white">Your job listings</h2>
-                <p className="text-sm text-white/70">
+                <h2 className="text-lg font-semibold text-foreground">Your job listings</h2>
+                <p className="text-sm text-muted">
                   {companyJobs.length === 0
                     ? "You haven't published any roles yet."
                     : `Managing ${companyJobs.length} job${
@@ -399,8 +399,7 @@ export default function CompanyJobsPage() {
                   value={jobsFilter}
                   onChange={(event) => setJobsFilter(event.target.value)}
                   placeholder="Search by title, location, or skill..."
-                  className="h-10 bg-[var(--brandBlue)]/10 text-white placeholder:text-white/60"
-                  labelClassName="text-white"
+                  className="h-10 border-border bg-surface text-foreground placeholder:text-muted"
                 />
               </div>
             </header>
@@ -414,11 +413,11 @@ export default function CompanyJobsPage() {
 
             <div className="mt-2">
               {isLoadingJobs ? (
-                <p className="text-sm text-white/70">Loading job listings...</p>
+                <p className="text-sm text-muted">Loading job listings...</p>
               ) : jobsError ? (
                 <p className="text-sm text-red-500">{jobsError}</p>
               ) : filteredJobs.length === 0 ? (
-                <p className="text-sm text-white/70">
+                <p className="text-sm text-muted">
                   No jobs match this filter. Try adjusting your search.
                 </p>
               ) : (
@@ -430,7 +429,7 @@ export default function CompanyJobsPage() {
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="space-y-1">
-                          <h3 className="text-base font-semibold text-white">
+                          <h3 className="text-base font-semibold text-foreground">
                             {job.title}
                           </h3>
                           <p className="text-xs text-white/70">
@@ -627,8 +626,8 @@ export default function CompanyJobsPage() {
       {jobPendingDeletion ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Delete job listing</h3>
-            <p className="mt-2 text-sm text-white/80">
+            <h3 className="text-lg font-semibold text-foreground">Delete job listing</h3>
+            <p className="mt-2 text-sm text-muted">
               Are you sure you want to remove this job? Students will no longer be able to view
               or apply once it is deleted.
             </p>

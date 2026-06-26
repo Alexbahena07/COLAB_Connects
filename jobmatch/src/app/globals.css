@@ -5,12 +5,13 @@
 
 /* === Theme tokens === */
 :root {
-  --brand: #30183e;
-  --brandBlue: #759bad;
-  --background: #30183e;
-  --foreground: #f2f2f2;
-  --surface: #759bad;
-  --border: #f2f2f2;
+  --brand: #30183e;       /* deep purple — primary accent */
+  --brandBlue: #759bad;   /* steel blue — secondary accent */
+  --background: #ffffff;  /* white — page background */
+  --foreground: #1e1033;  /* near-black purple — body text */
+  --surface: #f4f2f7;     /* tinted white — card / panel background */
+  --border: #ddd8e8;      /* soft lavender-grey — borders */
+  --muted: #6b6880;       /* muted text */
 }
 
 @theme inline {
@@ -21,6 +22,7 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-border: var(--border);
+  --color-muted: var(--muted);
 
   /* Fonts */
   --font-sans: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -73,21 +75,22 @@
 
 /* === Reusable helpers === */
 @layer utilities {
+  /* Auth pages (login, register) keep the brand-purple backdrop */
   .page-container {
-    @apply min-h-screen grid place-items-center bg-surface px-4;
+    @apply min-h-screen grid place-items-center px-4;
     background-color: var(--brand);
   }
 
   .card {
     @apply w-full max-w-md rounded-2xl p-6 shadow-sm border;
-    background-color: var(--surface);
+    background-color: var(--background);
     border-color: var(--border);
     color: var(--foreground);
   }
 
   .card-wide {
     @apply w-full max-w-2xl rounded-2xl p-6 shadow-sm border;
-    background-color: var(--surface);
+    background-color: var(--background);
     border-color: var(--border);
     color: var(--foreground);
   }
@@ -99,17 +102,18 @@
   }
 
   .btn-brand:hover {
-    opacity: 0.95;
+    opacity: 0.9;
   }
 
   .btn-outline-brand {
     @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold;
     color: var(--brand);
-    border: 1px solid var(--brand);
+    border: 1.5px solid var(--brand);
+    background-color: transparent;
   }
 
   .btn-outline-brand:hover {
-    background-color: var(--brandBlue);
+    background-color: var(--surface);
   }
 
   .home-section {
@@ -123,6 +127,11 @@
   .pill-brandBlue {
     @apply inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold text-white;
     background-color: var(--brandBlue);
+  }
+
+  /* Muted / secondary text helper */
+  .text-muted {
+    color: var(--muted);
   }
 
   .profile-edit {
