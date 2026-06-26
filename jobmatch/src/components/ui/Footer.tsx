@@ -8,7 +8,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-12 border-t border-white bg-background text-foreground">
+    <footer className="mt-12 border-t border-brand/20 bg-brand text-white">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 md:flex-row md:justify-between">
         {/* Left: Logo + blurb */}
         <div className="space-y-4 md:max-w-sm">
@@ -35,20 +35,20 @@ export default function Footer() {
 
         {/* Middle: Contact + social */}
         <div className="space-y-4 text-sm">
-          <h3 className="text-base font-semibold text-foreground">Contact us</h3>
+          <h3 className="text-base font-semibold text-white">Contact us</h3>
           <p className="opacity-80">
             Questions about the Career Forum or partnerships? Reach out anytime.
           </p>
 
           <a
             href="mailto:coordinator@colabconnects.org"
-            className="font-semibold text-foreground underline"
+            className="font-semibold text-white underline"
           >
             coordinator@colabconnects.org
           </a>
 
           <div className="mt-4 space-y-2">
-            <h4 className="text-sm font-semibold text-foreground">Follow us</h4>
+            <h4 className="text-sm font-semibold text-white">Follow us</h4>
             <div className="flex items-center gap-3 text-sm">
               <a
                 href="https://www.linkedin.com/company/colab-connects-org/?viewAsMember=true"
@@ -76,7 +76,7 @@ export default function Footer() {
         {/* Right: Newsletter + nav links */}
         <div className="space-y-5 md:min-w-[260px]">
           <div>
-            <h3 className="text-base font-semibold text-foreground">
+            <h3 className="text-base font-semibold text-white">
               Subscribe to our newsletter
             </h3>
             <p className="mt-1 text-xs opacity-80">
@@ -93,21 +93,21 @@ export default function Footer() {
                 type="email"
                 required
                 placeholder="Email address"
-                className="h-10 flex-1 rounded-xl border border-foreground bg-[color-mix(in_oklab,var(--background),transparent_95%)] px-3 text-sm outline-none focus:border-brand"
+                className="h-10 flex-1 rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white placeholder:text-white/60 outline-none focus:border-white"
               />
               <button type="submit" className="btn-brand h-10 px-4 text-sm">
                 Subscribe
               </button>
             </form>
 
-            <label className="mt-2 flex items-center gap-2 text-[10px] text-[color-mix(in_oklab,var(--foreground),transparent_30%)]">
+            <label className="mt-2 flex items-center gap-2 text-[10px] text-white/60">
               <input type="checkbox" defaultChecked className="h-3 w-3" />
               <span>Yes, email me about COLAB news and events.</span>
             </label>
           </div>
 
           <nav>
-            <ul className="flex flex-wrap gap-3 text-[11px] text-foreground/70">
+            <ul className="flex flex-wrap gap-3 text-[11px] text-white/70">
               <li><Link href="/" className="hover:underline">Home</Link></li>
               <li><Link href="/about" className="hover:underline">About Us</Link></li>
               <li><Link href="/events" className="hover:underline">Events</Link></li>

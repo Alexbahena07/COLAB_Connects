@@ -325,19 +325,19 @@ export default function CompanyDashboardPage() {
                   value={q}
                   onChange={handleSearchChange}
                   className="h-11"
-                  labelClassName="text-white"
+                  labelClassName="text-foreground"
                 />
               </div>
 
               <div className="flex min-w-[180px] flex-col gap-2">
-                <label htmlFor="filter-skill" className="text-sm font-medium text-white">
+                <label htmlFor="filter-skill" className="text-sm font-medium text-foreground">
                   Skill focus
                 </label>
                 <select
                   id="filter-skill"
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
-                  className="h-11 rounded-xl border border-white bg-[var(--surface)] px-3 text-sm text-white"
+                  className="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-foreground"
                 >
                   <option className="text-black" value="">
                     All skills
@@ -351,14 +351,14 @@ export default function CompanyDashboardPage() {
               </div>
 
               <div className="flex min-w-[200px] flex-col gap-2">
-                <label htmlFor="filter-job" className="text-sm font-medium text-white">
+                <label htmlFor="filter-job" className="text-sm font-medium text-foreground">
                   Job Listing
                 </label>
                 <select
                   id="filter-job"
                   value={selectedJobId}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="h-11 rounded-xl border border-white bg-[var(--surface)] px-3 text-sm text-white"
+                  className="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-foreground"
                 >
                   <option className="text-black" value="">
                     Select a job
@@ -376,18 +376,14 @@ export default function CompanyDashboardPage() {
                   )}
                 </select>
                 {jobsError ? <p className="text-xs text-red-400">{jobsError}</p> : null}
-                {isLoadingJobs ? <p className="text-xs text-white/70">Loading jobs...</p> : null}
+                {isLoadingJobs ? <p className="text-xs text-muted">Loading jobs...</p> : null}
               </div>
 
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-white">Saved applicants</span>
+                <span className="text-sm font-medium text-foreground">Saved applicants</span>
                 <div className="flex items-center gap-2">
                   <Button
-                    className={`h-11 rounded-xl border px-4 text-sm font-semibold transition ${
-                      showSavedOnly
-                        ? "border-white bg-white/10 text-white"
-                        : "border-white text-white hover:bg-white/10"
-                    }`}
+                    className={`btn-outline-brand h-11 ${showSavedOnly ? "bg-surface" : ""}`}
                     onClick={() => setShowSavedOnly((prev) => !prev)}
                     disabled={applications.length === 0}
                   >

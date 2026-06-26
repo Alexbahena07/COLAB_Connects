@@ -9,7 +9,7 @@ export default function Header() {
   const logoHref = "/dashboard/company";
 
   return (
-    <header className="bg-[var(--brand)] text-[var(--brand)]">
+    <header className="sticky top-0 z-50 bg-brand text-brand">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         {/* Logo on the left, centered vertically */}
         {isCompany ? (

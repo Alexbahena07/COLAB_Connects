@@ -184,37 +184,37 @@ export default function NotificationsPage() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-[var(--background)] text-white">
+      <main className="flex min-h-screen flex-col bg-[var(--background)] text-foreground">
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Notifications</h1>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-muted">
                 {hasUnread ? `${unreadCount} unread` : "All caught up"}
               </p>
             </div>
             <button
               type="button"
               onClick={markAllRead}
-              className="text-sm font-semibold text-white/90 disabled:opacity-50"
+              className="text-sm font-semibold text-brandBlue disabled:opacity-40"
               disabled={!hasUnread}
             >
               Mark all read
             </button>
           </div>
 
-          <section className="mt-6 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+          <section className="mt-6 rounded-2xl border border-border bg-surface px-4 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/80">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
                   Email frequency
                 </h2>
-                <p className="mt-1 text-xs text-white/70">
+                <p className="mt-1 text-xs text-muted">
                   Choose how often you want to receive notification emails.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <label className="text-xs font-semibold text-white/80" htmlFor="notification-frequency">
+                <label className="text-xs font-semibold text-foreground" htmlFor="notification-frequency">
                   Frequency
                 </label>
                 <select
@@ -225,35 +225,29 @@ export default function NotificationsPage() {
                     setFrequency(nextValue);
                     savePreference(nextValue);
                   }}
-                  className="h-10 rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white"
+                  className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brandBlue"
                   disabled={prefLoading || prefSaving}
                 >
-                  <option value="NONE" className="text-black">
-                    None
-                  </option>
-                  <option value="DAILY" className="text-black">
-                    Daily
-                  </option>
-                  <option value="WEEKLY" className="text-black">
-                    Weekly
-                  </option>
+                  <option value="NONE">None</option>
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
                 </select>
                 {prefSaving ? (
-                  <span className="text-xs text-white/70">Saving...</span>
+                  <span className="text-xs text-muted">Saving...</span>
                 ) : null}
               </div>
             </div>
             {prefError ? <p className="mt-3 text-sm text-red-500">{prefError}</p> : null}
-            {prefSuccess ? <p className="mt-3 text-sm text-green-500">{prefSuccess}</p> : null}
+            {prefSuccess ? <p className="mt-3 text-sm text-green-600">{prefSuccess}</p> : null}
           </section>
 
           <div className="mt-6 space-y-3">
             {isLoading ? (
-              <p className="text-sm text-white/70">Loading notifications...</p>
+              <p className="text-sm text-muted">Loading notifications...</p>
             ) : error ? (
               <p className="text-sm text-red-500">{error}</p>
             ) : notifications.length === 0 ? (
-              <p className="text-sm text-white/70">No notifications yet.</p>
+              <p className="text-sm text-muted">No notifications yet.</p>
             ) : (
               notifications.map((item) => {
                 const isUnread = !item.readAt;
@@ -263,22 +257,22 @@ export default function NotificationsPage() {
                     key={item.id}
                     className={`relative rounded-2xl border px-4 py-3 transition ${
                       isUnread
-                        ? "border-[var(--brandBlue)] bg-[var(--brandBlue)]/10"
-                        : "border-[var(--border)] bg-white/5 text-white/70"
+                        ? "border-brandBlue bg-brandBlue/10"
+                        : "border-border bg-surface"
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-foreground">
                           {messageForNotification(item)}
                         </p>
-                        <p className="mt-1 text-xs text-white/70">
+                        <p className="mt-1 text-xs text-muted">
                           {formatTimestamp(item.createdAt)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {isUnread && (
-                          <span className="rounded-full bg-[var(--brandBlue)]/20 px-2 py-1 text-[10px] font-semibold text-[var(--brandBlue)]">
+                          <span className="rounded-full bg-brandBlue/20 px-2 py-1 text-[10px] font-semibold text-brandBlue">
                             New
                           </span>
                         )}
@@ -286,7 +280,7 @@ export default function NotificationsPage() {
                           <Link
                             href={href}
                             onClick={() => markRead(item.id)}
-                            className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white hover:bg-white/20"
+                            className="rounded-full bg-brandBlue px-3 py-1 text-xs font-semibold text-white hover:opacity-90"
                           >
                             View Job
                           </Link>

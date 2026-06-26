@@ -50,11 +50,7 @@ export default function FollowCompanyButton({
         type="button"
         onClick={toggleFollow}
         isLoading={isSaving}
-        className={
-          isFollowing
-            ? "btn-outline-brand h-10 border-white/60! text-white! hover:bg-white/10"
-            : "btn-brand h-10"
-        }
+        className={isFollowing ? "btn-outline-brand h-10" : "btn-brand h-10"}
       >
         {isFollowing ? "Following" : "Follow company"}
       </Button>

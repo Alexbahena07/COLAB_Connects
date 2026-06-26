@@ -342,25 +342,25 @@ export default function DashboardPage() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-background text-foreground">
-        <div className="border-b" style={{ borderColor: "var(--border)" }}>
+      <main className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+        <div className="shrink-0 border-b border-brand/10 bg-brand/5">
           <div className="mx-auto w-full max-w-6xl px-4 py-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
-                <h1 className="text-2xl font-semibold text-white">Browse job listings</h1>
-                <p className="text-sm text-white/70">
+                <h1 className="text-2xl font-semibold text-brand">Browse job listings</h1>
+                <p className="text-sm text-muted">
                   Filter roles by skill, location, type, or remote status and save your top picks.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
-                  className="btn-outline-brand h-10 !border-white/60! text-white! hover:bg-white/10"
+                  className="btn-outline-brand h-10"
                   onClick={() => setShowSavedOnly((prev) => !prev)}
                 >
                   {showSavedOnly ? "Show all" : "Show saved"}
                 </Button>
                 <Button
-                  className="btn-outline-brand h-10 !border-white/60! text-white! hover:bg-white/10"
+                  className="btn-outline-brand h-10"
                   onClick={() => {
                     setQ("");
                     setType("");
@@ -380,35 +380,24 @@ export default function DashboardPage() {
                 placeholder="Search job title, company, or skill..."
                 value={q}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
-                className="h-11 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                className="h-11 border-border bg-background text-foreground placeholder:text-muted"
               />
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="job-type-filter" className="text-sm font-medium text-white">
+                <label htmlFor="job-type-filter" className="text-sm font-medium text-foreground">
                   Job type
                 </label>
                 <select
                   id="job-type-filter"
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="h-11 rounded-xl border border-white/40 bg-white/10 px-3 text-sm text-white outline-none focus:border-white"
+                  className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
                 >
-                  <option className="text-black" value="">
-                    All types
-                  </option>
-                  <option className="text-black" value="FULL_TIME">
-                    Full-time
-                  </option>
-                  <option className="text-black" value="PART_TIME">
-                    Part-time
-                  </option>
-                  <option className="text-black" value="CONTRACT">
-                    Contract
-                  </option>
-                  <option className="text-black" value="INTERNSHIP">
-                    Internship
-                  </option>
+                  <option value="">All types</option>
+                  <option value="FULL_TIME">Full-time</option>
+                  <option value="PART_TIME">Part-time</option>
+                  <option value="CONTRACT">Contract</option>
+                  <option value="INTERNSHIP">Internship</option>
                 </select>
               </div>
 
@@ -417,15 +406,14 @@ export default function DashboardPage() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="City, state, or remote"
-                className="h-11 border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
+                className="h-11 border-border bg-background text-foreground placeholder:text-muted"
               />
 
-              <div className="flex flex-col gap-2 text-white">
-                <span className="text-sm font-medium text-white">Remote</span>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-foreground">Remote</span>
                 <label
                   htmlFor="remote-only-toggle"
-                  className="flex h-11 items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-3 text-sm text-white"
+                  className="flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3 text-sm text-foreground"
                 >
                   <input
                     id="remote-only-toggle"
@@ -440,7 +428,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-muted">
                 {isLoading
                   ? "Loading jobs..."
                   : `${filteredJobs.length} job${filteredJobs.length === 1 ? "" : "s"} found`}
@@ -448,25 +436,24 @@ export default function DashboardPage() {
             </div>
 
             {loadError ? (
-              <div className="mt-3 rounded-lg border border-yellow-400 bg-yellow-400/10 px-3 py-2 text-xs text-yellow-100">
+              <div className="mt-3 rounded-lg border border-yellow-400 bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
                 {loadError}
               </div>
             ) : null}
           </div>
         </div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden md:flex-row">
+      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:flex-row">
         <aside
-          className="w-full border-b md:w-96 md:max-w-sm md:shrink-0 md:border-b-0 md:border-r"
-          style={{ borderColor: "var(--border)" }}
+          className="flex min-h-0 w-full flex-col overflow-hidden rounded-2xl bg-brandBlue md:w-96 md:max-w-sm md:shrink-0"
           aria-label="Job list"
         >
-          <div className="h-full overflow-y-auto">
-            <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <ul className="divide-y divide-white/10">
               {isLoading ? (
-                <li className="p-4 text-sm opacity-80">Loading jobs...</li>
+                <li className="p-4 text-sm text-white/70">Loading jobs...</li>
               ) : filteredJobs.length === 0 ? (
-                <li className="p-4 text-sm opacity-80">
+                <li className="p-4 text-sm text-white/70">
                   {showSavedOnly
                     ? "You haven't saved any jobs yet."
                     : noJobsAvailable
@@ -481,13 +468,19 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedJobId(job.id)}
-                        className={`w-full p-4 text-left transition ${
-                          active ? "bg-surface ring-1 ring-brandBlue" : "hover:bg-surface"
+                        className={`group w-full p-4 text-left transition ${
+                          active
+                            ? "border-l-4 border-l-white bg-white/20"
+                            : "border-l-4 border-l-transparent hover:border-l-white hover:bg-brand"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10 text-xs font-semibold text-white">
+                            <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border text-xs font-semibold transition ${
+                              active
+                                ? "border-white/60 bg-white/25 text-white"
+                                : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
+                            }`}>
                               {job.companyImage ? (
                                 <img
                                   src={job.companyImage}
@@ -499,20 +492,17 @@ export default function DashboardPage() {
                               )}
                             </div>
                             <div>
-                              <h3 className="font-semibold">{job.title}</h3>
-                              <p className="mt-1 text-sm opacity-90">
-                                {job.company} - {job.location}
+                              <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{job.title}</h3>
+                              <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
+                                {job.company} · {job.location}
                               </p>
                             </div>
                           </div>
-                          <span
-                            className="rounded-md border px-2 py-0.5 text-xs"
-                            style={{ borderColor: "var(--border)" }}
-                          >
+                          <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
                             {JOB_TYPE_LABEL[job.type]}
                           </span>
                         </div>
-                        <p className="mt-2 text-xs opacity-80">
+                        <p className="mt-2 text-xs text-white/55 transition group-hover:text-white/70">
                           {new Date(job.postedAt).toLocaleDateString()}
                         </p>
                       </button>
@@ -524,14 +514,14 @@ export default function DashboardPage() {
           </div>
         </aside>
 
-        <section className="flex-1 overflow-y-auto p-6">
+        <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-brand p-6">
           {!selectedJob ? (
             <div className="card">Select a job to view details.</div>
           ) : (
-            <article className="card-wide flex h-full flex-col gap-6">
+            <article className="card-wide flex h-full flex-col gap-6 border-t-4 border-t-brand">
               <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10 text-sm font-semibold text-white">
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
                     {selectedJob.companyImage ? (
                       <img
                         src={selectedJob.companyImage}
@@ -543,31 +533,25 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold">{selectedJob.title}</h2>
-                    <p className="opacity-90">
-                      {selectedJob.company} - {selectedJob.location}
-                      {selectedJob.remote ? " | Remote" : ""}
+                    <h2 className="text-2xl font-semibold text-foreground">{selectedJob.title}</h2>
+                    <p className="text-muted">
+                      {selectedJob.company} · {selectedJob.location}
+                      {selectedJob.remote ? " · Remote" : ""}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className="rounded-md border px-2 py-1 text-xs"
-                    style={{ borderColor: "var(--border)" }}
-                  >
+                  <span className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">
                     {JOB_TYPE_LABEL[selectedJob.type]}
                   </span>
-                  <span
-                    className="rounded-md border px-2 py-1 text-xs"
-                    style={{ borderColor: "var(--border)" }}
-                  >
+                  <span className="rounded-md bg-surface px-2 py-1 text-xs text-muted border border-border">
                     Posted {new Date(selectedJob.postedAt).toLocaleDateString()}
                   </span>
                 </div>
               </header>
 
               <section>
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Key skills</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Key skills</h3>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedJob.skills.map((skill) => (
                     <span
@@ -582,7 +566,7 @@ export default function DashboardPage() {
               </section>
 
               <section className="space-y-2">
-                <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">About this role</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">About this role</h3>
                 <p className="leading-relaxed">{selectedJob.description}</p>
               </section>
 
@@ -645,7 +629,7 @@ export default function DashboardPage() {
                   </svg>
                 </Button>
                 {shareNotice ? (
-                  <span className="text-xs text-white/70">{shareNotice}</span>
+                  <span className="text-xs text-muted">{shareNotice}</span>
                 ) : null}
                 {shareError ? <span className="text-xs text-red-400">{shareError}</span> : null}
                 {applyError ? <span className="text-xs text-red-400">{applyError}</span> : null}
@@ -654,7 +638,6 @@ export default function DashboardPage() {
           )}
         </section>
       </div>
-      <Footer />
       </main>
     </>
   );
