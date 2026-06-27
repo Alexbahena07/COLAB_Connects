@@ -45,7 +45,7 @@ export default function Input({
         ) : null}
       </div>
 
-      {error ? <p className="text-xs text-red-200">{error}</p> : null}
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }

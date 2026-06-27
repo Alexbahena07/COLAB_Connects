@@ -81,6 +81,12 @@ export default function CompanyProfileForm() {
     };
   }, [reset]);
 
+  const exitEditMode = () => {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.remove("profile-editing");
+    document.getElementById("profile-view")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const onSubmit = async (values: CompanyProfileFormData) => {
     setLoadError(null);
     setSaveMessage(null);
@@ -105,7 +111,9 @@ export default function CompanyProfileForm() {
       );
       return;
     }
-    setSaveMessage("Company profile saved.");
+    setSaveMessage("Changes saved!");
+    router.refresh();
+    setTimeout(exitEditMode, 600);
   };
 
   return (
@@ -116,7 +124,8 @@ export default function CompanyProfileForm() {
         </div>
       ) : null}
       {saveMessage ? (
-        <div className="rounded-lg border border-green-400 bg-green-500/5 px-3 py-2 text-sm text-green-600">
+        <div className="flex items-center gap-2 rounded-lg border border-green-400 bg-green-500/5 px-3 py-2 text-sm text-green-700">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
           {saveMessage}
         </div>
       ) : null}
@@ -146,12 +155,12 @@ export default function CompanyProfileForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-[var(--foreground)]" htmlFor="company-team-size">
+          <label className="block text-sm font-medium text-foreground" htmlFor="company-team-size">
             Company size
           </label>
           <select
             id="company-team-size"
-            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--foreground)]"
+            className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
             {...register("teamSize")}
           >
             <option value="" className="bg-white text-black">Select size</option>
@@ -167,12 +176,12 @@ export default function CompanyProfileForm() {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-[var(--foreground)]" htmlFor="company-industry">
+          <label className="block text-sm font-medium text-foreground" htmlFor="company-industry">
             Industry
           </label>
           <select
             id="company-industry"
-            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--foreground)]"
+            className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
             {...register("hiringFocus")}
           >
             <option value="" className="bg-white text-black">Select industry</option>
@@ -194,13 +203,13 @@ export default function CompanyProfileForm() {
       </div>
 
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-[var(--foreground)]" htmlFor="company-about">
+        <label className="block text-sm font-medium text-foreground" htmlFor="company-about">
           About your company
         </label>
         <textarea
           id="company-about"
           rows={5}
-          className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
+          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:border-brand"
           placeholder="Share a quick overview, mission, and what students can expect."
           {...register("about")}
         />

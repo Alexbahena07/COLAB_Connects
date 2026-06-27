@@ -504,13 +504,13 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Top header block (no gradient) */}
-      <div className="border-b border-white/10">
+      <div className="border-b border-border">
         <div className="mx-auto max-w-6xl px-6 py-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Onboarding</p>
-          <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">Onboarding</p>
+          <h1 className="mt-2 font-serif text-3xl font-bold text-brand md:text-4xl">
             Build a profile companies can trust.
           </h1>
-          <p className="mt-3 max-w-2xl text-sm text-white/75">
+          <p className="mt-3 max-w-2xl text-sm text-foreground/75">
             Add the basics now—then refine later. We keep everything structured so employers can scan fast.
           </p>
         </div>
@@ -519,26 +519,26 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
       <div className="mx-auto max-w-6xl px-6 py-10">
         {/* Status banners */}
         {loadError ? (
-          <div className="mb-6 rounded-2xl border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm text-white/90">
+          <div className="mb-6 rounded-2xl border border-yellow-400 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
             {loadError}
           </div>
         ) : null}
 
         {loading ? (
-          <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75">
+          <div className="mb-6 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-muted">
             Loading saved profile...
           </div>
         ) : null}
 
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Basic Profile */}
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm ring-1 ring-white/5">
+          <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/80">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">
                   Basic info
                 </h2>
-                <p className="mt-1 text-sm text-white/65">
+                <p className="mt-1 text-sm text-muted">
                   Add a headline, location, and a professional photo.
                 </p>
               </div>
@@ -640,7 +640,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                         className="w-full accent-[var(--brandBlue)]"
                         disabled={!avatarUrl}
                       />
-                      <p className="text-xs text-white/70">Tip: keep the face centered for best results.</p>
+                      <p className="text-xs text-muted">Tip: keep the face centered for best results.</p>
                       {avatarError ? <p className="text-xs text-red-400">{avatarError}</p> : null}
                     </div>
                   </div>
@@ -652,19 +652,19 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
               </div>
 
               {/* Profile fields */}
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-5 ring-1 ring-white/5">
+              <div className="rounded-3xl border border-border bg-surface p-5 ring-1 ring-black/5">
                 <div className="grid gap-4 md:grid-cols-3">
                   <Input
                     label="First name"
                     labelClassName="text-foreground"
-                    className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                    className="border-border bg-background text-foreground placeholder:text-muted"
                     {...register("profile.firstName")}
                   />
 
                   <Input
                     label="Last name"
                     labelClassName="text-foreground"
-                    className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                    className="border-border bg-background text-foreground placeholder:text-muted"
                     {...register("profile.lastName")}
                   />
 
@@ -672,7 +672,7 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                     label="Headline"
                     placeholder="e.g., Financial Analyst • FP&A • SQL"
                     labelClassName="text-foreground"
-                    className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                    className="border-border bg-background text-foreground placeholder:text-muted"
                     {...register("profile.headline")}
                   />
 
@@ -689,28 +689,28 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                           placeholder="Start typing a city"
                           options={CITY_OPTIONS}
                           labelClassName="text-foreground"
-                          inputClassName="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
-                          panelClassName="border-white/10 bg-[var(--surface)]"
-                          optionClassName="text-foreground hover:bg-background/40"
+                          inputClassName="border-border bg-background text-foreground placeholder:text-muted"
+                          panelClassName="border-border bg-surface"
+                          optionClassName="text-foreground hover:bg-surface"
                         />
                       )}
                     />
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-white/10 bg-brandBlue/10 px-4 py-3 text-xs text-white/75">
-                  Your headline is what recruiters scan first—lead with role + tools (ex: “Analyst • Excel • SQL”).
+                <div className="mt-4 rounded-2xl border border-brandBlue/20 bg-brandBlue/5 px-4 py-3 text-xs text-foreground/70">
+                  Your headline is what recruiters scan first—lead with role + tools (ex: "Analyst • Excel • SQL").
                 </div>
               </div>
             </div>
           </section>
 
           {/* Resume upload */}
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm ring-1 ring-white/5">
+          <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/80">Resume (PDF)</h2>
-                <p className="mt-1 text-sm text-white/65">Upload a PDF (max 5MB). Required for students.</p>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Resume (PDF)</h2>
+                <p className="mt-1 text-sm text-muted">Upload a PDF (max 5 MB). Required for students.</p>
               </div>
 
               {existingResume ? (
@@ -721,26 +721,26 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                   <button
                     type="button"
                     onClick={markResumeForRemoval}
-                    className="rounded-xl border border-red-400/40 bg-red-400/10 px-3 py-2 font-semibold text-red-200 hover:bg-red-400/15"
+                    className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 font-semibold text-red-700 hover:bg-red-100"
                   >
                     Remove
                   </button>
                 </div>
               ) : storedResume && pendingResumeRemoval ? (
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="rounded-full border border-red-400/40 bg-red-400/10 px-3 py-1 font-semibold text-red-200">
+                  <span className="rounded-full border border-red-300 bg-red-50 px-3 py-1 font-semibold text-red-700">
                     Removal pending — upload a new PDF to finish.
                   </span>
                   <button
                     type="button"
                     onClick={cancelResumeRemoval}
-                    className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 font-semibold text-white hover:bg-white/10"
+                    className="rounded-xl border border-border bg-surface px-3 py-2 font-semibold text-foreground hover:bg-border/50"
                   >
                     Keep current
                   </button>
                 </div>
               ) : (
-                <span className="rounded-full bg-brandBlue/15 px-3 py-1 text-xs font-semibold text-white/85">
+                <span className="rounded-full bg-brandBlue/10 px-3 py-1 text-xs font-semibold text-brandBlue">
                   Required
                 </span>
               )}
@@ -749,10 +749,10 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
             <div className="mt-5 space-y-2">
               <label
                 htmlFor="resume-upload"
-                className="flex cursor-pointer items-center justify-between rounded-2xl border border-dashed border-white/20 bg-background/20 px-4 py-4 text-sm font-semibold text-white hover:border-brandBlue/60 hover:bg-background/30"
+                className="flex cursor-pointer items-center justify-between rounded-2xl border border-dashed border-border bg-surface px-4 py-4 text-sm font-semibold text-foreground hover:border-brand/40 hover:bg-surface"
               >
                 <span>{resumeFile ? "Replace selected PDF" : "Upload PDF"}</span>
-                <span className="text-xs font-normal text-white/60">Max 5MB</span>
+                <span className="text-xs font-normal text-muted">Max 5 MB</span>
               </label>
               <input
                 id="resume-upload"
@@ -765,13 +765,13 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
               />
 
               {resumeFile ? (
-                <p className="text-xs text-white/75">Selected file: {resumeFile.name}</p>
+                <p className="text-xs text-muted">Selected file: {resumeFile.name}</p>
               ) : pendingResumeRemoval && storedResume ? (
-                <p className="text-xs text-white/70">Resume removal pending. Choose a PDF above to replace it.</p>
+                <p className="text-xs text-muted">Resume removal pending. Choose a PDF above to replace it.</p>
               ) : existingResume ? (
-                <p className="text-xs text-white/70">Current resume: {existingResume.fileName}</p>
+                <p className="text-xs text-muted">Current resume: {existingResume.fileName}</p>
               ) : (
-                <p className="text-xs text-white/70">No resume uploaded yet.</p>
+                <p className="text-xs text-muted">No resume uploaded yet.</p>
               )}
 
               {resumeError ? <p className="text-xs text-red-400">{resumeError}</p> : null}
@@ -787,11 +787,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
           */}
 
           {/* Degrees */}
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm ring-1 ring-white/5">
+          <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/80">Degrees</h2>
-                <p className="mt-1 text-sm text-white/65">Add education history. Keep it clean and scannable.</p>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Degrees</h2>
+                <p className="mt-1 text-sm text-muted">Add education history. Keep it clean and scannable.</p>
               </div>
               <button
                 type="button"
@@ -804,13 +804,13 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
 
             <div className="mt-5 space-y-5">
               {deg.fields.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-background/15 px-4 py-4 text-sm text-white/70">
+                <div className="rounded-2xl border border-border bg-surface px-4 py-4 text-sm text-muted">
                   No degrees yet. Add one to help employers understand your background.
                 </div>
               ) : null}
 
               {deg.fields.map((f, i) => (
-                <div key={f.id} className="rounded-3xl border border-white/10 bg-background/15 p-5">
+                <div key={f.id} className="rounded-3xl border border-border bg-surface p-5">
                   <div className="grid gap-3 md:grid-cols-5">
                     <Controller
                       control={control}
@@ -823,9 +823,9 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                           placeholder="Start typing a school…"
                           options={SCHOOL_OPTIONS}
                           labelClassName="text-foreground"
-                          inputClassName="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
-                          panelClassName="border-white/10 bg-[var(--surface)]"
-                          optionClassName="text-foreground hover:bg-background/40"
+                          inputClassName="border-border bg-background text-foreground placeholder:text-muted"
+                          panelClassName="border-border bg-surface"
+                          optionClassName="text-foreground hover:bg-surface"
                         />
                       )}
                     />
@@ -833,34 +833,34 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                     <Input
                       label="Degree"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`degrees.${i}.degree` as const)}
                     />
                     <Input
                       label="Field"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`degrees.${i}.field` as const)}
                     />
                     <Input
                       label="Start"
                       type="date"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground focus:ring-white/20"
+                      className="border-border bg-background text-foreground"
                       {...register(`degrees.${i}.startDate` as const)}
                     />
                     <Input
                       label="End"
                       type="date"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground focus:ring-white/20"
+                      className="border-border bg-background text-foreground"
                       {...register(`degrees.${i}.endDate` as const)}
                     />
 
                     <div className="md:col-span-5">
                       <button
                         type="button"
-                        className="text-xs font-semibold text-red-200 hover:text-red-100"
+                        className="text-xs font-semibold text-red-600 hover:text-red-700"
                         onClick={() => deg.remove(i)}
                       >
                         Remove degree
@@ -873,11 +873,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
           </section>
 
           {/* Certificates */}
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm ring-1 ring-white/5">
+          <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/80">Certificates</h2>
-                <p className="mt-1 text-sm text-white/65">Add credentials that strengthen your story.</p>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Certificates</h2>
+                <p className="mt-1 text-sm text-muted">Add credentials that strengthen your story.</p>
               </div>
               <button
                 type="button"
@@ -890,51 +890,51 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
 
             <div className="mt-5 space-y-5">
               {cert.fields.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-background/15 px-4 py-4 text-sm text-white/70">
-                  No certificates yet. Add one if it’s relevant (Bloomberg, CPA track, Coursera, etc.).
+                <div className="rounded-2xl border border-border bg-surface px-4 py-4 text-sm text-muted">
+                  No certificates yet. Add one if it's relevant (Bloomberg, CPA track, Coursera, etc.).
                 </div>
               ) : null}
 
               {cert.fields.map((f, i) => (
-                <div key={f.id} className="rounded-3xl border border-white/10 bg-background/15 p-5">
+                <div key={f.id} className="rounded-3xl border border-border bg-surface p-5">
                   <div className="grid gap-3 md:grid-cols-5">
                     <Input
                       label="Name"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`certificates.${i}.name` as const)}
                     />
                     <Input
                       label="Issuer"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`certificates.${i}.issuer` as const)}
                     />
                     <Input
                       label="Issued"
                       type="date"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground focus:ring-white/20"
+                      className="border-border bg-background text-foreground"
                       {...register(`certificates.${i}.issuedAt` as const)}
                     />
                     <Input
                       label="Cred. ID"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`certificates.${i}.credentialId` as const)}
                     />
                     <Input
                       label="URL"
                       type="url"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`certificates.${i}.credentialUrl` as const)}
                     />
 
                     <div className="md:col-span-5">
                       <button
                         type="button"
-                        className="text-xs font-semibold text-red-200 hover:text-red-100"
+                        className="text-xs font-semibold text-red-600 hover:text-red-700"
                         onClick={() => cert.remove(i)}
                       >
                         Remove certificate
@@ -947,11 +947,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
           </section>
 
           {/* Work history */}
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm ring-1 ring-white/5">
+          <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/80">Work history</h2>
-                <p className="mt-1 text-sm text-white/65">Highlight internships, projects, and roles.</p>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Work history</h2>
+                <p className="mt-1 text-sm text-muted">Highlight internships, projects, and roles.</p>
               </div>
               <button
                 type="button"
@@ -964,51 +964,51 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
 
             <div className="mt-5 space-y-5">
               {exp.fields.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-background/15 px-4 py-4 text-sm text-white/70">
+                <div className="rounded-2xl border border-border bg-surface px-4 py-4 text-sm text-muted">
                   No roles yet. Add your most relevant experience first.
                 </div>
               ) : null}
 
               {exp.fields.map((f, i) => (
-                <div key={f.id} className="rounded-3xl border border-white/10 bg-background/15 p-5">
+                <div key={f.id} className="rounded-3xl border border-border bg-surface p-5">
                   <div className="grid gap-3 md:grid-cols-5">
                     <Input
                       label="Title"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`experiences.${i}.title` as const)}
                     />
                     <Input
                       label="Company"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`experiences.${i}.company` as const)}
                     />
                     <Input
                       label="Start"
                       type="date"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground focus:ring-white/20"
+                      className="border-border bg-background text-foreground"
                       {...register(`experiences.${i}.startDate` as const)}
                     />
                     <Input
                       label="End"
                       type="date"
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground focus:ring-white/20"
+                      className="border-border bg-background text-foreground"
                       {...register(`experiences.${i}.endDate` as const)}
                     />
                     <Input
                       label="Description"
                       labelClassName="text-foreground"
-                      className="md:col-span-5 border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="md:col-span-5 border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`experiences.${i}.description` as const)}
                     />
 
                     <div className="md:col-span-5">
                       <button
                         type="button"
-                        className="text-xs font-semibold text-red-200 hover:text-red-100"
+                        className="text-xs font-semibold text-red-600 hover:text-red-700"
                         onClick={() => exp.remove(i)}
                       >
                         Remove role
@@ -1021,11 +1021,11 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
           </section>
 
           {/* Skills */}
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm ring-1 ring-white/5">
+          <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-white/80">Skills</h2>
-                <p className="mt-1 text-sm text-white/65">Add skills and (optionally) years of experience.</p>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Skills</h2>
+                <p className="mt-1 text-sm text-muted">Add skills and (optionally) years of experience.</p>
               </div>
               <button
                 type="button"
@@ -1038,13 +1038,13 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
 
             <div className="mt-5 space-y-5">
               {skl.fields.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-background/15 px-4 py-4 text-sm text-white/70">
+                <div className="rounded-2xl border border-border bg-surface px-4 py-4 text-sm text-muted">
                   No skills yet. Add 8–12 relevant skills to start.
                 </div>
               ) : null}
 
               {skl.fields.map((f, i) => (
-                <div key={f.id} className="rounded-3xl border border-white/10 bg-background/15 p-5">
+                <div key={f.id} className="rounded-3xl border border-border bg-surface p-5">
                   <div className="grid gap-3 md:grid-cols-3">
                     <Controller
                       control={control}
@@ -1057,9 +1057,9 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                           placeholder="Start typing a skill…"
                           options={SKILL_OPTIONS}
                           labelClassName="text-foreground"
-                          inputClassName="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
-                          panelClassName="border-white/10 bg-[var(--surface)]"
-                          optionClassName="text-foreground hover:bg-background/40"
+                          inputClassName="border-border bg-background text-foreground placeholder:text-muted"
+                          panelClassName="border-border bg-surface"
+                          optionClassName="text-foreground hover:bg-surface"
                         />
                       )}
                     />
@@ -1069,13 +1069,13 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
                       min={0}
                       max={50}
                       labelClassName="text-foreground"
-                      className="border-white/15 bg-background/30 text-foreground placeholder:text-white/60 focus:ring-white/20"
+                      className="border-border bg-background text-foreground placeholder:text-muted"
                       {...register(`skills.${i}.years` as const)}
                     />
                     <div className="flex items-end">
                       <button
                         type="button"
-                        className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
+                        className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground hover:bg-border/40"
                         onClick={() => skl.remove(i)}
                       >
                         Remove
@@ -1088,10 +1088,10 @@ export default function ProfileForm({ redirectTo = "/dashboard" }: ProfileFormPr
           </section>
 
           {/* Sticky-ish bottom action bar */}
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-sm ring-1 ring-white/5">
+          <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="text-sm text-white/70">
-                <span className="font-semibold text-white">Almost done.</span> You can edit this anytime later.
+              <div className="text-sm text-muted">
+                <span className="font-semibold text-foreground">Almost done.</span> You can edit this anytime later.
               </div>
 
               <Button
