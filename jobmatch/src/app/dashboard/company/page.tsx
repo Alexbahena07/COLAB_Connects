@@ -4,7 +4,6 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header_with_Icons";
-import Footer from "@/components/ui/Footer";
 
 type ApplicantSkill = { name: string; years: number | null };
 type ApplicantExperience = {
@@ -311,25 +310,51 @@ export default function CompanyDashboardPage() {
     return savedApplicationIds.has(applicationId);
   };
 
-  return (
-    <>
-      <Header />
-      <main className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)]">
-        <div className="border-b" style={{ borderColor: "var(--border)" }}>
-          <div className="mx-auto w-full max-w-6xl px-4 py-4">
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="min-w-[220px] flex-1">
-                <Input
-                  label="Search applicants"
-                  placeholder="Search name, email, or skill..."
-                  value={q}
-                  onChange={handleSearchChange}
-                  className="h-11"
-                  labelClassName="text-foreground"
-                />
-              </div>
+  const getInitials = (name: string) =>
+    name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
 
-              <div className="flex min-w-[180px] flex-col gap-2">
+  return (
+    <div className="flex h-screen flex-col overflow-hidden">
+      <Header />
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
+
+        {/* Filter bar */}
+        <div className="shrink-0 border-b border-brand/10 bg-brand/5">
+          <div className="mx-auto w-full max-w-6xl px-4 py-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold text-brand">Browse applicants</h1>
+                <p className="text-sm text-muted">
+                  Filter by name, skill, or job listing. Save top candidates for follow-up.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  className="btn-outline-brand h-10"
+                  onClick={() => setShowSavedOnly((prev) => !prev)}
+                  disabled={applications.length === 0}
+                >
+                  {showSavedOnly ? "Show all" : "Show saved"}
+                </Button>
+                <Button
+                  className="btn-outline-brand h-10"
+                  onClick={() => { setQ(""); setSkill(""); }}
+                >
+                  Reset filters
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Input
+                label="Search"
+                placeholder="Name, email, or skill..."
+                value={q}
+                onChange={handleSearchChange}
+                className="h-11 border-border bg-background text-foreground placeholder:text-muted"
+              />
+
+              <div className="flex flex-col gap-2">
                 <label htmlFor="filter-skill" className="text-sm font-medium text-foreground">
                   Skill focus
                 </label>
@@ -337,94 +362,68 @@ export default function CompanyDashboardPage() {
                   id="filter-skill"
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
-                  className="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-foreground"
+                  className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
                 >
-                  <option className="text-black" value="">
-                    All skills
-                  </option>
+                  <option value="">All skills</option>
                   {skillOptions.map((s) => (
-                    <option key={s} value={s} className="text-black">
-                      {s}
-                    </option>
+                    <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="flex min-w-[200px] flex-col gap-2">
+              <div className="flex flex-col gap-2 lg:col-span-2">
                 <label htmlFor="filter-job" className="text-sm font-medium text-foreground">
-                  Job Listing
+                  Job listing
                 </label>
                 <select
                   id="filter-job"
                   value={selectedJobId}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-foreground"
+                  className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
                 >
-                  <option className="text-black" value="">
-                    Select a job
-                  </option>
+                  <option value="">Select a job</option>
                   {jobs.length === 0 ? (
-                    <option className="text-black" value="" disabled>
-                      No job listings posted yet
-                    </option>
+                    <option value="" disabled>No job listings posted yet</option>
                   ) : (
                     jobs.map((job) => (
-                      <option key={job.id} value={job.id} className="text-black">
-                        {job.title}
-                      </option>
+                      <option key={job.id} value={job.id}>{job.title}</option>
                     ))
                   )}
                 </select>
-                {jobsError ? <p className="text-xs text-red-400">{jobsError}</p> : null}
+                {jobsError ? <p className="text-xs text-red-600">{jobsError}</p> : null}
                 {isLoadingJobs ? <p className="text-xs text-muted">Loading jobs...</p> : null}
               </div>
-
-              <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-foreground">Saved applicants</span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    className={`btn-outline-brand h-11 ${showSavedOnly ? "bg-surface" : ""}`}
-                    onClick={() => setShowSavedOnly((prev) => !prev)}
-                    disabled={applications.length === 0}
-                  >
-                    {showSavedOnly ? "Show all" : "Show saved"}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2 md:ml-auto">
-                <span className="text-sm font-medium text-transparent">Actions</span>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    className="btn-outline-brand h-11"
-                    onClick={() => {
-                      setQ("");
-                      setSkill("");
-                    }}
-                  >
-                    Reset filters
-                  </Button>
-                </div>
-              </div>
             </div>
-            {applicantsError ? <p className="mt-2 text-sm text-red-400">{applicantsError}</p> : null}
+
+            <div className="mt-4">
+              <p className="text-sm text-muted">
+                {isLoadingApplicants
+                  ? "Loading applicants..."
+                  : `${filteredApplicants.length} applicant${filteredApplicants.length === 1 ? "" : "s"} found`}
+              </p>
+              {applicantsError ? (
+                <p className="mt-1 text-xs text-red-600">{applicantsError}</p>
+              ) : null}
+            </div>
           </div>
         </div>
 
-        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden md:flex-row">
+        {/* Content */}
+        <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:flex-row">
+
+          {/* Applicant sidebar */}
           <aside
-            className="w-full border-b md:w-96 md:max-w-sm md:flex-shrink-0 md:border-b-0 md:border-r"
-            style={{ borderColor: "var(--border)" }}
+            className="flex min-h-0 w-full flex-col overflow-hidden rounded-2xl bg-brandBlue md:w-96 md:max-w-sm md:shrink-0"
             aria-label="Applicant list"
           >
-            <div className="h-full overflow-y-auto">
-              <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <ul className="divide-y divide-white/10">
                 {!selectedJobId ? (
-                  <li className="p-4 text-sm opacity-80">Select a job to view applicants.</li>
+                  <li className="p-4 text-sm text-white/70">Select a job to view applicants.</li>
                 ) : isLoadingApplicants ? (
-                  <li className="p-4 text-sm opacity-80">Loading applicants...</li>
+                  <li className="p-4 text-sm text-white/70">Loading applicants...</li>
                 ) : filteredApplicants.length === 0 ? (
-                  <li className="p-4 text-sm opacity-80">No applicants match your filters.</li>
+                  <li className="p-4 text-sm text-white/70">No applicants match your filters.</li>
                 ) : (
                   filteredApplicants.map((candidate) => {
                     const active = candidate.applicationId === selectedApplicant?.applicationId;
@@ -434,28 +433,36 @@ export default function CompanyDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedApplicationId(candidate.applicationId)}
-                          className={`w-full p-4 text-left transition ${active ? "bg-[var(--surface)] ring-1 ring-[var(--brandBlue)]" : "hover:bg-[var(--surface)]"}`}
+                          className={`group w-full p-4 text-left transition ${
+                            active
+                              ? "border-l-4 border-l-white bg-white/20"
+                              : "border-l-4 border-l-transparent hover:border-l-white hover:bg-brand"
+                          }`}
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <h3 className="font-semibold">{candidate.applicant.name}</h3>
-                              <p className="mt-1 text-sm opacity-90">
-                                {candidate.applicant.headline ?? "No headline yet"}
-                              </p>
+                            <div className="flex items-center gap-3">
+                              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
+                                active
+                                  ? "border-white/60 bg-white/25 text-white"
+                                  : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
+                              }`}>
+                                {getInitials(candidate.applicant.name)}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-white">{candidate.applicant.name}</h3>
+                                <p className="mt-0.5 text-xs text-white/70 group-hover:text-white/85">
+                                  {candidate.applicant.headline ?? "No headline yet"}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {saved ? (
-                                <span className="rounded-md bg-[var(--brandBlue)] px-2 py-0.5 text-xs text-white">
-                                  Saved
-                                </span>
-                              ) : null}
-                              <span className="rounded-md border px-2 py-0.5 text-xs" style={{ borderColor: "var(--border)" }}>
-                                {formatDate(candidate.submittedAt) || "Pending"}
+                            {saved ? (
+                              <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                                Saved
                               </span>
-                            </div>
+                            ) : null}
                           </div>
-                          <p className="mt-2 text-xs opacity-80">
-                            {candidate.applicant.email ?? "Email unavailable"}
+                          <p className="mt-2 text-xs text-white/55 group-hover:text-white/70">
+                            {formatDate(candidate.submittedAt) || "Pending"}
                           </p>
                         </button>
                       </li>
@@ -466,7 +473,8 @@ export default function CompanyDashboardPage() {
             </div>
           </aside>
 
-          <section className="flex-1 overflow-y-auto p-6">
+          {/* Detail panel */}
+          <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-brand p-6">
             {!selectedJobId ? (
               <div className="card">Select a job to view its applicants.</div>
             ) : isLoadingApplicants ? (
@@ -474,42 +482,46 @@ export default function CompanyDashboardPage() {
             ) : !selectedApplicant ? (
               <div className="card">No applicants to show for this job yet.</div>
             ) : (
-              <article className="card-wide flex h-full flex-col gap-6">
+              <article className="card-wide flex h-full flex-col gap-6 border-t-4 border-t-brandBlue">
+
                 <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <h2 className="text-2xl font-semibold">{selectedApplicant.applicant.name}</h2>
-                    <p className="opacity-90">
-                      {selectedApplicant.applicant.headline ?? "No headline yet"}
-                    </p>
-                    <p className="text-sm opacity-80">
-                      {selectedApplicant.applicant.desiredLocation
-                        ? `Preferred location: ${selectedApplicant.applicant.desiredLocation}`
-                        : "Location preference not provided."}
-                    </p>
-                    <p className="text-xs uppercase tracking-wide text-white/70">
-                      Applied {formatDate(selectedApplicant.submittedAt) || "N/A"} • Status {selectedApplicant.status}
-                    </p>
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
+                      {getInitials(selectedApplicant.applicant.name)}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold text-foreground">{selectedApplicant.applicant.name}</h2>
+                      <p className="text-muted">{selectedApplicant.applicant.headline ?? "No headline yet"}</p>
+                      <p className="text-sm text-muted">
+                        {selectedApplicant.applicant.desiredLocation
+                          ? `Preferred location: ${selectedApplicant.applicant.desiredLocation}`
+                          : "Location preference not provided."}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-start gap-2 text-sm opacity-90 md:items-end">
-                    <span>{selectedApplicant.applicant.email ?? "Email unavailable"}</span>
-                    {selectedJob ? <span>Job: {selectedJob.title}</span> : null}
-                    <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs">
-                      Application ID: {selectedApplicant.applicationId}
+                  <div className="flex flex-col items-start gap-2 md:items-end">
+                    <span className="text-sm text-foreground">{selectedApplicant.applicant.email ?? "Email unavailable"}</span>
+                    {selectedJob ? (
+                      <span className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">
+                        {selectedJob.title}
+                      </span>
+                    ) : null}
+                    <span className="rounded-md bg-surface px-2 py-1 text-xs text-muted border border-border">
+                      Applied {formatDate(selectedApplicant.submittedAt) || "N/A"}
                     </span>
                   </div>
                 </header>
 
                 <section>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Top skills</h3>
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Top skills</h3>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {selectedApplicant.applicant.skills.length === 0 ? (
-                      <p className="text-sm opacity-80">No skills added yet.</p>
+                      <p className="text-sm text-muted">No skills added yet.</p>
                     ) : (
                       selectedApplicant.applicant.skills.map((s) => (
                         <span
                           key={s.name}
-                          className="rounded-xl px-3 py-1 text-xs"
-                          style={{ backgroundColor: "var(--brandBlue)", color: "#fff" }}
+                          className="rounded-xl bg-brandBlue px-3 py-1 text-xs text-white"
                         >
                           {s.name}
                           {typeof s.years === "number" ? ` • ${s.years} yrs` : ""}
@@ -519,69 +531,67 @@ export default function CompanyDashboardPage() {
                   </div>
                 </section>
 
-                <section className="space-y-4">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Experience</h3>
+                <section className="space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Experience</h3>
                   {selectedApplicant.applicant.experiences.length === 0 ? (
-                    <p className="text-sm opacity-80">No experience listed.</p>
+                    <p className="text-sm text-muted">No experience listed.</p>
                   ) : (
                     selectedApplicant.applicant.experiences.map((item) => (
-                      <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+                      <div key={item.id} className="rounded-xl border border-border bg-surface p-4">
                         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                           <div>
-                            <p className="font-semibold">{item.title ?? "Role not specified"}</p>
-                            <p className="text-sm opacity-80">{item.company ?? "Company not specified"}</p>
+                            <p className="font-semibold text-foreground">{item.title ?? "Role not specified"}</p>
+                            <p className="text-sm text-muted">{item.company ?? "Company not specified"}</p>
                           </div>
-                          <p className="text-xs opacity-70">
+                          <p className="text-xs text-muted">
                             {[formatDate(item.startDate), formatDate(item.endDate)].filter(Boolean).join(" - ") || "Timing not provided"}
                           </p>
                         </div>
-                        <p className="mt-1 text-xs opacity-70">{item.location ?? ""}</p>
-                        {item.description ? <p className="mt-3 text-sm opacity-90">{item.description}</p> : null}
+                        {item.location ? <p className="mt-1 text-xs text-muted">{item.location}</p> : null}
+                        {item.description ? <p className="mt-3 text-sm text-foreground/85">{item.description}</p> : null}
                       </div>
                     ))
                   )}
                 </section>
 
-                <section className="space-y-4">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Education</h3>
+                <section className="space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Education</h3>
                   {selectedApplicant.applicant.degrees.length === 0 ? (
-                    <p className="text-sm opacity-80">No education details listed.</p>
+                    <p className="text-sm text-muted">No education details listed.</p>
                   ) : (
-                    selectedApplicant.applicant.degrees.map((degree) => (
-                      <div key={degree.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-                        <p className="font-semibold">{degree.school}</p>
-                        <p className="text-sm opacity-80">
-                          {[degree.degree, degree.field].filter(Boolean).join(" • ") || "Degree not specified"}
-                        </p>
-                        <p className="text-xs opacity-70">
-                          {[formatDate(degree.startDate), formatDate(degree.endDate)].filter(Boolean).join(" - ") || "Dates not provided"}
-                        </p>
-                      </div>
-                    ))
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {selectedApplicant.applicant.degrees.map((degree) => (
+                        <div key={degree.id} className="rounded-xl border border-border bg-surface p-4">
+                          <p className="font-semibold text-brand">{degree.school}</p>
+                          <p className="text-sm text-muted">
+                            {[degree.degree, degree.field].filter(Boolean).join(" • ") || "Degree not specified"}
+                          </p>
+                          <p className="text-xs text-muted/70">
+                            {[formatDate(degree.startDate), formatDate(degree.endDate)].filter(Boolean).join(" - ") || "Dates not provided"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </section>
 
-                <section className="space-y-4">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide opacity-80">Certificates</h3>
+                <section className="space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Certificates</h3>
                   {selectedApplicant.applicant.certificates.length === 0 ? (
-                    <p className="text-sm opacity-80">No certificates listed.</p>
+                    <p className="text-sm text-muted">No certificates listed.</p>
                   ) : (
                     selectedApplicant.applicant.certificates.map((cert) => (
-                      <div key={cert.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-                        <p className="font-semibold">{cert.name}</p>
-                        <p className="text-sm opacity-80">{cert.issuer ?? "Issuer not provided"}</p>
-                        <p className="text-xs opacity-70">
+                      <div key={cert.id} className="rounded-xl border border-border bg-surface p-4">
+                        <p className="font-semibold text-brand">{cert.name}</p>
+                        <p className="text-sm text-muted">{cert.issuer ?? "Issuer not provided"}</p>
+                        <p className="text-xs text-muted">
                           {cert.issuedAt ? `Issued ${formatDate(cert.issuedAt)}` : "Issued date not provided"}
                           {cert.expirationDate ? ` • Expires ${formatDate(cert.expirationDate)}` : ""}
                         </p>
                         {cert.credentialUrl ? (
-                          <a
-                            href={cert.credentialUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs text-[var(--brandBlue)] underline"
-                          >
-                            Credential link
+                          <a href={cert.credentialUrl} target="_blank" rel="noreferrer"
+                            className="mt-2 inline-flex text-xs font-semibold text-brandBlue underline underline-offset-4">
+                            View credential
                           </a>
                         ) : null}
                       </div>
@@ -589,29 +599,29 @@ export default function CompanyDashboardPage() {
                   )}
                 </section>
 
-                <div className="mt-auto flex flex-wrap gap-3">
-                  <Button className="btn-brand" onClick={() => selectedApplicant.applicant.resumeUrl && window.open(selectedApplicant.applicant.resumeUrl, "_blank")} disabled={!selectedApplicant.applicant.resumeUrl}>
+                <div className="mt-auto flex flex-wrap items-center gap-3">
+                  <Button
+                    className="btn-brand h-10"
+                    onClick={() => selectedApplicant.applicant.resumeUrl && window.open(selectedApplicant.applicant.resumeUrl, "_blank")}
+                    disabled={!selectedApplicant.applicant.resumeUrl}
+                  >
                     {selectedApplicant.applicant.resumeUrl ? "View resume" : "No resume uploaded"}
                   </Button>
                   <Button
                     type="button"
-                    className={
-                      isSaved(selectedApplicant.applicationId)
-                        ? "btn-brand h-11 bg-white text-[var(--brand)]"
-                        : "btn-outline-brand h-11"
-                    }
+                    className={isSaved(selectedApplicant.applicationId) ? "btn-brand h-10" : "btn-outline-brand h-10"}
                     disabled={!selectedApplicant}
                     onClick={() => toggleSave(selectedApplicant.applicationId)}
                   >
-                    {isSaved(selectedApplicant.applicationId) ? "Unsave" : "Save"}
+                    {isSaved(selectedApplicant.applicationId) ? "Unsave" : "Save applicant"}
                   </Button>
                 </div>
+
               </article>
             )}
           </section>
         </div>
       </main>
-      <Footer />
-    </>
+    </div>
   );
 }

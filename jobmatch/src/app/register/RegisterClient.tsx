@@ -75,6 +75,7 @@ const RegisterSchema = z
       }
     }
   });
+
 type RegisterFormData = z.infer<typeof RegisterSchema>;
 
 async function fileToDataUrl(file: File): Promise<string> {
@@ -95,6 +96,7 @@ export default function RegisterClient() {
   const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -203,106 +205,131 @@ export default function RegisterClient() {
     }
   };
 
-  const handleLinkedInConnect = () => {
-    if (typeof window === "undefined") return;
-    const callbackUrl = `${window.location.origin}/onboarding/import`;
-    void signIn("linkedin", { callbackUrl });
-  };
 
   return (
     <>
       <Header />
+      <main className="min-h-screen bg-brand px-4 py-12">
+        <div className="mx-auto grid w-full max-w-5xl items-start gap-6 md:grid-cols-2">
 
-      {/* Background that matches your hero: soft gradient + subtle blobs */}
-      <main className="relative min-h-screen overflow-hidden bg-background px-4 py-12 text-foreground">
-        <div className="absolute inset-0 bg-linear-to-br from-brand via-background to-brandBlue opacity-60" />
-        <div className="absolute -left-10 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-
-        <div className="relative mx-auto grid w-full max-w-5xl items-start gap-8 md:grid-cols-2">
-          {/* Left: value prop panel (keeps it cohesive with homepage) */}
-          <section className="rounded-3xl border border-white/15 bg-white/10 p-7 backdrop-blur md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-(--foreground)/70">
+          {/* Left: value prop panel */}
+          <section className="rounded-3xl border border-white/15 bg-white/10 p-7 backdrop-blur-sm md:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">
               COLAB Connects
             </p>
-            <h1 className="mt-3 font-serif text-3xl font-bold leading-tight text-foreground md:text-4xl">
+            <h1 className="mt-3 font-serif text-3xl font-bold leading-tight text-white md:text-4xl">
               Create your account
             </h1>
-            <p className="mt-3 text-sm text-(--foreground)/85">
+            <p className="mt-3 text-sm leading-relaxed text-white/80">
               Join as a candidate to build a credible profile, or as a company to review talent
               and manage applicants in one workspace.
             </p>
 
             <div className="mt-6 space-y-3">
               {[
-                { title: "Skill-first profiles", desc: "Highlight what you can do — not just job titles." },
-                { title: "Curated early-career roles", desc: "Find internships and full-time roles built for growth." },
-                { title: "Clean company workspaces", desc: "Review, save, and follow up without the mess." },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  ),
+                  title: "Skill-first profiles",
+                  desc: "Highlight what you can do, not just job titles.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                      <rect x="3" y="7" width="18" height="13" rx="2" />
+                      <path d="M9 7V5.5a2.5 2.5 0 0 1 5 0V7" />
+                    </svg>
+                  ),
+                  title: "Curated early-career roles",
+                  desc: "Find internships and full-time roles built for growth.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  ),
+                  title: "Clean company workspaces",
+                  desc: "Review, save, and follow up without the mess.",
+                },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-2xl border border-white/10 bg-white/10 p-4"
+                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/10 p-4"
                 >
-                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                  <p className="mt-1 text-xs text-(--foreground)/75">{item.desc}</p>
+                  <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
+                    {item.icon}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{item.title}</p>
+                    <p className="mt-0.5 text-xs text-white/70">{item.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
 
-            <p className="mt-6 text-xs text-(--foreground)/70">
-              Already have an account?{" "}
-              <Link href="/login" className="font-semibold text-foreground underline underline-offset-4">
-                Log in
-              </Link>
-            </p>
+            <div className="mt-8 border-t border-white/10 pt-6">
+              <p className="text-xs text-white/60">
+                Already have an account?{" "}
+                <Link href="/login" className="font-semibold text-white underline underline-offset-4">
+                  Log in
+                </Link>
+              </p>
+            </div>
           </section>
 
-          {/* Right: the form card (more premium, better contrast, consistent tokens) */}
-          <section className="rounded-3xl border border-white/15 bg-white/10 p-7 backdrop-blur md:p-8">
+          {/* Right: form card */}
+          <section className="rounded-3xl border border-border bg-background p-7 shadow-xl md:p-8">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="font-serif text-xl font-bold text-foreground">Register</h2>
-                <p className="mt-1 text-sm text-(--foreground)/75">
+                <h2 className="font-serif text-xl font-bold text-brand">Register</h2>
+                <p className="mt-1 text-sm text-muted">
                   It takes under a minute. You can edit your profile anytime.
                 </p>
               </div>
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-(--foreground)/80">
+              <span className="rounded-full border border-brand/20 bg-brand/5 px-3 py-1 text-xs font-semibold text-brand">
                 Secure
               </span>
             </div>
 
             {serverError ? (
-              <div className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-100">
+              <div className="mt-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">
                 {serverError}
               </div>
             ) : null}
 
             <form className="mt-6 space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+
               {/* Account type */}
-              <fieldset className="rounded-2xl border border-white/15 bg-white/5 p-4">
+              <fieldset className="rounded-2xl border border-border bg-surface p-4">
                 <legend className="px-1 text-sm font-semibold text-foreground">Account type</legend>
-                <p className="mt-1 text-xs text-(--foreground)/70">
-                  Choose candidate or company. You can’t change this later.
+                <p className="mt-1 text-xs text-muted">
+                  Choose candidate or company. You cannot change this later.
                 </p>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <label
                     className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm transition ${
                       accountType === "student"
-                        ? "border-white/25 bg-white/10 ring-2 ring-white/15"
-                        : "border-white/10 bg-white/5 hover:bg-white/10"
+                        ? "border-brand/40 bg-brand/5 ring-2 ring-brand/20"
+                        : "border-border bg-background hover:bg-surface"
                     }`}
                   >
                     <input
                       type="radio"
                       value="student"
                       {...register("accountType")}
-                      className="mt-1 h-4 w-4 accent-white"
+                      className="mt-1 h-4 w-4 accent-brand"
                       aria-describedby="account-type-student"
                     />
                     <span id="account-type-student">
                       <span className="font-semibold text-foreground">Candidate</span>
-                      <span className="mt-1 block text-xs text-(--foreground)/70">
+                      <span className="mt-1 block text-xs text-muted">
                         Build a profile and apply faster.
                       </span>
                     </span>
@@ -311,20 +338,20 @@ export default function RegisterClient() {
                   <label
                     className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm transition ${
                       accountType === "company"
-                        ? "border-white/25 bg-white/10 ring-2 ring-white/15"
-                        : "border-white/10 bg-white/5 hover:bg-white/10"
+                        ? "border-brand/40 bg-brand/5 ring-2 ring-brand/20"
+                        : "border-border bg-background hover:bg-surface"
                     }`}
                   >
                     <input
                       type="radio"
                       value="company"
                       {...register("accountType")}
-                      className="mt-1 h-4 w-4 accent-white"
+                      className="mt-1 h-4 w-4 accent-brand"
                       aria-describedby="account-type-company"
                     />
                     <span id="account-type-company">
                       <span className="font-semibold text-foreground">Company</span>
-                      <span className="mt-1 block text-xs text-(--foreground)/70">
+                      <span className="mt-1 block text-xs text-muted">
                         Post roles and review applicants.
                       </span>
                     </span>
@@ -332,11 +359,10 @@ export default function RegisterClient() {
                 </div>
 
                 {errors.accountType ? (
-                  <p className="mt-2 text-xs text-red-200">{errors.accountType.message}</p>
+                  <p className="mt-2 text-xs text-red-600">{errors.accountType.message}</p>
                 ) : null}
               </fieldset>
 
-              {/* Inputs: use your component, but keep the surrounding text on-brand */}
               {accountType === "company" ? (
                 <Input
                   label="Company name"
@@ -384,11 +410,31 @@ export default function RegisterClient() {
 
               <Input
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 placeholder="At least 8 characters"
                 {...register("password")}
                 error={errors.password?.message}
+                rightSection={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="text-muted hover:text-foreground transition"
+                  >
+                    {showPassword ? (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.39 1 12a10.94 10.94 0 0 1 2.06-3.94M9.9 4.24A9.12 9.12 0 0 1 12 4c5 0 9.27 3.61 11 8a10.94 10.94 0 0 1-1.27 2.43" />
+                        <line x1="2" y1="2" x2="22" y2="22" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                        <path d="M1 12C2.73 7.61 7 4 12 4s9.27 3.61 11 8c-1.73 4.39-6 8-11 8S2.73 16.39 1 12Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                }
               />
 
               {/* Photo upload */}
@@ -397,13 +443,13 @@ export default function RegisterClient() {
                   Profile photo
                 </label>
 
-                <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-white/20 bg-white/5 p-4">
+                <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-surface p-4">
                   <label
                     htmlFor="profile-photo-input"
-                    className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-white/15"
+                    className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-surface"
                   >
                     <span>Upload image</span>
-                    <span className="text-xs font-normal text-(--foreground)/70">PNG/JPG up to 4MB</span>
+                    <span className="text-xs font-normal text-muted">PNG / JPG up to 4 MB</span>
                   </label>
 
                   <input
@@ -421,50 +467,34 @@ export default function RegisterClient() {
                         alt="Profile preview"
                         width={64}
                         height={64}
-                        className="h-16 w-16 rounded-full border border-white/15 object-cover shadow-sm"
+                        className="h-16 w-16 rounded-full border border-border object-cover shadow-sm"
                       />
-                      <span className="text-xs text-(--foreground)/70">
-                        Looking good — upload again if you want to change it.
+                      <span className="text-xs text-muted">
+                        Looking good — upload again to change it.
                       </span>
                     </div>
                   ) : (
-                    <p className="text-xs text-(--foreground)/70">
+                    <p className="text-xs text-muted">
                       This will appear on your profile and applications.
                     </p>
                   )}
                 </div>
 
                 {errors.profilePhoto ? (
-                  <p className="text-xs text-red-200">{errors.profilePhoto.message as string}</p>
+                  <p className="text-xs text-red-600">{errors.profilePhoto.message as string}</p>
                 ) : null}
               </div>
 
-              {/* LinkedIn */}
-              {accountType === "student" ? (
-                <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
-                  <h3 className="text-sm font-semibold text-foreground">Import from LinkedIn</h3>
-                  <p className="mt-1 text-xs text-(--foreground)/70">
-                    Import internships, jobs, and certifications. You’ll preview before saving.
-                  </p>
-                  <Button
-                    type="button"
-                    className="mt-3 border border-white/15 bg-white/10 text-foreground hover:bg-white/15"
-                    onClick={handleLinkedInConnect}
-                  >
-                    Connect LinkedIn
-                  </Button>
-                </div>
-              ) : null}
 
               <Button
                 type="submit"
                 isLoading={isSubmitting}
-                className="w-full border border-white/15 bg-white text-brand hover:opacity-95"
+                className="btn-brand w-full"
               >
                 Create account
               </Button>
 
-              <p className="text-center text-xs text-(--foreground)/70">
+              <p className="text-center text-xs text-muted">
                 By creating an account, you agree to our{" "}
                 <Link href="/privacy" className="font-semibold text-foreground underline underline-offset-4">
                   Privacy Policy

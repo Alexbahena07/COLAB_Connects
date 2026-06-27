@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
 import Footer from "@/components/ui/Footer";
 import Image from "next/image";
+import MarqueeTrack from "@/components/ui/MarqueeTrack";
 
 export default function Home() {
   return (
@@ -50,6 +51,18 @@ export default function Home() {
                   <Button className="btn-brand border border-white/20 bg-transparent text-white hover:bg-white/10">
                     Log in
                   </Button>
+                </Link>
+              </div>
+
+              <div className="mt-4 flex justify-center">
+                <Link
+                  href="/dashboard/application"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                >
+                  Learn about the Career Forum
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
                 </Link>
               </div>
               </div>
@@ -307,6 +320,11 @@ export default function Home() {
       {/* Product highlight */}
       <section className="home-section py-14">
         <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-10 text-center">
+            <h2 className="text-4xl font-bold text-foreground md:text-5xl">
+              Less searching, more connecting
+            </h2>
+          </div>
           <div className="rounded-3xl border-2 border-foreground bg-background p-8 shadow-sm ring-2 ring-foreground/20">
             <div className="grid items-center gap-8 md:grid-cols-2">
               {/* LEFT: brand block behind heading + copy */}
@@ -474,39 +492,13 @@ export default function Home() {
       </section>
 
         {/* Founders / Backed by */}
-        <section className="bg-background">
-          <div className="mx-auto max-w-6xl px-6 py-16">
-            <div className="flex flex-col gap-10">
-              <h3 className="text-center text-2xl font-semibold text-foreground md:text-3xl">
-                Founding Partners
-              </h3>
+        <section className="bg-background py-16">
+          <h3 className="text-center text-2xl font-semibold text-foreground md:text-3xl">
+            Our Sponsors
+          </h3>
 
-              {/* Center the grid */}
-              <div className="mx-auto w-full max-w-5xl">
-                <div className="grid grid-cols-2 justify-items-center gap-6 sm:grid-cols-3 md:grid-cols-3">
-                  {[
-                    { name: "Founder 1", src: "/founders/founder1.png" },
-                    { name: "Founder 2", src: "/founders/founder2.png" },
-                    { name: "Founder 3", src: "/founders/founder3.png" },
-                  ].map((logo) => (
-                    <div
-                      key={logo.name}
-                      className="flex w-full max-w-[320px] items-center justify-center rounded-2xl border border-black/10 bg-white p-6 shadow-sm"
-                    >
-                      <div className="relative h-20 w-full">
-                        <Image
-                          src={logo.src}
-                          alt={`${logo.name} logo`}
-                          fill
-                          sizes="320px"
-                          className="object-contain"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="mt-10">
+            <MarqueeTrack />
           </div>
         </section>
 

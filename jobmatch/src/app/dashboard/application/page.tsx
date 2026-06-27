@@ -8,7 +8,7 @@ import Footer from "@/components/ui/Footer";
 const CAROUSEL_PHOTOS = [
   { src: "/photos/audience.jpg",  alt: "Audience at the Career Forum" },
   { src: "/photos/twoMen.JPG",    alt: "Two professionals networking at the Career Forum" },
-  { src: "/photos/advisors.jpg",  alt: "Advisors at the Career Forum" },
+  { src: "/photos/advisors.JPG",  alt: "Advisors at the Career Forum" },
 ];
 
 function PhotoCarousel() {

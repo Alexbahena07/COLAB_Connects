@@ -40,7 +40,7 @@ export default function Header() {
           </div>
         )}
         <div className="flex items-center gap-3">
-          <NotificationBell />
+          {!isCompany ? <NotificationBell /> : null}
           <Link
             href={applicationHref}
             className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"

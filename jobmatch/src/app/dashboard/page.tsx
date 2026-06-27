@@ -340,9 +340,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <>
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header />
-      <main className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
         <div className="shrink-0 border-b border-brand/10 bg-brand/5">
           <div className="mx-auto w-full max-w-6xl px-4 py-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -639,6 +639,6 @@ export default function DashboardPage() {
         </section>
       </div>
       </main>
-    </>
+    </div>
   );
 }

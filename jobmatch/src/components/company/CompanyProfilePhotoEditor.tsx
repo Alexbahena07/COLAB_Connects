@@ -79,7 +79,7 @@ export default function CompanyProfilePhotoEditor({
 
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/40 bg-white/10">
+      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
         {currentImage ? (
           <Image
             src={currentImage}
@@ -90,7 +90,7 @@ export default function CompanyProfilePhotoEditor({
             unoptimized
           />
         ) : (
-          <span className="text-xs font-semibold text-white/70">No photo</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7 text-muted" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="2"/><path d="M16 9V7a4 4 0 0 0-8 0v2"/></svg>
         )}
       </div>
 
@@ -98,7 +98,7 @@ export default function CompanyProfilePhotoEditor({
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            className="btn-outline-brand h-9 !border-white/60 !text-white hover:bg-white/10"
+            className="btn-outline-brand h-9"
             onClick={() => {
               if (currentImage) {
                 setEditorImage(currentImage);
@@ -113,17 +113,17 @@ export default function CompanyProfilePhotoEditor({
           </Button>
           <Button
             type="button"
-            className="btn-outline-brand h-9 !border-white/60 !text-white hover:bg-white/10"
+            className="btn-outline-brand h-9"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
             Upload new
           </Button>
         </div>
-        <p className="text-xs text-white/70">
-          JPG, PNG, or WebP. Recommended 512x512.
+        <p className="text-xs text-muted">
+          JPG, PNG, or WebP. Recommended 512×512.
         </p>
-        {error ? <p className="text-xs text-red-300">{error}</p> : null}
+        {error ? <p className="text-xs text-red-600">{error}</p> : null}
       </div>
 
       <input

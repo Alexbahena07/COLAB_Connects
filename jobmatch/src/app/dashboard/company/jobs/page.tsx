@@ -1,11 +1,9 @@
 ﻿"use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header_with_Icons";
-import Footer from "@/components/ui/Footer";
 
 type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
 
@@ -112,7 +110,6 @@ export default function CompanyJobsPage() {
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [jobsFilter, setJobsFilter] = useState("");
   const [jobPendingDeletion, setJobPendingDeletion] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
@@ -158,17 +155,6 @@ export default function CompanyJobsPage() {
     };
   }, []);
 
-  const filteredJobs = useMemo(() => {
-    const query = jobsFilter.trim().toLowerCase();
-    if (!query) return companyJobs;
-    return companyJobs.filter((job) => {
-      return (
-        job.title.toLowerCase().includes(query) ||
-        job.location.toLowerCase().includes(query) ||
-        job.skills.some((skill) => skill.toLowerCase().includes(query))
-      );
-    });
-  }, [companyJobs, jobsFilter]);
 
   const jobBeingEdited =
     editingJobId ? companyJobs.find((job) => job.id === editingJobId) ?? null : null;
@@ -351,312 +337,309 @@ export default function CompanyJobsPage() {
     }
   };
 
- return (
-  <>
-    <Header />
-    <main className="flex min-h-screen flex-col bg-[var(--background)] text-foreground">
-      {/* Top bar */}
-      <div className="border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="flex w-full items-center justify-between gap-4 px-6 py-6">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-brandBlue/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brandBlue">
-              <span className="h-1.5 w-1.5 rounded-full bg-brandBlue" />
-              Company jobs
-            </div>
-            <h1 className="text-2xl font-semibold text-foreground">Manage job listings</h1>
-            <p className="text-sm text-muted">
-              Review your open roles and publish new opportunities for students.
-            </p>
-          </div>
-          <Link
-            href="/dashboard/company"
-            className="btn-outline-brand inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold transition"
-          >
-            Back to dashboard
-          </Link>
-        </div>
-      </div>
+  return (
+    <div className="flex h-screen flex-col overflow-hidden">
+      <Header />
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
 
-      {/* Main grid – full width with BrandBlue accent */}
-      <div className="flex w-full flex-1 flex-col gap-6 px-6 py-8">
-        <div className="grid w-full gap-6 lg:grid-cols-[1.5fr,1fr] xl:grid-cols-[1.6fr,1fr]">
-          {/* LEFT: Your job listings */}
-          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
-            <header className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">Your job listings</h2>
+        {/* Filter bar */}
+        <div className="shrink-0 border-b border-brand/10 bg-brand/5">
+          <div className="mx-auto w-full max-w-6xl px-4 py-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold text-brand">Manage job listings</h1>
                 <p className="text-sm text-muted">
-                  {companyJobs.length === 0
-                    ? "You haven't published any roles yet."
-                    : `Managing ${companyJobs.length} job${
-                        companyJobs.length === 1 ? "" : "s"
-                      } visible to students.`}
+                  Review your open roles and publish new opportunities for students.
                 </p>
               </div>
-              <div className="min-w-60">
-                <Input
-                  label="Filter jobs"
-                  value={jobsFilter}
-                  onChange={(event) => setJobsFilter(event.target.value)}
-                  placeholder="Search by title, location, or skill..."
-                  className="h-10 border-border bg-surface text-foreground placeholder:text-muted"
-                />
-              </div>
-            </header>
+            </div>
+          </div>
+        </div>
 
-            {deleteError ? (
-              <p className="text-sm text-red-500">{deleteError}</p>
-            ) : null}
-            {deleteSuccess ? (
-              <p className="text-sm text-green-600">{deleteSuccess}</p>
-            ) : null}
+        {/* Main content — full-height two-pane */}
+        <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4">
 
-            <div className="mt-2">
+          {/* LEFT — job listings */}
+          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+            {/* Panel header */}
+            <div className="shrink-0 border-b border-border px-6 py-4">
+              <h2 className="text-lg font-semibold text-brand">Your job listings</h2>
+              <p className="text-sm text-muted">
+                {isLoadingJobs
+                  ? "Loading..."
+                  : companyJobs.length === 0
+                  ? "You haven't published any roles yet."
+                  : `${companyJobs.length} job${companyJobs.length === 1 ? "" : "s"} visible to students`}
+              </p>
+
+              {deleteError ? (
+                <div className="mt-3 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                  {deleteError}
+                </div>
+              ) : null}
+              {deleteSuccess ? (
+                <div className="mt-3 flex items-center gap-2 rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-700">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                  {deleteSuccess}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Scrollable job list */}
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {isLoadingJobs ? (
                 <p className="text-sm text-muted">Loading job listings...</p>
               ) : jobsError ? (
-                <p className="text-sm text-red-500">{jobsError}</p>
-              ) : filteredJobs.length === 0 ? (
-                <p className="text-sm text-muted">
-                  No jobs match this filter. Try adjusting your search.
-                </p>
+                <p className="text-sm text-red-600">{jobsError}</p>
+              ) : companyJobs.length === 0 ? (
+                <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border bg-background">
+                  <p className="text-sm text-muted">No job listings yet. Post one using the form.</p>
+                </div>
               ) : (
-                <ul className="space-y-4">
-                  {filteredJobs.map((job) => (
-                    <li
-                      key={job.id}
-                      className="rounded-2xl border border-[var(--border)] bg-[var(--brandBlue)]/5 px-4 py-3 shadow-sm transition hover:border-[var(--brandBlue)]/60 hover:shadow-md"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <h3 className="text-base font-semibold text-foreground">
-                            {job.title}
-                          </h3>
-                          <p className="text-xs text-white/70">
-                            {job.location} | {getJobTypeLabel(job.type)}{" "}
-                            {job.remote ? "| Remote friendly" : ""}
-                          </p>
-                          <p className="text-xs text-white/60">
-                            Posted {new Date(job.postedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button
-                            type="button"
-                            className="btn-outline-brand !border-white/60! text-white! hover:bg-white/10"
-                            onClick={() => handleSelectJobToEdit(job.id)}
-                            disabled={isSubmitting && editingJobId === job.id}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            type="button"
-                            className="btn-outline-brand border-red-400! text-red-400! hover:bg-red-500/10"
-                            onClick={() => {
-                              setJobPendingDeletion(job.id);
-                              setDeleteError(null);
-                              setDeleteSuccess(null);
-                            }}
-                            disabled={jobPendingDeletion === job.id}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-
-                      {job.skills.length > 0 ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {job.skills.map((skill) => (
-                            <span
-                              key={`${job.id}-${skill}`}
-                              className="rounded-full border border-white/20 bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90"
+                <ul className="space-y-3">
+                  {companyJobs.map((job) => {
+                    const isActiveEdit = editingJobId === job.id;
+                    return (
+                      <li
+                        key={job.id}
+                        className={`rounded-2xl border bg-background p-4 shadow-sm transition ${
+                          isActiveEdit
+                            ? "border-brand/40 ring-2 ring-brand/15"
+                            : "border-border hover:border-brandBlue/40 hover:shadow-md"
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0 space-y-0.5">
+                            <h3 className="truncate text-base font-semibold text-foreground">{job.title}</h3>
+                            <p className="text-xs text-muted">
+                              {job.location}
+                              <span className="mx-1.5 text-border">·</span>
+                              {getJobTypeLabel(job.type)}
+                              {job.remote ? (
+                                <>
+                                  <span className="mx-1.5 text-border">·</span>
+                                  Remote friendly
+                                </>
+                              ) : null}
+                            </p>
+                            <p className="text-xs text-muted/70">
+                              Posted {new Date(job.postedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              className={`h-8 rounded-lg px-3 text-xs font-semibold transition ${
+                                isActiveEdit ? "bg-brand text-white" : "btn-outline-brand"
+                              }`}
+                              onClick={() => handleSelectJobToEdit(job.id)}
+                              disabled={isSubmitting && isActiveEdit}
                             >
-                              {skill}
-                            </span>
-                          ))}
+                              {isActiveEdit ? "Editing" : "Edit"}
+                            </Button>
+                            <Button
+                              type="button"
+                              className="h-8 rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                              onClick={() => {
+                                setJobPendingDeletion(job.id);
+                                setDeleteError(null);
+                                setDeleteSuccess(null);
+                              }}
+                              disabled={jobPendingDeletion === job.id}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </div>
-                      ) : null}
-                    </li>
-                  ))}
+
+                        {job.skills.length > 0 ? (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {job.skills.map((skill) => (
+                              <span
+                                key={`${job.id}-${skill}`}
+                                className="rounded-full bg-brandBlue/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brandBlue"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
           </section>
 
-          {/* RIGHT: Post / edit job */}
-          <section className="flex w-full flex-col gap-4 rounded-3xl border border-[var(--brandBlue)] bg-[var(--brandBlue)] p-6 text-white shadow-sm">
-            <header className="space-y-1">
-              <h2 className="text-lg font-semibold">
+          {/* RIGHT — post / edit form */}
+          <section className="flex min-h-0 w-[420px] shrink-0 flex-col overflow-hidden rounded-2xl bg-brand shadow-sm">
+            {/* Panel header */}
+            <div className="shrink-0 border-b border-white/10 px-6 py-4">
+              <h2 className="text-lg font-semibold text-white">
                 {editingJobId ? "Edit job" : "Post a new job"}
               </h2>
-              <p className="text-sm text-white/80">
+              <p className="text-sm text-white/70">
                 {editingJobId
-                  ? "Update details for a role that students can already see."
+                  ? "Update details for a role students can already see."
                   : "Publish a new role and make it visible to students immediately."}
               </p>
               {editingJobId && jobBeingEdited ? (
-                <div className="inline-flex items-center gap-2 rounded-full border border-white bg-white/20 px-3 py-1 text-xs font-semibold text-white">
-                  Editing: <span>{jobBeingEdited.title}</span>
-                </div>
+                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editing: {jobBeingEdited.title}
+                </span>
               ) : null}
-            </header>
+            </div>
 
-            <form className="mt-2 space-y-4" onSubmit={handleSubmitJob}>
-              {jobFormServerError ? (
-                <div className="rounded-lg border border-red-400 bg-red-500/5 px-3 py-2 text-sm text-red-600">
-                  {jobFormServerError}
-                </div>
-              ) : null}
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <Input
-                  label="Job title"
-                  value={jobForm.title}
-                  onChange={(event) => handleJobFieldChange("title", event.target.value)}
-                  placeholder="e.g. Product Designer"
-                  className="border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                  labelClassName="text-white"
-                  error={jobFormErrors.title}
-                />
-                <Input
-                  label="Location"
-                  value={jobForm.location}
-                  onChange={(event) => handleJobFieldChange("location", event.target.value)}
-                  placeholder="City, State or Remote"
-                  className="border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                  labelClassName="text-white"
-                  error={jobFormErrors.location}
-                />
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-[1.3fr,auto]">
-                <div className="space-y-1">
-                  <label
-                    htmlFor="job-type"
-                    className="block text-sm font-medium text-white"
-                  >
-                    Job type
-                  </label>
-                  <select
-                    id="job-type"
-                    value={jobForm.type}
-                    onChange={(event) =>
-                      handleJobFieldChange("type", event.target.value as JobType)
-                    }
-                    className="h-10 w-full rounded-xl border border-white bg-white/10 px-3 text-sm text-white outline-none transition focus:border-white focus:ring-2 focus:ring-white/40"
-                  >
-                    {JOB_TYPE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value} className="text-black">
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  {jobFormErrors.type ? (
-                    <p className="text-xs text-red-500">{jobFormErrors.type}</p>
-                  ) : null}
-                </div>
-                <label className="mt-6 inline-flex h-10 items-center gap-2 rounded-xl border border-white bg-white/10 px-4 text-sm text-white md:mt-0">
-                  <input
-                    type="checkbox"
-                    checked={jobForm.remote}
-                    onChange={(event) =>
-                      handleJobFieldChange("remote", event.target.checked)
-                    }
-                    className="h-4 w-4"
-                  />
-                  Remote friendly
-                </label>
-              </div>
-
-              <div className="space-y-1">
-                <label
-                  htmlFor="job-description"
-                  className="block text-sm font-medium text-white"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="job-description"
-                  value={jobForm.description}
-                  onChange={(event) => handleJobFieldChange("description", event.target.value)}
-                  placeholder="Share the mission, responsibilities, and what success looks like..."
-                  className="min-h-[140px] w-full rounded-xl border border-white/40 bg-white/10 px-3 py-2 text-sm text-white outline-none transition focus:border-white focus:ring-2 focus:ring-white/30"
-                />
-                {jobFormErrors.description ? (
-                  <p className="text-xs text-red-500">{jobFormErrors.description}</p>
+            {/* Scrollable form */}
+            <form className="min-h-0 flex-1 overflow-y-auto p-6" onSubmit={handleSubmitJob} noValidate>
+              <div className="space-y-4">
+                {jobFormServerError ? (
+                  <div className="flex items-center gap-2 rounded-lg border border-red-300/50 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                    {jobFormServerError}
+                  </div>
                 ) : null}
+
+                {jobFormSuccess ? (
+                  <div className="flex items-center gap-2 rounded-lg border border-green-400/40 bg-green-500/10 px-3 py-2 text-sm text-green-300">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                    {jobFormSuccess}
+                  </div>
+                ) : null}
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input
+                    label="Job title"
+                    value={jobForm.title}
+                    onChange={(event) => handleJobFieldChange("title", event.target.value)}
+                    placeholder="e.g. Analyst, Associate"
+                    className="border-white/25 bg-white/10 text-white placeholder:text-white/45 focus:ring-white/20"
+                    labelClassName="text-white/90"
+                    error={jobFormErrors.title}
+                  />
+                  <Input
+                    label="Location"
+                    value={jobForm.location}
+                    onChange={(event) => handleJobFieldChange("location", event.target.value)}
+                    placeholder="City, State or Remote"
+                    className="border-white/25 bg-white/10 text-white placeholder:text-white/45 focus:ring-white/20"
+                    labelClassName="text-white/90"
+                    error={jobFormErrors.location}
+                  />
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <div className="space-y-1">
+                    <label htmlFor="job-type" className="block text-sm font-medium text-white/90">
+                      Job type
+                    </label>
+                    <select
+                      id="job-type"
+                      value={jobForm.type}
+                      onChange={(event) => handleJobFieldChange("type", event.target.value as JobType)}
+                      className="h-10 w-full rounded-xl border border-white/25 bg-white/10 px-3 text-sm text-white outline-none transition focus:border-white/60 focus:ring-2 focus:ring-white/20"
+                    >
+                      {JOB_TYPE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value} className="text-black">{option.label}</option>
+                      ))}
+                    </select>
+                    {jobFormErrors.type ? <p className="text-xs text-red-300">{jobFormErrors.type}</p> : null}
+                  </div>
+                  <label className="mt-6 inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm text-white/90 sm:mt-0">
+                    <input
+                      type="checkbox"
+                      checked={jobForm.remote}
+                      onChange={(event) => handleJobFieldChange("remote", event.target.checked)}
+                      className="h-4 w-4 accent-white"
+                    />
+                    Remote
+                  </label>
+                </div>
+
+                <div className="space-y-1">
+                  <label htmlFor="job-description" className="block text-sm font-medium text-white/90">
+                    Description
+                  </label>
+                  <textarea
+                    id="job-description"
+                    rows={6}
+                    value={jobForm.description}
+                    onChange={(event) => handleJobFieldChange("description", event.target.value)}
+                    placeholder="Share the mission, responsibilities, and what success looks like..."
+                    className="w-full rounded-xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white/60 focus:ring-2 focus:ring-white/20"
+                  />
+                  {jobFormErrors.description ? <p className="text-xs text-red-300">{jobFormErrors.description}</p> : null}
+                </div>
+
+                <div className="space-y-1">
+                  <Input
+                    label="Key skills (comma separated)"
+                    value={jobForm.skills}
+                    onChange={(event) => handleJobFieldChange("skills", event.target.value)}
+                    placeholder="e.g. Excel, Financial Modeling, Python"
+                    className="border-white/25 bg-white/10 text-white placeholder:text-white/45 focus:ring-white/20"
+                    labelClassName="text-white/90"
+                    error={jobFormErrors.skills}
+                  />
+                  <p className="text-xs text-white/50">
+                    Include 3–5 skills. Duplicates are removed automatically.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <Button type="submit" className="btn-brand border border-white/30 bg-white/15 hover:bg-white/25" isLoading={isSubmitting}>
+                    {editingJobId ? "Update job" : "Publish job"}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="h-10 rounded-xl border border-white/20 px-4 text-sm font-semibold text-white/75 transition hover:bg-white/10"
+                    onClick={() => resetJobForm({ clearEditing: true, clearSuccess: true })}
+                    disabled={isSubmitting}
+                  >
+                    Clear form
+                  </Button>
+                </div>
               </div>
-
-              <Input
-                label="Key skills (comma separated)"
-                value={jobForm.skills}
-                onChange={(event) => handleJobFieldChange("skills", event.target.value)}
-                placeholder="e.g. React, TypeScript, Figma"
-                className="border-white/40 bg-white/10 text-white placeholder:text-white/60"
-                labelClassName="text-white"
-                error={jobFormErrors.skills}
-              />
-              <p className="text-xs text-white/80">
-                Include 3-5 skills students should bring. We&apos;ll automatically remove duplicates.
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit" className="btn-brand border border-white" isLoading={isSubmitting}>
-                  {editingJobId ? "Update job" : "Publish job"}
-                </Button>
-              <Button
-                type="button"
-                className="btn-brand border border-white"
-                onClick={() => resetJobForm({ clearEditing: true, clearSuccess: true })}
-                disabled={isSubmitting}
-              >
-                Clear form
-              </Button>
-              </div>
-
-              {jobFormSuccess ? (
-                <p className="text-sm text-green-600">{jobFormSuccess}</p>
-              ) : null}
             </form>
           </section>
-        </div>
-      </div>
 
-      {/* Delete confirmation dialog */}
-      {jobPendingDeletion ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-foreground">Delete job listing</h3>
-            <p className="mt-2 text-sm text-muted">
-              Are you sure you want to remove this job? Students will no longer be able to view
-              or apply once it is deleted.
-            </p>
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
-              <Button
-                type="button"
-                className="btn-outline-brand"
-                onClick={() => {
-                  setJobPendingDeletion(null);
-                  setDeleteError(null);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                className="btn-brand bg-red-500 hover:bg-red-500/90"
-                onClick={handleDeleteJob}
-                isLoading={jobPendingDeletion !== null && !deleteError && !deleteSuccess}
-              >
-                Delete job
-              </Button>
+        </div>
+
+        {/* Delete confirmation dialog */}
+        {jobPendingDeletion ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl border border-border bg-background p-6 shadow-2xl">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-red-500" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Delete job listing</h3>
+              <p className="mt-2 text-sm text-muted">
+                Are you sure? Students will no longer be able to view or apply to this role once it is deleted.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-end gap-2">
+                <Button
+                  type="button"
+                  className="btn-outline-brand h-10"
+                  onClick={() => { setJobPendingDeletion(null); setDeleteError(null); }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  className="h-10 rounded-xl bg-red-500 px-4 text-sm font-semibold text-white transition hover:bg-red-600"
+                  onClick={handleDeleteJob}
+                >
+                  Delete job
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      <Footer />
-    </main>
-  </>
-);
+      </main>
+    </div>
+  );
 }

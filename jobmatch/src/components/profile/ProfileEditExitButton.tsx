@@ -18,7 +18,7 @@ export default function ProfileEditExitButton({ targetId = "profile-view" }: Pro
     <Button
       type="button"
       onClick={handleExit}
-      className="btn-outline-brand h-10 !border-white/60! text-white! hover:bg-white/10"
+      className="btn-outline-brand h-10"
     >
       Back to profile
     </Button>
