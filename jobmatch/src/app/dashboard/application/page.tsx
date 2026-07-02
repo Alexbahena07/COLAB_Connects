@@ -8,7 +8,7 @@ import Footer from "@/components/ui/Footer";
 const CAROUSEL_PHOTOS = [
   { src: "/photos/audience.jpg",  alt: "Audience at the Career Forum" },
   { src: "/photos/twoMen.JPG",    alt: "Two professionals networking at the Career Forum" },
-  { src: "/photos/advisors.JPG",  alt: "Advisors at the Career Forum" },
+  { src: "/photos/groupPhoto.JPG",  alt: "Advisors at the Career Forum" },
 ];
 
 function PhotoCarousel() {
@@ -143,29 +143,19 @@ export default function DashboardEventApplicationPage() {
                 continued issue of finding qualified talent.
               </p>
 
-              <a
-                href="https://vimeo.com/1161539348?share=copy&fl=sv&fe=ci"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 font-semibold text-white no-underline hover:opacity-90"
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                  <path d="M8 5.5a1 1 0 0 1 1.514-.857l10 6a1 1 0 0 1 0 1.714l-10 6A1 1 0 0 1 8 17.5v-12Z" />
-                </svg>
-                Watch The Video
-              </a>
             </div>
 
-            {/* Photo */}
-            <div className="w-full md:w-[480px] md:shrink-0">
-              <Image
-                src="/photos/groupPhoto.JPG"
-                alt="Career Forum group photo"
-                width={960}
-                height={640}
-                className="rounded-2xl object-cover shadow-lg"
-                priority
-              />
+            {/* Video */}
+            <div className="w-full md:w-[580px] md:shrink-0">
+              <div className="relative overflow-hidden rounded-2xl shadow-lg" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  src="https://player.vimeo.com/video/1161539348?autoplay=1&muted=1&loop=0&title=0&byline=0&portrait=0"
+                  className="absolute inset-0 h-full w-full"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Career Forum video"
+                />
+              </div>
             </div>
           </div>
         </div>

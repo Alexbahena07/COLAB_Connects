@@ -20,7 +20,7 @@ type JobFormState = {
   type: JobType;
   remote: boolean;
   description: string;
-  skills: string;
+  skills: string[];
 };
 
 type CompanyJob = {
@@ -40,7 +40,7 @@ const defaultFormState: JobFormState = {
   type: "FULL_TIME",
   remote: false,
   description: "",
-  skills: "",
+  skills: [],
 };
 
 const coerceJobType = (value: unknown): JobType =>
@@ -50,12 +50,6 @@ const coerceJobType = (value: unknown): JobType =>
 
 const getJobTypeLabel = (value: JobType) =>
   JOB_TYPE_OPTIONS.find((option) => option.value === value)?.label ?? "Full-time";
-
-const normalizeSkillsInput = (value: string) =>
-  value
-    .split(",")
-    .map((skill) => skill.trim())
-    .filter((skill, index, array) => skill.length > 0 && array.indexOf(skill) === index);
 
 const parseJob = (job: unknown): CompanyJob | null => {
   if (!job || typeof job !== "object") return null;
@@ -104,6 +98,7 @@ export default function CompanyJobsPage() {
   const [jobsError, setJobsError] = useState<string | null>(null);
 
   const [jobForm, setJobForm] = useState<JobFormState>(defaultFormState);
+  const [skillInput, setSkillInput] = useState("");
   const [jobFormErrors, setJobFormErrors] = useState<Partial<Record<keyof JobFormState, string>>>({});
   const [jobFormServerError, setJobFormServerError] = useState<string | null>(null);
   const [jobFormSuccess, setJobFormSuccess] = useState<string | null>(null);
@@ -161,6 +156,7 @@ export default function CompanyJobsPage() {
 
   const resetJobForm = ({ clearEditing = true, clearSuccess = false } = {}) => {
     setJobForm(defaultFormState);
+    setSkillInput("");
     setJobFormErrors({});
     setJobFormServerError(null);
     if (clearEditing) {
@@ -193,8 +189,9 @@ export default function CompanyJobsPage() {
       type: job.type,
       remote: job.remote,
       description: job.description,
-      skills: job.skills.join(", "),
+      skills: job.skills,
     });
+    setSkillInput("");
     setJobFormErrors({});
     setJobFormServerError(null);
     setJobFormSuccess(null);
@@ -252,7 +249,7 @@ export default function CompanyJobsPage() {
           type: jobForm.type,
           remote: jobForm.remote,
           description: jobForm.description.trim(),
-          skills: normalizeSkillsInput(jobForm.skills),
+          skills: jobForm.skills,
         }),
       });
 
@@ -531,7 +528,7 @@ export default function CompanyJobsPage() {
                   />
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="grid items-end gap-3 sm:grid-cols-[1fr_auto]">
                   <div className="space-y-1">
                     <label htmlFor="job-type" className="block text-sm font-medium text-white/90">
                       Job type
@@ -548,7 +545,7 @@ export default function CompanyJobsPage() {
                     </select>
                     {jobFormErrors.type ? <p className="text-xs text-red-300">{jobFormErrors.type}</p> : null}
                   </div>
-                  <label className="mt-6 inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm text-white/90 sm:mt-0">
+                  <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm text-white/90">
                     <input
                       type="checkbox"
                       checked={jobForm.remote}
@@ -575,18 +572,70 @@ export default function CompanyJobsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <Input
-                    label="Key skills (comma separated)"
-                    value={jobForm.skills}
-                    onChange={(event) => handleJobFieldChange("skills", event.target.value)}
-                    placeholder="e.g. Excel, Financial Modeling, Python"
-                    className="border-white/25 bg-white/10 text-white placeholder:text-white/45 focus:ring-white/20"
-                    labelClassName="text-white/90"
-                    error={jobFormErrors.skills}
-                  />
+                  <label className="block text-sm font-medium text-white/90">
+                    Key skills
+                  </label>
+                  <div
+                    className="flex min-h-[42px] flex-wrap gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3 py-2 transition focus-within:border-white/60 focus-within:ring-2 focus-within:ring-white/20"
+                    onClick={(e) => {
+                      const input = (e.currentTarget as HTMLElement).querySelector("input");
+                      input?.focus();
+                    }}
+                  >
+                    {jobForm.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white"
+                      >
+                        {skill}
+                        <button
+                          type="button"
+                          aria-label={`Remove ${skill}`}
+                          onClick={() =>
+                            handleJobFieldChange(
+                              "skills",
+                              jobForm.skills.filter((s) => s !== skill)
+                            )
+                          }
+                          className="ml-0.5 rounded-full p-0.5 hover:bg-white/20"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-3 w-3" aria-hidden="true">
+                            <path d="M18 6 6 18M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      value={skillInput}
+                      onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === ",") {
+                          e.preventDefault();
+                          const val = skillInput.trim().replace(/,$/, "");
+                          if (val && !jobForm.skills.includes(val)) {
+                            handleJobFieldChange("skills", [...jobForm.skills, val]);
+                          }
+                          setSkillInput("");
+                        } else if (e.key === "Backspace" && !skillInput && jobForm.skills.length > 0) {
+                          handleJobFieldChange("skills", jobForm.skills.slice(0, -1));
+                        }
+                      }}
+                      onBlur={() => {
+                        const val = skillInput.trim().replace(/,$/, "");
+                        if (val && !jobForm.skills.includes(val)) {
+                          handleJobFieldChange("skills", [...jobForm.skills, val]);
+                        }
+                        setSkillInput("");
+                      }}
+                      placeholder={jobForm.skills.length === 0 ? "e.g. Excel, Financial Modeling, Python" : "Add a skill…"}
+                      className="min-w-[140px] flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
+                    />
+                  </div>
                   <p className="text-xs text-white/50">
-                    Include 3–5 skills. Duplicates are removed automatically.
+                    Press Enter or comma to add a skill. Backspace removes the last one.
                   </p>
+                  {jobFormErrors.skills ? <p className="text-xs text-red-300">{jobFormErrors.skills}</p> : null}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
