@@ -179,23 +179,25 @@ export default function CompanyProfileForm() {
           <label className="block text-sm font-medium text-foreground" htmlFor="company-industry">
             Industry
           </label>
-          <select
+          <input
             id="company-industry"
+            list="industry-options"
             className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+            placeholder="Select or type an industry"
             {...register("hiringFocus")}
-          >
-            <option value="" className="bg-white text-black">Select industry</option>
-            <option value="Accounting" className="bg-white text-black">Accounting</option>
-            <option value="Corporate Finance" className="bg-white text-black">Corporate Finance</option>
-            <option value="Hedge Funds" className="bg-white text-black">Hedge Funds</option>
-            <option value="Investment Banking" className="bg-white text-black">Investment Banking</option>
-            <option value="Management Consulting" className="bg-white text-black">Management Consulting</option>
-            <option value="Private Credit" className="bg-white text-black">Private Credit</option>
-            <option value="Private Equity" className="bg-white text-black">Private Equity</option>
-            <option value="Real Estate/Real Assets" className="bg-white text-black">Real Estate/Real Assets</option>
-            <option value="Start-ups" className="bg-white text-black">Start-ups</option>
-            <option value="Venture Capital" className="bg-white text-black">Venture Capital</option>
-          </select>
+          />
+          <datalist id="industry-options">
+            <option value="Accounting" />
+            <option value="Corporate Finance" />
+            <option value="Hedge Funds" />
+            <option value="Investment Banking" />
+            <option value="Management Consulting" />
+            <option value="Private Credit" />
+            <option value="Private Equity" />
+            <option value="Real Estate/Real Assets" />
+            <option value="Start-ups" />
+            <option value="Venture Capital" />
+          </datalist>
           {errors.hiringFocus ? (
             <p className="text-xs text-red-600">{errors.hiringFocus.message}</p>
           ) : null}

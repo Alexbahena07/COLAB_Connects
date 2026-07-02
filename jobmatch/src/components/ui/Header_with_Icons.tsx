@@ -176,7 +176,7 @@ export default function Header() {
                   <circle cx="12" cy="7.5" r="3" />
                   <path d="M5 18.5a7 7 0 0 1 14 0" />
                 </svg>
-                <span className="text-xs font-semibold">Company Info</span>
+                <span className="text-xs font-semibold">Company Profile</span>
               </Link>
             </>
           )}
