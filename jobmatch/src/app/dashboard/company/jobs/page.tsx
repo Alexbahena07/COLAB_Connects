@@ -167,7 +167,7 @@ export default function CompanyJobsPage() {
     }
   };
 
-  const handleJobFieldChange = (field: keyof JobFormState, value: string | boolean) => {
+  const handleJobFieldChange = (field: keyof JobFormState, value: string | boolean | string[]) => {
     setJobForm((previous) => ({
       ...previous,
       [field]: value,
