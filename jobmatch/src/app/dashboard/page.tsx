@@ -514,14 +514,19 @@ export default function DashboardPage() {
           </div>
         </aside>
 
-        <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-brand p-6">
+        <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-background">
           {!selectedJob ? (
-            <div className="card">Select a job to view details.</div>
+            <div className="flex h-full items-center justify-center text-sm text-muted">
+              Select a job to view details.
+            </div>
           ) : (
-            <article className="card-wide flex h-full flex-col gap-6 border-t-4 border-t-brand">
-              <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="flex h-full flex-col gap-0 lg:flex-row">
+
+              {/* LEFT — description */}
+              <div className="min-h-0 flex-1 overflow-y-auto border-b border-border p-6 lg:border-b-0 lg:border-r">
+                {/* Job header */}
                 <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-brand/10 text-sm font-bold text-brand">
                     {selectedJob.companyImage ? (
                       <img
                         src={selectedJob.companyImage}
@@ -533,108 +538,145 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-foreground">{selectedJob.title}</h2>
-                    <p className="text-muted">
+                    <h2 className="text-2xl font-bold text-foreground">{selectedJob.title}</h2>
+                    <p className="mt-1 text-sm text-muted">
                       {selectedJob.company} · {selectedJob.location}
-                      {selectedJob.remote ? " · Remote" : ""}
+                      {selectedJob.remote ? " · Remote friendly" : ""}
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">
-                    {JOB_TYPE_LABEL[selectedJob.type]}
-                  </span>
-                  <span className="rounded-md bg-surface px-2 py-1 text-xs text-muted border border-border">
-                    Posted {new Date(selectedJob.postedAt).toLocaleDateString()}
-                  </span>
+
+                {/* Skills */}
+                {selectedJob.skills.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Key skills</h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedJob.skills.map((skill) => (
+                        <span
+                          key={skill}
+                          className="rounded-full bg-brandBlue/10 px-3 py-1 text-xs font-semibold text-brandBlue"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                <div className="mt-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">About this role</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-foreground/85">{selectedJob.description}</p>
                 </div>
-              </header>
-
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Key skills</h3>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedJob.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-xl px-3 py-1 text-xs"
-                      style={{ backgroundColor: "var(--brandBlue)", color: "#fff" }}
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </section>
-
-              <section className="space-y-2">
-                <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">About this role</h3>
-                <p className="leading-relaxed">{selectedJob.description}</p>
-              </section>
-
-              <div className="mt-auto flex flex-wrap items-center gap-3">
-                <Button
-                  className="btn-brand h-10"
-                  onClick={handleApply}
-                  isLoading={isApplying}
-                  disabled={!selectedJob || hasApplied}
-                >
-                  {hasApplied ? "Applied" : "Apply"}
-                </Button>
-                {selectedJob.companyId ? (
-                  <Link href={`/companies/${selectedJob.companyId}`}>
-                    <Button className="btn-outline-brand h-10">
-                      View company profile
-                    </Button>
-                  </Link>
-                ) : null}
-                <Button
-                  className={
-                    isJobSaved(selectedJob.id)
-                      ? "btn-brand h-10 w-10 p-0 bg-white text-brand"
-                      : "btn-outline-brand h-10 w-10 p-0"
-                  }
-                  onClick={() => toggleSaveJob(selectedJob.id)}
-                  aria-label={isJobSaved(selectedJob.id) ? "Unsave job" : "Save job"}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-7 w-7 scale-[2.5]"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1z" />
-                  </svg>
-                </Button>
-                <Button
-                  className="btn-outline-brand h-10 w-10 p-0"
-                  aria-label="Share job"
-                  onClick={() => handleShareJob(selectedJob)}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-7 w-7 scale-[2.5]"
-                    aria-hidden="true"
-                  >
-                    <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
-                    <path d="M12 16V4" />
-                    <path d="m8 8 4-4 4 4" />
-                  </svg>
-                </Button>
-                {shareNotice ? (
-                  <span className="text-xs text-muted">{shareNotice}</span>
-                ) : null}
-                {shareError ? <span className="text-xs text-red-400">{shareError}</span> : null}
-                {applyError ? <span className="text-xs text-red-400">{applyError}</span> : null}
               </div>
-            </article>
+
+              {/* RIGHT — sticky action sidebar */}
+              <div className="w-full shrink-0 p-6 lg:w-72 lg:overflow-y-auto">
+                <div className="lg:sticky lg:top-6 space-y-4">
+
+                  {/* Apply button */}
+                  <Button
+                    className="btn-brand w-full h-11 text-base"
+                    onClick={handleApply}
+                    isLoading={isApplying}
+                    disabled={!selectedJob || hasApplied}
+                  >
+                    {hasApplied ? "Applied ✓" : "Apply now"}
+                  </Button>
+
+                  {applyError && <p className="text-xs text-red-500">{applyError}</p>}
+
+                  {/* Save + Share */}
+                  <div className="flex gap-2">
+                    <Button
+                      className={`flex-1 h-10 gap-1.5 text-sm ${
+                        isJobSaved(selectedJob.id)
+                          ? "btn-brand"
+                          : "btn-outline-brand"
+                      }`}
+                      onClick={() => toggleSaveJob(selectedJob.id)}
+                    >
+                      <svg viewBox="0 0 24 24" fill={isJobSaved(selectedJob.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true">
+                        <path d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1z" />
+                      </svg>
+                      {isJobSaved(selectedJob.id) ? "Saved" : "Save"}
+                    </Button>
+                    <Button
+                      className="btn-outline-brand h-10 w-10 shrink-0 p-0"
+                      aria-label="Share job"
+                      onClick={() => handleShareJob(selectedJob)}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true">
+                        <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+                        <path d="M12 16V4" />
+                        <path d="m8 8 4-4 4 4" />
+                      </svg>
+                    </Button>
+                  </div>
+                  {shareNotice && <p className="text-xs text-muted">{shareNotice}</p>}
+                  {shareError && <p className="text-xs text-red-500">{shareError}</p>}
+
+                  {/* Divider */}
+                  <div className="h-px bg-border" />
+
+                  {/* Job meta */}
+                  <div className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Details</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-foreground/80">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0 text-muted" aria-hidden="true">
+                          <rect x="4" y="7" width="16" height="11" rx="2"/><path d="M9 7V5.5a2.5 2.5 0 0 1 5 0V7"/>
+                        </svg>
+                        {JOB_TYPE_LABEL[selectedJob.type]}
+                      </div>
+                      <div className="flex items-center gap-2 text-foreground/80">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0 text-muted" aria-hidden="true">
+                          <path d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 13 6 13s6-7.75 6-13c0-3.314-2.686-6-6-6Z"/><circle cx="12" cy="8" r="2"/>
+                        </svg>
+                        {selectedJob.location}
+                      </div>
+                      {selectedJob.remote && (
+                        <div className="flex items-center gap-2 text-foreground/80">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0 text-muted" aria-hidden="true">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+                          </svg>
+                          Remote friendly
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-foreground/80">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0 text-muted" aria-hidden="true">
+                          <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                        </svg>
+                        Posted {new Date(selectedJob.postedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Company card */}
+                  <div className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Company</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-brand/10 text-xs font-bold text-brand">
+                        {selectedJob.companyImage ? (
+                          <img src={selectedJob.companyImage} alt={`${selectedJob.company} logo`} className="h-full w-full object-cover" />
+                        ) : (
+                          getCompanyInitials(selectedJob.company)
+                        )}
+                      </div>
+                      <p className="font-semibold text-foreground">{selectedJob.company}</p>
+                    </div>
+                    {selectedJob.companyId && (
+                      <Link href={`/companies/${selectedJob.companyId}`} className="block">
+                        <Button className="btn-outline-brand w-full h-9 text-sm">
+                          View company profile
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+
+                </div>
+              </div>
+            </div>
           )}
         </section>
       </div>

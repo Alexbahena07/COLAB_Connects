@@ -5,8 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ProfileHeroActions, { OpenToWorkToggle } from "@/components/profile/ProfileHeroActions";
-import ProfileEditExitButton from "@/components/profile/ProfileEditExitButton";
-import ProfileForm from "@/app/onboarding/profile/profile-form";
+import ProfileEditDrawer from "@/components/profile/ProfileEditDrawer";
 import Header from "@/components/ui/Header_with_Icons";
 import Footer from "@/components/ui/Footer";
 
@@ -247,32 +246,16 @@ export default async function StudentProfilePage() {
                   ) : null}
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <ProfileHeroActions redirectTo="/dashboard/profile" />
+                <div className="flex flex-wrap items-center gap-3">
+                  <ProfileEditDrawer />
+                  <ProfileHeroActions />
                 </div>
               </div>
             </div>
           </div>
 
-          <div id="profile-edit" className="profile-edit">
-            <section className="rounded-3xl border border-border bg-surface p-6 shadow-lg">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                    Edit mode
-                  </p>
-                  <h2 className="mt-1 text-2xl font-semibold text-foreground">Update your profile</h2>
-                </div>
-                <ProfileEditExitButton />
-              </div>
-              <div className="mt-6">
-                <ProfileForm redirectTo="/dashboard/profile" />
-              </div>
-            </section>
-          </div>
-
           {/* Content grid */}
-          <div id="profile-view" className="profile-view grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
             {/* Left column */}
             <section className="space-y-6">
               <SectionCard title="About" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}>

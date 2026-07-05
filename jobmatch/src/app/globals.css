@@ -134,17 +134,6 @@
     color: var(--muted);
   }
 
-  .profile-edit {
-    display: none;
-  }
-
-  html.profile-editing .profile-edit {
-    display: block;
-  }
-
-  html.profile-editing .profile-view {
-    display: none;
-  }
 }
 
 @keyframes marquee {

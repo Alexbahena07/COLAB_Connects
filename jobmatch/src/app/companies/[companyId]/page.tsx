@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
@@ -35,6 +36,7 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
     select: {
       accountType: true,
       name: true,
+      image: true,
       companyProfile: {
         select: {
           companyName: true,
@@ -43,6 +45,18 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
           teamSize: true,
           hiringFocus: true,
           about: true,
+        },
+      },
+      jobs: {
+        orderBy: { postedAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          location: true,
+          type: true,
+          remote: true,
+          postedAt: true,
+          skills: { select: { skill: { select: { name: true } } } },
         },
       },
     },
@@ -69,6 +83,15 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
   const headquarters = profile?.headquarters ?? null;
   const industry = profile?.hiringFocus ?? null;
   const bio = profile?.about ?? null;
+  const profilePhoto = company.image ?? null;
+  const jobs = company.jobs ?? [];
+
+  const JOB_TYPE_LABELS: Record<string, string> = {
+    FULL_TIME: "Full-time",
+    PART_TIME: "Part-time",
+    CONTRACT: "Contract",
+    INTERNSHIP: "Internship",
+  };
 
   return (
     <>
@@ -78,17 +101,34 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
 
           {/* Page header */}
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
-                  <path d="M3 21V7l9-4 9 4v14" />
-                  <path d="M9 21V12h6v9" />
-                  <path d="M3 21h18" />
-                </svg>
-                Company profile
-              </p>
-              <h1 className="mt-2 text-3xl font-bold text-brand">{companyName}</h1>
-              <div className="mt-1.5 h-0.5 w-12 rounded-full bg-brandBlue" />
+            <div className="flex items-center gap-4">
+              {profilePhoto ? (
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-border shadow-sm">
+                  <Image
+                    src={profilePhoto}
+                    alt={`${companyName} logo`}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-border bg-brand/10 text-2xl font-bold text-brand shadow-sm">
+                  {companyName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+                    <path d="M3 21V7l9-4 9 4v14" />
+                    <path d="M9 21V12h6v9" />
+                    <path d="M3 21h18" />
+                  </svg>
+                  Company profile
+                </p>
+                <h1 className="mt-2 text-3xl font-bold text-brand">{companyName}</h1>
+                <div className="mt-1.5 h-0.5 w-12 rounded-full bg-brandBlue" />
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {canFollow ? (
@@ -185,6 +225,73 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
             <p className="text-sm leading-relaxed text-foreground/80">
               {bio || "This company has not added a bio yet."}
             </p>
+          </section>
+
+          {/* Open positions */}
+          <section className="mt-6 rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+            <header className="mb-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <rect x="4" y="7" width="16" height="11" rx="2" />
+                    <path d="M9 7V5.5a2.5 2.5 0 0 1 5 0V7" />
+                    <path d="M8 12h8M8 15h4" />
+                  </svg>
+                </span>
+                <h2 className="text-lg font-semibold uppercase tracking-tight text-brand">Open Positions</h2>
+              </div>
+              <div className="mt-1 h-0.5 w-10 rounded-full bg-brandBlue" />
+            </header>
+
+            {jobs.length === 0 ? (
+              <p className="text-sm text-muted">This company has no open positions right now.</p>
+            ) : (
+              <ul className="space-y-3">
+                {jobs.map((job) => (
+                  <li key={job.id}>
+                    <Link
+                      href={`/dashboard?job=${job.id}`}
+                      className="flex flex-col gap-2 rounded-2xl border border-border bg-background p-4 transition hover:border-brandBlue/40 hover:shadow-md"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-foreground">{job.title}</p>
+                          <p className="mt-0.5 text-xs text-muted">
+                            {job.location}
+                            <span className="mx-1.5 text-border">·</span>
+                            {JOB_TYPE_LABELS[job.type] ?? job.type}
+                            {job.remote ? (
+                              <>
+                                <span className="mx-1.5 text-border">·</span>
+                                Remote friendly
+                              </>
+                            ) : null}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand">
+                          Apply
+                          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                          </svg>
+                        </span>
+                      </div>
+                      {job.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {job.skills.map(({ skill }) => (
+                            <span
+                              key={skill.name}
+                              className="rounded-full bg-brandBlue/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brandBlue"
+                            >
+                              {skill.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </div>
         <Footer />
