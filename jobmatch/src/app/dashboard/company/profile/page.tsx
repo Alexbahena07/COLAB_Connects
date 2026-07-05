@@ -4,10 +4,8 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import CompanyProfileForm from "@/app/onboarding/company/company-form";
-import CompanyProfilePhotoEditor from "@/components/company/CompanyProfilePhotoEditor";
+import CompanyEditDrawer from "@/components/profile/CompanyEditDrawer";
 import ProfileHeroActions from "@/components/profile/ProfileHeroActions";
-import ProfileEditExitButton from "@/components/profile/ProfileEditExitButton";
 import Header from "@/components/ui/Header_with_Icons";
 import Footer from "@/components/ui/Footer";
 
@@ -151,38 +149,16 @@ export default async function CompanyProfilePage() {
                   ) : null}
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <ProfileHeroActions redirectTo="/dashboard/company/profile" />
+                <div className="flex flex-wrap items-center gap-3">
+                  <CompanyEditDrawer profilePhoto={profilePhoto} />
+                  <ProfileHeroActions />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Edit section (hidden until "Edit Profile" is clicked) */}
-          <div id="profile-edit" className="profile-edit">
-            <section className="rounded-3xl border border-border bg-surface p-6 shadow-lg">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                    Edit mode
-                  </p>
-                  <h2 className="mt-1 text-2xl font-semibold text-foreground">Update company profile</h2>
-                </div>
-                <ProfileEditExitButton />
-              </div>
-
-              <div className="mt-6 space-y-6">
-                <div>
-                  <p className="mb-3 text-sm font-medium text-foreground">Company logo</p>
-                  <CompanyProfilePhotoEditor initialImage={profilePhoto} />
-                </div>
-                <CompanyProfileForm />
-              </div>
-            </section>
-          </div>
-
           {/* Profile view */}
-          <div id="profile-view" className="profile-view grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
 
             {/* Left column */}
             <section className="space-y-6">

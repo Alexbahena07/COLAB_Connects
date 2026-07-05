@@ -1,31 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import clsx from "clsx";
-import Button from "@/components/ui/Button";
 
-type ProfileHeroActionsProps = {
-  redirectTo?: string;
-};
-
-export default function ProfileHeroActions({ redirectTo: _redirectTo = "/dashboard/profile" }: ProfileHeroActionsProps) {
+export default function ProfileHeroActions() {
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (typeof document !== "undefined") {
-        document.documentElement.classList.remove("profile-editing");
-      }
-    };
-  }, []);
-
-  const handleEdit = () => {
-    if (typeof document === "undefined") return;
-    document.documentElement.classList.add("profile-editing");
-    const target = document.getElementById("profile-edit");
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   const handleShare = async () => {
     setShareError(null);
@@ -56,25 +36,35 @@ export default function ProfileHeroActions({ redirectTo: _redirectTo = "/dashboa
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          type="button"
-          onClick={handleEdit}
-          className="bg-[var(--brand)] text-white hover:opacity-90 focus:ring-[var(--brand)] focus:ring-offset-[var(--surface)]"
+      <button
+        type="button"
+        onClick={handleShare}
+        className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/50"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-4 w-4 shrink-0"
+          aria-hidden="true"
         >
-          Edit Profile
-        </Button>
-        <Button
-          type="button"
-          onClick={handleShare}
-          className="border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--background)] focus:ring-[var(--brandBlue)] focus:ring-offset-[var(--surface)]"
-        >
-          Share
-        </Button>
-        {shareNotice ? <span className="text-xs text-[var(--foreground)]/70">{shareNotice}</span> : null}
-        {shareError ? <span className="text-xs text-red-400">{shareError}</span> : null}
-      </div>
-
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        Share
+      </button>
+      {shareNotice ? (
+        <span className="text-xs font-medium text-white/80">{shareNotice}</span>
+      ) : null}
+      {shareError ? (
+        <span className="text-xs font-medium text-red-300">{shareError}</span>
+      ) : null}
     </>
   );
 }
@@ -89,16 +79,16 @@ export function OpenToWorkToggle() {
       aria-checked={enabled}
       onClick={() => setEnabled((state) => !state)}
       className={clsx(
-        "flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1 text-xs font-semibold transition",
+        "flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-semibold transition",
         enabled
-          ? "bg-[var(--brandBlue)] text-white shadow-sm"
-          : "bg-[var(--surface)] text-[var(--foreground)] opacity-80 hover:opacity-100"
+          ? "bg-brandBlue text-white shadow-sm"
+          : "bg-surface text-foreground opacity-80 hover:opacity-100"
       )}
     >
       <span
         className={clsx(
           "inline-block h-2.5 w-2.5 rounded-full transition",
-          enabled ? "bg-white" : "bg-[var(--border)]"
+          enabled ? "bg-white" : "bg-border"
         )}
       />
       {enabled ? "Open to work" : "Not openly looking"}
