@@ -67,68 +67,33 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      const userId = typeof user?.id === "string" ? user.id : undefined;
-      if (userId) {
-        token.id = userId;
+      // `user` is only populated on the first sign-in. Write accountType into the
+      // token here so the session() callback never needs to hit the DB.
+      if (user?.id) {
+        token.id = user.id;
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { accountType: true },
+        });
+        token.accountType = dbUser?.accountType ?? null;
       }
       if (account?.provider === "linkedin") {
-        if (account.access_token) {
-          token.linkedinAccessToken = account.access_token;
-        }
-        if (account.refresh_token) {
-          token.linkedinRefreshToken = account.refresh_token;
-        }
-        if (account.expires_at) {
-          token.linkedinAccessTokenExpires = account.expires_at * 1000;
-        }
+        if (account.access_token) token.linkedinAccessToken = account.access_token;
+        if (account.refresh_token) token.linkedinRefreshToken = account.refresh_token;
+        if (account.expires_at) token.linkedinAccessTokenExpires = account.expires_at * 1000;
       }
       return token;
     },
     async session({ session, token }) {
-      try {
-        const userId = token?.id as string | undefined;
-        let dbUser:
-          | {
-              name: string | null;
-              email: string | null;
-              image: string | null;
-              accountType: "COMPANY" | "STUDENT" | null;
-            }
-          | null = null;
-
-        if (userId) {
-          dbUser = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { name: true, email: true, image: true, accountType: true },
-          });
-        }
-
-        const linkedinConnected = Boolean(token?.linkedinAccessToken);
-        return {
-          ...session,
-          user: {
-            id: userId ?? session.user?.id ?? "",
-            name: dbUser?.name ?? session.user?.name ?? undefined,
-            email: dbUser?.email ?? session.user?.email ?? undefined,
-            image: dbUser?.image ?? session.user?.image ?? undefined,
-            accountType: dbUser?.accountType ?? (session.user as { accountType?: string })?.accountType,
-            linkedinConnected,
-          },
-        };
-      } catch (error) {
-        console.error("session callback error:", error);
-        return {
-          ...session,
-          user: {
-            id: session.user?.id ?? "",
-            name: session.user?.name,
-            email: session.user?.email,
-            image: session.user?.image,
-            accountType: (session.user as { accountType?: string })?.accountType,
-            linkedinConnected: session.user?.linkedinConnected,
-          },
-        };
-      }
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: (token.id as string | undefined) ?? session.user?.id ?? "",
+          accountType: token.accountType,
+          linkedinConnected: Boolean(token.linkedinAccessToken),
+        },
+      };
     },
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,

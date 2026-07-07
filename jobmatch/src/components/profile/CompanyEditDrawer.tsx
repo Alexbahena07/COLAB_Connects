@@ -125,7 +125,7 @@ export default function CompanyEditDrawer({ profilePhoto }: CompanyEditDrawerPro
                 <CompanyProfilePhotoEditor initialImage={profilePhoto} />
               </div>
             </section>
-            <CompanyProfileForm />
+            <CompanyProfileForm onSuccess={() => setOpen(false)} />
           </div>
         </div>
       </div>

@@ -22,15 +22,16 @@ const CompanyProfileSchema = z.object({
 
 type CompanyProfileFormData = z.infer<typeof CompanyProfileSchema>;
 
-export default function CompanyProfileForm() {
+type Props = { onSuccess: () => void };
+
+export default function CompanyProfileForm({ onSuccess }: Props) {
   const router = useRouter();
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CompanyProfileFormData>({
     resolver: zodResolver(CompanyProfileSchema),
     defaultValues: {
@@ -80,15 +81,8 @@ export default function CompanyProfileForm() {
     };
   }, [reset]);
 
-  const exitEditMode = () => {
-    if (typeof document === "undefined") return;
-    document.documentElement.classList.remove("profile-editing");
-    document.getElementById("profile-view")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const onSubmit = async (values: CompanyProfileFormData) => {
     setLoadError(null);
-    setSaveMessage(null);
     const response = await fetch("/api/companies/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -110,9 +104,8 @@ export default function CompanyProfileForm() {
       );
       return;
     }
-    setSaveMessage("Changes saved!");
     router.refresh();
-    setTimeout(exitEditMode, 600);
+    onSuccess();
   };
 
   return (
@@ -122,13 +115,6 @@ export default function CompanyProfileForm() {
           {loadError}
         </p>
       ) : null}
-      {saveMessage ? (
-        <div className="flex items-center gap-2 rounded-xl border border-green-400 bg-green-50 px-4 py-2 text-sm text-green-700">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-          {saveMessage}
-        </div>
-      ) : null}
-
       <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Company details</h2>
