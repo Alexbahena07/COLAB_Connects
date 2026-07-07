@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 
 const CompanyProfileSchema = z.object({
   companyName: z.string().min(2, "Enter your company name"),
@@ -117,112 +116,125 @@ export default function CompanyProfileForm() {
   };
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form id="company-profile-form" className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
       {loadError ? (
-        <div className="rounded-lg border border-red-400 bg-red-500/5 px-3 py-2 text-sm text-red-600">
+        <p className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
           {loadError}
-        </div>
+        </p>
       ) : null}
       {saveMessage ? (
-        <div className="flex items-center gap-2 rounded-lg border border-green-400 bg-green-500/5 px-3 py-2 text-sm text-green-700">
+        <div className="flex items-center gap-2 rounded-xl border border-green-400 bg-green-50 px-4 py-2 text-sm text-green-700">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
           {saveMessage}
         </div>
       ) : null}
-      <Input
-        label="Company name"
-        placeholder="Acme Labs"
-        autoComplete="organization"
-        {...register("companyName")}
-        error={errors.companyName?.message}
-      />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Input
-          label="Website"
-          type="url"
-          placeholder="https://acme.com"
-          {...register("website")}
-          error={errors.website?.message}
-        />
-        <Input
-          label="Headquarters"
-          placeholder="City, State"
-          {...register("headquarters")}
-          error={errors.headquarters?.message}
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-foreground" htmlFor="company-team-size">
-            Company size
-          </label>
-          <select
-            id="company-team-size"
-            className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
-            {...register("teamSize")}
-          >
-            <option value="" className="bg-white text-black">Select size</option>
-            <option value="1-10" className="bg-white text-black">1-10</option>
-            <option value="11-50" className="bg-white text-black">11-50</option>
-            <option value="51-200" className="bg-white text-black">51-200</option>
-            <option value="201-500" className="bg-white text-black">201-500</option>
-            <option value="500+" className="bg-white text-black">500+</option>
-          </select>
-          {errors.teamSize ? (
-            <p className="text-xs text-red-600">{errors.teamSize.message}</p>
-          ) : null}
+      <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Company details</h2>
+          <p className="mt-1 text-sm text-muted">Basic info employers and scholars will see on your profile.</p>
         </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-foreground" htmlFor="company-industry">
-            Industry
-          </label>
-          <input
-            id="company-industry"
-            list="industry-options"
-            className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
-            placeholder="Select or type an industry"
-            {...register("hiringFocus")}
+        <div className="mt-5 space-y-4">
+          <Input
+            label="Company name"
+            placeholder="Acme Labs"
+            autoComplete="organization"
+            labelClassName="text-foreground"
+            className="border-border bg-background text-foreground placeholder:text-muted"
+            {...register("companyName")}
+            error={errors.companyName?.message}
           />
-          <datalist id="industry-options">
-            <option value="Accounting" />
-            <option value="Corporate Finance" />
-            <option value="Hedge Funds" />
-            <option value="Investment Banking" />
-            <option value="Management Consulting" />
-            <option value="Private Credit" />
-            <option value="Private Equity" />
-            <option value="Real Estate/Real Assets" />
-            <option value="Start-ups" />
-            <option value="Venture Capital" />
-          </datalist>
-          {errors.hiringFocus ? (
-            <p className="text-xs text-red-600">{errors.hiringFocus.message}</p>
-          ) : null}
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Website"
+              type="url"
+              placeholder="https://acme.com"
+              labelClassName="text-foreground"
+              className="border-border bg-background text-foreground placeholder:text-muted"
+              {...register("website")}
+              error={errors.website?.message}
+            />
+            <Input
+              label="Headquarters"
+              placeholder="City, State"
+              labelClassName="text-foreground"
+              className="border-border bg-background text-foreground placeholder:text-muted"
+              {...register("headquarters")}
+              error={errors.headquarters?.message}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-foreground" htmlFor="company-team-size">
+                Company size
+              </label>
+              <select
+                id="company-team-size"
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+                {...register("teamSize")}
+              >
+                <option value="" className="bg-white text-black">Select size</option>
+                <option value="1-10" className="bg-white text-black">1-10</option>
+                <option value="11-50" className="bg-white text-black">11-50</option>
+                <option value="51-200" className="bg-white text-black">51-200</option>
+                <option value="201-500" className="bg-white text-black">201-500</option>
+                <option value="500+" className="bg-white text-black">500+</option>
+              </select>
+              {errors.teamSize ? (
+                <p className="text-xs text-red-600">{errors.teamSize.message}</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-foreground" htmlFor="company-industry">
+                Industry
+              </label>
+              <input
+                id="company-industry"
+                list="industry-options"
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+                placeholder="Select or type an industry"
+                {...register("hiringFocus")}
+              />
+              <datalist id="industry-options">
+                <option value="Accounting" />
+                <option value="Corporate Finance" />
+                <option value="Hedge Funds" />
+                <option value="Investment Banking" />
+                <option value="Management Consulting" />
+                <option value="Private Credit" />
+                <option value="Private Equity" />
+                <option value="Real Estate/Real Assets" />
+                <option value="Start-ups" />
+                <option value="Venture Capital" />
+              </datalist>
+              {errors.hiringFocus ? (
+                <p className="text-xs text-red-600">{errors.hiringFocus.message}</p>
+              ) : null}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="space-y-1">
-        <label className="block text-sm font-medium text-foreground" htmlFor="company-about">
-          About your company
-        </label>
-        <textarea
-          id="company-about"
-          rows={5}
-          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:border-brand"
-          placeholder="Share a quick overview, mission, and what students can expect."
-          {...register("about")}
-        />
-        {errors.about ? <p className="text-xs text-red-600">{errors.about.message}</p> : null}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" isLoading={isSubmitting} className="btn-brand">
-          Save
-        </Button>
-      </div>
+      <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">About</h2>
+          <p className="mt-1 text-sm text-muted">Share your mission and what scholars can expect.</p>
+        </div>
+        <div className="mt-5">
+          <textarea
+            id="company-about"
+            rows={5}
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:border-brand"
+            placeholder="Share a quick overview, mission, and what students can expect."
+            {...register("about")}
+          />
+          {errors.about ? <p className="mt-1 text-xs text-red-600">{errors.about.message}</p> : null}
+        </div>
+      </section>
     </form>
   );
 }

@@ -81,26 +81,35 @@ export default function ProfileEditDrawer() {
             </p>
             <h2 className="mt-0.5 text-xl font-bold text-foreground">Edit profile</h2>
           </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Close edit panel"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition hover:bg-border/40 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-brandBlue"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-              aria-hidden="true"
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              form="profile-form"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brandBlue px-4 text-sm font-semibold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brandBlue"
             >
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
+              Save and continue
+            </button>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close edit panel"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition hover:bg-border/40 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-brandBlue"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+                aria-hidden="true"
+              >
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Scrollable form body */}

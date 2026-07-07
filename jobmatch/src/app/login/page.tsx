@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,8 +17,9 @@ const LoginSchema = z.object({
 });
 type FormData = z.infer<typeof LoginSchema>;
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
 
@@ -37,76 +38,84 @@ export default function LoginPage() {
     const res = await signIn("credentials", {
       email: data.email,
       password: data.password,
-      redirect: false, // route manually
+      redirect: false,
     });
 
     if (res && !res.error) {
+      const callbackUrl = searchParams.get("callbackUrl");
       const session = await getSession();
       const accountType = session?.user?.accountType;
-      const nextRoute =
+      const defaultRoute =
         accountType === "COMPANY" ? "/dashboard/company/candidates" : "/dashboard/profile";
-      router.push(nextRoute);
+      router.push(callbackUrl ?? defaultRoute);
     } else {
       setServerError("Invalid email or password");
     }
   };
 
   return (
+    <div className="card">
+      <h1 className="text-2xl font-semibold mb-1">Welcome back</h1>
+      <p className="text-sm opacity-80 mb-6">Log in to your account</p>
+
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Input
+          label="Email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@company.com"
+          {...register("email")}
+          error={errors.email?.message}
+        />
+
+        <Input
+          label="Password"
+          type={showPw ? "text" : "password"}
+          autoComplete="current-password"
+          placeholder="Enter your password"
+          {...register("password")}
+          error={errors.password?.message}
+          rightSection={
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              className="text-sm opacity-90"
+              aria-label={showPw ? "Hide password" : "Show password"}
+            >
+              {showPw ? "Hide" : "Show"}
+            </button>
+          }
+        />
+
+        {serverError ? (
+          <p className="text-sm text-red-500">{serverError}</p>
+        ) : null}
+
+        <Button type="submit" isLoading={isSubmitting} className="btn-brand w-full">
+          Log in
+        </Button>
+      </form>
+
+      <div className="mt-6 space-y-3">
+        <p className="text-center text-sm opacity-80">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="font-medium underline">
+            Register
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <>
       <Header />
-      <main className="min-h-screen grid place-items-center bg-[var(--brand)] px-4">
-                    
-      <div className="card">
-        <h1 className="text-2xl font-semibold mb-1">Welcome back</h1>
-        <p className="text-sm opacity-80 mb-6">Log in to your account</p>
-
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Input
-            label="Email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@company.com"
-            {...register("email")}
-            error={errors.email?.message}
-          />
-
-          <Input
-            label="Password"
-            type={showPw ? "text" : "password"}
-            autoComplete="current-password"
-            placeholder="Enter your password"
-            {...register("password")}
-            error={errors.password?.message}
-            rightSection={
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                className="text-sm opacity-90"
-                aria-label={showPw ? "Hide password" : "Show password"}
-              >
-                {showPw ? "Hide" : "Show"}
-              </button>
-            }
-          />
-
-          {serverError ? (
-            <p className="text-sm text-red-500">{serverError}</p>
-          ) : null}
-
-          <Button type="submit" isLoading={isSubmitting} className="btn-brand w-full">
-            Log in
-          </Button>
-        </form>
-
-        <div className="mt-6 space-y-3">
-          <p className="text-center text-sm opacity-80">
-            Don’t have an account?{" "}
-            <Link href="/register" className="font-medium underline">
-              Register
-            </Link>
-          </p>
-        </div>
-      </div>
+      <main className="min-h-screen grid place-items-center bg-brand px-4">
+        <Suspense fallback={<div className="card"><p className="text-sm opacity-70">Loading...</p></div>}>
+          <LoginForm />
+        </Suspense>
       </main>
     </>
   );

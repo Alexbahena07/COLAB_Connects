@@ -1,37 +1,47 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
+const RegisterSchema = z
+  .object({
+    accountType: z.enum(["STUDENT", "COMPANY"]),
+    email: z.string().email("Enter a valid email address").max(255),
+    password: z.string().min(8, "Password must be at least 8 characters").max(100),
+    firstName: z.string().max(100).optional(),
+    lastName: z.string().max(100).optional(),
+    name: z.string().max(200).optional(),
+    profilePhoto: z.string().max(2_000_000).optional(),
+  })
+  .refine(
+    (data) =>
+      data.accountType === "COMPANY"
+        ? Boolean(data.name?.trim())
+        : Boolean(data.firstName?.trim()) && Boolean(data.lastName?.trim()),
+    { message: "Missing required name fields" }
+  );
+
 export async function POST(req: Request) {
   try {
-    const { accountType, name, firstName, lastName, email, password, profilePhoto } = await req.json();
-
-    if (!email || !password || !accountType) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const parsed = RegisterSchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) {
+      const message = parsed.error.errors[0]?.message ?? "Invalid registration data";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const normalizedType = String(accountType).toLowerCase() === "company" ? "COMPANY" : "STUDENT";
+    const { accountType, email, password, firstName, lastName, name, profilePhoto } = parsed.data;
+
+    const normalizedType = accountType === "COMPANY" ? "COMPANY" : "STUDENT";
     const isCompany = normalizedType === "COMPANY";
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const normalizedFirstName = typeof firstName === "string" ? firstName.trim() : "";
-    const normalizedLastName = typeof lastName === "string" ? lastName.trim() : "";
-    const normalizedCompanyName = typeof name === "string" ? name.trim() : "";
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedFirstName = firstName?.trim() ?? "";
+    const normalizedLastName = lastName?.trim() ?? "";
+    const normalizedCompanyName = name?.trim() ?? "";
     const normalizedName = isCompany
       ? normalizedCompanyName
       : `${normalizedFirstName} ${normalizedLastName}`.trim();
-
-    if (!normalizedEmail) {
-      return NextResponse.json({ error: "Invalid name or email" }, { status: 400 });
-    }
-    if (isCompany) {
-      if (!normalizedCompanyName) {
-        return NextResponse.json({ error: "Missing company name" }, { status: 400 });
-      }
-    } else if (!normalizedFirstName || !normalizedLastName) {
-      return NextResponse.json({ error: "Missing first or last name" }, { status: 400 });
-    }
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/Header_with_Icons";
+import Header from "@/components/ui/HeaderWithIcons";
 
 type CandidateSkill = { name: string; years: number | null };
 type CandidateExperience = {
@@ -433,117 +433,136 @@ export default function CompanyCandidatesPage() {
           </aside>
 
           {/* Detail panel */}
-          <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-brand p-6">
+          <section className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-background">
             {!selectedCandidate ? (
-              <div className="card">Select a candidate to view their profile.</div>
+              <div className="flex h-full items-center justify-center text-sm text-muted">
+                Select a candidate to view their profile.
+              </div>
             ) : (
-              <article className="card-wide flex h-full flex-col gap-6 border-t-4 border-t-brandBlue">
+              <div className="flex h-full flex-col lg:flex-row">
 
-                <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                {/* LEFT — scrollable main content */}
+                <div className="min-h-0 flex-1 overflow-y-auto border-b border-border p-6 lg:border-b-0 lg:border-r">
                   <div className="flex items-start gap-4">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
                       {getInitials(selectedCandidate.name)}
                     </div>
                     <div>
-                      <h2 className="text-2xl font-semibold text-foreground">{selectedCandidate.name}</h2>
-                      <p className="text-muted">{selectedCandidate.headline ?? "No headline yet"}</p>
-                      <p className="text-sm text-muted">
-                        {selectedCandidate.desiredLocation
-                          ? `Preferred location: ${selectedCandidate.desiredLocation}`
-                          : "Location preference not provided."}
-                      </p>
-                      <p className="mt-1 text-xs text-muted">
-                        {selectedCandidate.yearsOutUndergrad !== null
-                          ? `Undergrad: ${selectedCandidate.yearsOutUndergrad} yrs out`
-                          : "Undergrad: N/A"}
-                        {selectedCandidate.yearsOutGraduate !== null
-                          ? ` · Grad: ${selectedCandidate.yearsOutGraduate} yrs out`
-                          : " · Grad: N/A"}
-                      </p>
+                      <h2 className="text-2xl font-bold text-foreground">{selectedCandidate.name}</h2>
+                      <p className="mt-1 text-sm text-muted">{selectedCandidate.headline ?? "No headline yet"}</p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-start gap-2 md:items-end">
-                    <span className="text-sm text-foreground">{selectedCandidate.email ?? "Email unavailable"}</span>
+
+                  <div className="mt-6">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Skills</h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedCandidate.skills.length === 0 ? (
+                        <p className="text-sm text-muted">No skills added yet.</p>
+                      ) : (
+                        selectedCandidate.skills.map((skill) => (
+                          <span
+                            key={skill.name}
+                            className="rounded-full bg-brandBlue/10 px-3 py-1 text-xs font-semibold text-brandBlue"
+                          >
+                            {skill.name}
+                            {typeof skill.years === "number" ? ` • ${skill.years} yrs` : ""}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Experience</h3>
+                    {selectedCandidate.experiences.length === 0 ? (
+                      <p className="text-sm text-muted">No experience listed.</p>
+                    ) : (
+                      selectedCandidate.experiences.map((experience) => (
+                        <div key={experience.id} className="rounded-xl border border-border bg-surface p-4">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="font-semibold text-foreground">{experience.title ?? "Role not specified"}</p>
+                              <p className="text-sm text-muted">{experience.company ?? "Company not specified"}</p>
+                            </div>
+                            <p className="shrink-0 text-xs text-muted">
+                              {[formatDate(experience.startDate), formatDate(experience.endDate)].filter(Boolean).join(" – ") || "Timing not provided"}
+                            </p>
+                          </div>
+                          {(experience.location || experience.employmentType) ? (
+                            <p className="mt-1 text-xs text-muted">
+                              {[experience.location, experience.employmentType].filter(Boolean).join(" · ")}
+                            </p>
+                          ) : null}
+                          {experience.description ? (
+                            <p className="mt-3 text-sm leading-relaxed text-foreground/85">{experience.description}</p>
+                          ) : null}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Education</h3>
+                    {selectedCandidate.degrees.length === 0 ? (
+                      <p className="text-sm text-muted">No education details listed.</p>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {selectedCandidate.degrees.map((degree) => (
+                          <div key={degree.id} className="rounded-xl border border-border bg-surface p-4">
+                            <p className="font-semibold text-brand">{degree.school ?? "School not specified"}</p>
+                            <p className="text-sm text-muted">
+                              {[degree.degree, degree.field].filter(Boolean).join(" · ") || "Degree not specified"}
+                            </p>
+                            <p className="mt-1 text-xs text-muted/70">
+                              {[formatDate(degree.startDate), formatDate(degree.endDate)].filter(Boolean).join(" – ") || "Dates not provided"}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* RIGHT — sticky sidebar */}
+                <div className="w-full shrink-0 p-6 lg:w-72 lg:overflow-y-auto">
+                  <div className="space-y-4 lg:sticky lg:top-6">
                     <Button
                       type="button"
-                      className={savedCandidateIds.has(selectedCandidate.id) ? "btn-brand h-10" : "btn-outline-brand h-10"}
+                      className={`w-full h-11 ${savedCandidateIds.has(selectedCandidate.id) ? "btn-brand" : "btn-outline-brand"}`}
                       onClick={() => toggleSave(selectedCandidate.id)}
                     >
                       {savedCandidateIds.has(selectedCandidate.id) ? "Unsave" : "Save candidate"}
                     </Button>
-                  </div>
-                </header>
 
-                <section>
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Skills</h3>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedCandidate.skills.length === 0 ? (
-                      <p className="text-sm text-muted">No skills added yet.</p>
-                    ) : (
-                      selectedCandidate.skills.map((skill) => (
-                        <span
-                          key={skill.name}
-                          className="rounded-xl bg-brandBlue px-3 py-1 text-xs text-white"
-                        >
-                          {skill.name}
-                          {typeof skill.years === "number" ? ` • ${skill.years} yrs` : ""}
-                        </span>
-                      ))
-                    )}
-                  </div>
-                </section>
-
-                <section className="space-y-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Experience</h3>
-                  {selectedCandidate.experiences.length === 0 ? (
-                    <p className="text-sm text-muted">No experience listed.</p>
-                  ) : (
-                    selectedCandidate.experiences.map((experience) => (
-                      <div key={experience.id} className="rounded-xl border border-border bg-surface p-4">
-                        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <p className="font-semibold text-foreground">{experience.title ?? "Role not specified"}</p>
-                            <p className="text-sm text-muted">{experience.company ?? "Company not specified"}</p>
-                          </div>
-                          <p className="text-xs text-muted">
-                            {[formatDate(experience.startDate), formatDate(experience.endDate)].filter(Boolean).join(" - ") || "Timing not provided"}
-                          </p>
-                        </div>
-                        {(experience.location || experience.employmentType) ? (
-                          <p className="mt-1 text-xs text-muted">
-                            {[experience.location, experience.employmentType].filter(Boolean).join(" · ")}
-                          </p>
-                        ) : null}
-                        {experience.description ? (
-                          <p className="mt-3 text-sm text-foreground/85">{experience.description}</p>
-                        ) : null}
-                      </div>
-                    ))
-                  )}
-                </section>
-
-                <section className="space-y-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-brand">Education</h3>
-                  {selectedCandidate.degrees.length === 0 ? (
-                    <p className="text-sm text-muted">No education details listed.</p>
-                  ) : (
-                    <div className="grid gap-3 md:grid-cols-2">
-                      {selectedCandidate.degrees.map((degree) => (
-                        <div key={degree.id} className="rounded-xl border border-border bg-surface p-4">
-                          <p className="font-semibold text-brand">{degree.school ?? "School not specified"}</p>
-                          <p className="text-sm text-muted">
-                            {[degree.degree, degree.field].filter(Boolean).join(" · ") || "Degree not specified"}
-                          </p>
-                          <p className="text-xs text-muted/70">
-                            {[formatDate(degree.startDate), formatDate(degree.endDate)].filter(Boolean).join(" - ") || "Dates not provided"}
-                          </p>
-                        </div>
-                      ))}
+                    <div className="rounded-xl border border-border bg-surface p-4">
+                      <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Contact</h3>
+                      <p className="mt-2 break-all text-sm text-foreground">
+                        {selectedCandidate.email ?? "Email unavailable"}
+                      </p>
+                      {selectedCandidate.desiredLocation ? (
+                        <p className="mt-1 text-sm text-muted">{selectedCandidate.desiredLocation}</p>
+                      ) : null}
                     </div>
-                  )}
-                </section>
 
-              </article>
+                    <div className="rounded-xl border border-border bg-surface p-4">
+                      <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Experience level</h3>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-sm text-foreground">
+                          {selectedCandidate.yearsOutUndergrad !== null
+                            ? `Undergrad: ${selectedCandidate.yearsOutUndergrad} yr${selectedCandidate.yearsOutUndergrad === 1 ? "" : "s"} out`
+                            : "Undergrad: N/A"}
+                        </p>
+                        <p className="text-sm text-foreground">
+                          {selectedCandidate.yearsOutGraduate !== null
+                            ? `Grad: ${selectedCandidate.yearsOutGraduate} yr${selectedCandidate.yearsOutGraduate === 1 ? "" : "s"} out`
+                            : "Grad: N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             )}
           </section>
         </div>

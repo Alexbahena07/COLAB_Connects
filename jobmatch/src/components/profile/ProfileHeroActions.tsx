@@ -69,29 +69,60 @@ export default function ProfileHeroActions() {
   );
 }
 
-export function OpenToWorkToggle() {
-  const [enabled, setEnabled] = useState(true);
+export function OpenToWorkToggle({ initialValue = true }: { initialValue?: boolean }) {
+  const [enabled, setEnabled] = useState(initialValue);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleToggle = async () => {
+    const next = !enabled;
+    setEnabled(next);
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/profile/open-to-work", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ openToWork: next }),
+      });
+      if (!res.ok) {
+        setEnabled(!next);
+        const body = await res.json().catch(() => null);
+        setError(body?.error || "Couldn't save. Try again.");
+      }
+    } catch (err) {
+      console.error("Failed to update open-to-work status", err);
+      setEnabled(!next);
+      setError("Couldn't save. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      onClick={() => setEnabled((state) => !state)}
-      className={clsx(
-        "flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-semibold transition",
-        enabled
-          ? "bg-brandBlue text-white shadow-sm"
-          : "bg-surface text-foreground opacity-80 hover:opacity-100"
-      )}
-    >
-      <span
+    <>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        disabled={saving}
+        onClick={handleToggle}
         className={clsx(
-          "inline-block h-2.5 w-2.5 rounded-full transition",
-          enabled ? "bg-white" : "bg-border"
+          "flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-semibold transition disabled:opacity-60",
+          enabled
+            ? "bg-brandBlue text-white shadow-sm"
+            : "bg-surface text-foreground opacity-80 hover:opacity-100"
         )}
-      />
-      {enabled ? "Open to work" : "Not openly looking"}
-    </button>
+      >
+        <span
+          className={clsx(
+            "inline-block h-2.5 w-2.5 rounded-full transition",
+            enabled ? "bg-white" : "bg-border"
+          )}
+        />
+        {enabled ? "Open to work" : "Not openly looking"}
+      </button>
+      {error ? <span className="text-xs font-medium text-red-300">{error}</span> : null}
+    </>
   );
 }

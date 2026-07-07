@@ -105,10 +105,11 @@ model Profile {
   firstName       String?
   lastName        String?
   headline        String?
-  desiredLocation String? // renamed from location
+  desiredLocation String?
   resumeFileName  String?
   resumeFileType  String?
-  resumeData      String?
+  resumeUrl       String?
+  openToWork      Boolean @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
