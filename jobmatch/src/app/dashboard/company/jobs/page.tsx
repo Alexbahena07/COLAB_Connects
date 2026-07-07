@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/Header_with_Icons";
+import Header from "@/components/ui/HeaderWithIcons";
 
 type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
 

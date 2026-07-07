@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import Header from "@/components/ui/Header_with_Icons";
+import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
 const CAROUSEL_PHOTOS = [

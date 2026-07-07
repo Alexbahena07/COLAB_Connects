@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import Header from "@/components/ui/Header_with_Icons";
+import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";

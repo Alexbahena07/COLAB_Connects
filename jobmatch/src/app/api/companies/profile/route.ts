@@ -1,24 +1,23 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-type ProfilePayload = {
-  companyName?: unknown;
-  website?: unknown;
-  headquarters?: unknown;
-  teamSize?: unknown;
-  industry?: unknown;
-  bio?: unknown;
-};
-
-const normalizeText = (value: unknown) =>
-  typeof value === "string" ? value.trim() : "";
-
-const normalizeOptional = (value: unknown) => {
-  const trimmed = normalizeText(value);
-  return trimmed.length > 0 ? trimmed : null;
-};
+const CompanyProfileSchema = z.object({
+  companyName: z.string().min(1, "Company name is required").max(200),
+  website: z
+    .string()
+    .max(500)
+    .refine((v) => v === "" || /^https?:\/\/.+/.test(v), {
+      message: "Website must be a valid URL starting with http:// or https://",
+    })
+    .optional(),
+  headquarters: z.string().max(200).optional(),
+  teamSize: z.string().max(100).optional(),
+  industry: z.string().max(200).optional(),
+  bio: z.string().max(5000).optional(),
+});
 
 const loadCompanyProfile = async (userId: string) =>
   prisma.companyProfile.findUnique({
@@ -77,38 +76,33 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = (await request.json().catch(() => null)) as ProfilePayload | null;
-  if (!body) {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  const parsed = CompanyProfileSchema.safeParse(await request.json().catch(() => ({})));
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Invalid profile data";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const companyName = normalizeText(body.companyName);
-  if (!companyName) {
-    return NextResponse.json({ error: "Company name is required." }, { status: 400 });
-  }
-
-  const website = normalizeOptional(body.website);
-  const headquarters = normalizeOptional(body.headquarters);
-  const teamSize = normalizeOptional(body.teamSize);
-  const hiringFocus = normalizeOptional(body.industry);
-  const about = normalizeOptional(body.bio);
+  const { companyName, website, headquarters, teamSize, industry, bio } = parsed.data;
+  const toOptional = (v: string | undefined) => (v?.trim() ? v.trim() : null);
+  const hiringFocus = toOptional(industry);
+  const about = toOptional(bio);
 
   const profile = await prisma.companyProfile.upsert({
     where: { userId: session.user.id },
     create: {
       userId: session.user.id,
-      companyName,
-      website,
-      headquarters,
-      teamSize,
+      companyName: companyName.trim(),
+      website: toOptional(website),
+      headquarters: toOptional(headquarters),
+      teamSize: toOptional(teamSize),
       hiringFocus,
       about,
     },
     update: {
-      companyName,
-      website,
-      headquarters,
-      teamSize,
+      companyName: companyName.trim(),
+      website: toOptional(website),
+      headquarters: toOptional(headquarters),
+      teamSize: toOptional(teamSize),
       hiringFocus,
       about,
     },

@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ProfileHeroActions, { OpenToWorkToggle } from "@/components/profile/ProfileHeroActions";
 import ProfileEditDrawer from "@/components/profile/ProfileEditDrawer";
-import Header from "@/components/ui/Header_with_Icons";
+import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
 type ExperienceItem = {
@@ -93,6 +93,10 @@ export default async function StudentProfilePage() {
     redirect("/login");
   }
 
+  if (session.user.accountType === "COMPANY") {
+    redirect("/dashboard/company");
+  }
+
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: {
@@ -105,6 +109,7 @@ export default async function StudentProfilePage() {
           desiredLocation: true,
           resumeFileName: true,
           resumeFileType: true,
+          openToWork: true,
         },
       },
       experiences: {
@@ -165,6 +170,7 @@ export default async function StudentProfilePage() {
   const resumeAvailable = Boolean(resumeFileName);
   const headline = profile?.headline?.trim() ?? "";
   const location = profile?.desiredLocation?.trim();
+  const openToWork = profile?.openToWork ?? true;
   const experiences: ExperienceItem[] = user?.experiences ?? [];
   const degrees: DegreeItem[] = user?.degrees ?? [];
   const certificates: CertificateItem[] = user?.certificates ?? [];
@@ -236,7 +242,7 @@ export default async function StudentProfilePage() {
                     {location ? `Based in ${location}` : "Location not specified"}
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                    <OpenToWorkToggle />
+                    <OpenToWorkToggle initialValue={openToWork} />
                   </span>
                   {skills.length > 0 ? (
                     <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">

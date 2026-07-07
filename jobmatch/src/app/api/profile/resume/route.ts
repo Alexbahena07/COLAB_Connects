@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { Buffer } from "node:buffer";
+import { get } from "@vercel/blob";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-function extractBase64(dataUrl: string): string {
-  const commaIndex = dataUrl.indexOf(",");
-  return commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : dataUrl;
-}
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -20,7 +15,7 @@ export async function GET() {
     select: {
       profile: {
         select: {
-          resumeData: true,
+          resumeUrl: true,
           resumeFileName: true,
           resumeFileType: true,
         },
@@ -28,27 +23,29 @@ export async function GET() {
     },
   });
 
-  const resumeData = user?.profile?.resumeData;
+  const resumeUrl = user?.profile?.resumeUrl;
   const resumeFileName = user?.profile?.resumeFileName;
-  if (!resumeData || !resumeFileName) {
+  if (!resumeUrl || !resumeFileName) {
     return NextResponse.json({ error: "Resume not found" }, { status: 404 });
   }
 
-  let buffer: Buffer;
+  let blob;
   try {
-    buffer = Buffer.from(extractBase64(resumeData), "base64");
+    blob = await get(resumeUrl, { access: "private" });
   } catch (error) {
-    console.error("Failed to decode resume", error);
-    return NextResponse.json({ error: "Invalid resume data" }, { status: 500 });
+    console.error("Failed to fetch resume from blob storage", error);
+    return NextResponse.json({ error: "Resume not found" }, { status: 404 });
+  }
+  if (!blob?.stream) {
+    return NextResponse.json({ error: "Resume not found" }, { status: 404 });
   }
 
   const fileType = user.profile?.resumeFileType || "application/pdf";
   const fileNameHeader = encodeURIComponent(resumeFileName);
 
-  return new NextResponse(new Uint8Array(buffer), {
+  return new NextResponse(blob.stream, {
     headers: {
       "Content-Type": fileType,
-      "Content-Length": buffer.length.toString(),
       "Cache-Control": "no-store",
       "Content-Disposition": `inline; filename="${fileNameHeader}"`,
     },

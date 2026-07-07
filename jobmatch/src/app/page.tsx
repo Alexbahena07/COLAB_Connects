@@ -5,20 +5,29 @@ import Header from "@/components/ui/Header";
 import Footer from "@/components/ui/Footer";
 import Image from "next/image";
 import MarqueeTrack from "@/components/ui/MarqueeTrack";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+  const careerForumHref = session
+    ? session.user?.accountType === "COMPANY"
+      ? "/dashboard/company/application"
+      : "/dashboard/application"
+    : "/login?callbackUrl=/dashboard/application";
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Header />
 
       {/* Hero */}
-      <section className="relative min-h-[calc(100vh-80px)] min-h-[calc(100svh-80px)] overflow-hidden">
+      <section className="relative min-h-[calc(100svh-80px)] overflow-hidden">
         <div className="absolute inset-0 bg-[url('/Backgrounds/EventPhoto.JPG')] bg-cover bg-center" />
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
 
-        <div className="relative mx-auto flex min-h-[calc(100vh-80px)] min-h-[calc(100svh-80px)] max-w-6xl items-center px-6 py-24">
+        <div className="relative mx-auto flex min-h-[calc(100svh-80px)] max-w-6xl items-center px-6 py-24">
           <div className="grid w-full items-center gap-10 md:grid-cols-2 md:justify-items-center">
             <div className="w-full max-w-xl text-center">
               <div className="rounded-3xl border border-white/15 bg-black/55 px-6 py-6 text-white shadow-lg backdrop-blur-sm">
@@ -56,7 +65,7 @@ export default function Home() {
 
               <div className="mt-4 flex justify-center">
                 <Link
-                  href="/dashboard/application"
+                  href={careerForumHref}
                   className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
                 >
                   Learn about the Career Forum
@@ -304,15 +313,15 @@ export default function Home() {
           </div>
 
           <div className="mt-6 flex justify-center">
-            <a
-              href="/dashboard/application"
+            <Link
+              href={careerForumHref}
               className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
             >
               Learn about the Career Forum
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
-            </a>
+            </Link>
           </div>
         </div>
       </section>

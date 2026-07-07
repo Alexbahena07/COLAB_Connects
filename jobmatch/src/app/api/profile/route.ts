@@ -48,7 +48,7 @@ export async function GET() {
     | (typeof user.profile & {
         resumeFileName?: string | null;
         resumeFileType?: string | null;
-        resumeData?: string | null;
+        resumeUrl?: string | null;
       })
     | null;
 
@@ -60,7 +60,7 @@ export async function GET() {
       desiredLocation: profileWithResume?.desiredLocation ?? "",
     },
     resume:
-      profileWithResume?.resumeFileName && profileWithResume?.resumeData
+      profileWithResume?.resumeFileName && profileWithResume?.resumeUrl
         ? {
             fileName: profileWithResume.resumeFileName,
             fileType: profileWithResume.resumeFileType ?? "application/pdf",

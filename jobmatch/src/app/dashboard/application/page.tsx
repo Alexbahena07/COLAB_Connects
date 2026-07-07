@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import Header from "@/components/ui/Header_with_Icons";
+import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
 const CAROUSEL_PHOTOS = [
@@ -175,38 +175,7 @@ export default function DashboardEventApplicationPage() {
             Who should participate?
           </h2>
 
-          <div className="mt-6 grid gap-6 sm:grid-cols-2">
-            <div className="flex w-full flex-col rounded-2xl bg-brandBlue p-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="h-5 w-5">
-                    <rect x="4" y="7" width="16" height="11" rx="2" />
-                    <path d="M9 7V5.5a2.5 2.5 0 0 1 5 0V7" />
-                    <path d="M8 12h8M8 15h4" />
-                  </svg>
-                </span>
-                <h3 className="text-xl font-bold text-white">Professionals</h3>
-              </div>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-white/90">
-                Professionals from organizations within the alternative investment industry,
-                including private equity, venture capital, real estate, credit, real assets,
-                hedge funds, and investment banks, who are seeking to recruit and network with
-                enthusiastic, qualified, and highly educated next-generation talent.
-              </p>
-              <a
-                href="https://www.colabconnects.org/_files/ugd/2cb084_174fc05265244e96a5f42916247af6de.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 font-semibold text-white no-underline transition hover:opacity-90"
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-                  <path d="M14 2v6h6M10 12h4M10 16h4M10 8h1" />
-                </svg>
-                Prior event brochure (2025)
-              </a>
-            </div>
-
+          <div className="mt-6">
             <div className="flex w-full flex-col rounded-2xl bg-brandBlue p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">

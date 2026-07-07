@@ -1,13 +1,72 @@
 // src/app/api/profile/upsert/route.ts
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const UpsertSchema = z.object({
+  profile: z
+    .object({
+      firstName: z.string().max(100).optional().nullable(),
+      lastName: z.string().max(100).optional().nullable(),
+      headline: z.string().max(300).optional().nullable(),
+      desiredLocation: z.string().max(200).optional().nullable(),
+    })
+    .optional(),
+  degrees: z
+    .array(
+      z.object({
+        school: z.string().max(200),
+        degree: z.string().max(200).optional().nullable(),
+        field: z.string().max(200).optional().nullable(),
+        startDate: z.string().optional().nullable(),
+        endDate: z.string().optional().nullable(),
+      })
+    )
+    .max(20)
+    .optional(),
+  certificates: z
+    .array(
+      z.object({
+        name: z.string().max(200),
+        issuer: z.string().max(200).optional().nullable(),
+        issuedAt: z.string().optional().nullable(),
+        credentialId: z.string().max(200).optional().nullable(),
+        credentialUrl: z.string().max(500).optional().nullable(),
+      })
+    )
+    .max(30)
+    .optional(),
+  experiences: z
+    .array(
+      z.object({
+        title: z.string().max(200),
+        company: z.string().max(200),
+        startDate: z.string().optional().nullable(),
+        endDate: z.string().optional().nullable(),
+        description: z.string().max(5000).optional().nullable(),
+      })
+    )
+    .max(20)
+    .optional(),
+  skills: z
+    .array(
+      z.object({
+        name: z.string().max(100),
+        years: z.number().int().min(0).max(50).optional().nullable(),
+      })
+    )
+    .max(50)
+    .optional(),
+  resume: z.unknown().optional(),
+  avatar: z.unknown().optional(),
+});
+
 type ResumePayload = {
   fileName: string;
   fileType?: string;
-  dataUrl: string;
+  url: string;
 };
 
 type AvatarPayload = {
@@ -61,18 +120,14 @@ function normalizeResumePayload(input: unknown): ResumePayload | null {
     typeof raw.fileType === "string" && raw.fileType.trim()
       ? raw.fileType.trim()
       : "application/pdf";
-  const dataUrl = typeof raw.dataUrl === "string" ? raw.dataUrl.trim() : "";
+  const url = typeof raw.url === "string" ? raw.url.trim() : "";
 
-  if (!fileName || !dataUrl) return null;
-  const isPdfType =
-    fileType.toLowerCase().includes("pdf") ||
-    fileName.toLowerCase().endsWith(".pdf") ||
-    dataUrl.toLowerCase().startsWith("data:application/pdf");
+  if (!fileName || !url) return null;
+  const isPdfType = fileType.toLowerCase().includes("pdf") || fileName.toLowerCase().endsWith(".pdf");
   if (!isPdfType) return null;
-  // Rough size guard (~10MB of base64)
-  if (dataUrl.length > 15_000_000) return null;
+  if (!/^https?:\/\//i.test(url)) return null;
 
-  return { fileName, fileType, dataUrl };
+  return { fileName, fileType, url };
 }
 
 function normalizeAvatarPayload(input: unknown): AvatarPayload | null {
@@ -163,17 +218,18 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, accountType: true, profile: { select: { resumeData: true } } },
+    select: { id: true, accountType: true, profile: { select: { resumeUrl: true } } },
   });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const rawBody = (await req.json().catch(() => null)) as unknown;
-  if (!rawBody || typeof rawBody !== "object") {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  const parsed = UpsertSchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Invalid profile data";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
-  const body = rawBody as Record<string, unknown>;
+  const body = parsed.data;
 
   const {
     degrees = [],
@@ -184,24 +240,15 @@ export async function POST(req: Request) {
     avatar,
   } = body;
 
-  // Validate and type profile from body
   const rawProfile = body.profile;
-  if (rawProfile !== undefined && typeof rawProfile !== "object") {
-    return NextResponse.json({ error: "Invalid profile" }, { status: 400 });
-  }
-
-  let profile: ProfilePayload | null = null;
-
-if (rawProfile && typeof rawProfile === "object") {
-  const raw = rawProfile as Record<string, unknown>;
-  profile = {
-    firstName: typeof raw.firstName === "string" ? raw.firstName : null,
-    lastName: typeof raw.lastName === "string" ? raw.lastName : null,
-    headline: typeof raw.headline === "string" ? raw.headline : null,
-    desiredLocation:
-      typeof raw.desiredLocation === "string" ? raw.desiredLocation : null,
-  };
-}
+  const profile: ProfilePayload | null = rawProfile
+    ? {
+        firstName: rawProfile.firstName ?? null,
+        lastName: rawProfile.lastName ?? null,
+        headline: rawProfile.headline ?? null,
+        desiredLocation: rawProfile.desiredLocation ?? null,
+      }
+    : null;
 
 
   let resumePayload: ResumePayload | null = null;
@@ -209,7 +256,7 @@ if (rawProfile && typeof rawProfile === "object") {
     resumePayload = normalizeResumePayload(resume);
     if (!resumePayload) {
       return NextResponse.json(
-        { error: "Invalid resume payload. Upload a PDF smaller than 10MB." },
+        { error: "Invalid resume payload. Upload your resume as a PDF." },
         { status: 400 }
       );
     }
@@ -227,9 +274,9 @@ if (rawProfile && typeof rawProfile === "object") {
   }
 
   const profileWithResume = user.profile as
-    | (typeof user.profile & { resumeData?: string | null })
+    | (typeof user.profile & { resumeUrl?: string | null })
     | null;
-  const hasExistingResume = Boolean(profileWithResume?.resumeData);
+  const hasExistingResume = Boolean(profileWithResume?.resumeUrl);
 
   if (!resumePayload && !hasExistingResume && user.accountType !== "COMPANY") {
     return NextResponse.json(
@@ -244,7 +291,7 @@ if (rawProfile && typeof rawProfile === "object") {
         ? {
             resumeFileName: resumePayload.fileName,
             resumeFileType: resumePayload.fileType ?? "application/pdf",
-            resumeData: resumePayload.dataUrl,
+            resumeUrl: resumePayload.url,
           }
         : {};
 
@@ -266,7 +313,7 @@ if (rawProfile && typeof rawProfile === "object") {
           desiredLocation: profile?.desiredLocation ?? null,
           resumeFileName: resumePayload?.fileName ?? null,
           resumeFileType: resumePayload?.fileType ?? "application/pdf",
-          resumeData: resumePayload?.dataUrl ?? null,
+          resumeUrl: resumePayload?.url ?? null,
         },
       });
 
