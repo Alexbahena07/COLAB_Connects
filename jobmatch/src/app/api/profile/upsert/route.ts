@@ -381,23 +381,36 @@ export async function POST(req: Request) {
         });
       }
 
-      // Skills: replace
+      // Skills: replace — 3 queries regardless of skill count.
+      // 1. Delete old links.
+      // 2. Insert any skill names that don't exist yet (skipDuplicates = ON CONFLICT DO NOTHING).
+      // 3. Fetch IDs for all submitted skill names in one query.
+      // 4. Bulk-insert the user↔skill junction rows.
       await tx.userSkill.deleteMany({ where: { userId: user.id } });
       const skillPayloads = (Array.isArray(skills) ? skills : [])
         .map((skill) => normalizeSkill(skill))
         .filter((skill): skill is SkillPayload => Boolean(skill));
-      for (const s of skillPayloads) {
-        const skill = await tx.skill.upsert({
-          where: { name: s.name },
-          create: { name: s.name },
-          update: {},
+
+      if (skillPayloads.length > 0) {
+        await tx.skill.createMany({
+          data: skillPayloads.map((s) => ({ name: s.name })),
+          skipDuplicates: true,
         });
-        await tx.userSkill.create({
-          data: {
-            userId: user.id,
-            skillId: skill.id,
-            years: typeof s.years === "number" ? s.years : null,
-          },
+
+        const skillRows = await tx.skill.findMany({
+          where: { name: { in: skillPayloads.map((s) => s.name) } },
+          select: { id: true, name: true },
+        });
+        const skillIdMap = new Map(skillRows.map((s) => [s.name, s.id]));
+
+        await tx.userSkill.createMany({
+          data: skillPayloads
+            .filter((s) => skillIdMap.has(s.name))
+            .map((s) => ({
+              userId: user.id,
+              skillId: skillIdMap.get(s.name)!,
+              years: typeof s.years === "number" ? s.years : null,
+            })),
         });
       }
     });

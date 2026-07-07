@@ -68,12 +68,8 @@ const degreeLabel = (value: string | null) => (value ?? "").toLowerCase();
 
 const classifyDegree = (degree: string | null) => {
   const text = degreeLabel(degree);
-  if (/\b(bachelor|b\.?s\.?|b\.?a\.?|bsc|ba|bs|undergrad)\b/.test(text)) {
-    return "undergrad";
-  }
-  if (/\b(master|m\.?s\.?|m\.?a\.?|mba|phd|doctor|jd|md)\b/.test(text)) {
-    return "grad";
-  }
+  if (/\b(bachelor|b\.?s\.?|b\.?a\.?|bsc|ba|bs|undergrad)\b/.test(text)) return "undergrad";
+  if (/\b(master|m\.?s\.?|m\.?a\.?|mba|phd|doctor|jd|md)\b/.test(text)) return "grad";
   return "unknown";
 };
 
@@ -89,18 +85,54 @@ const latestEndDate = (degrees: CandidateDegree[], level: "undergrad" | "grad") 
     (degree) => degree.endDate && classifyDegree(degree.degree) === level
   );
   if (matching.length === 0) return null;
-  return matching.reduce((latest, current) =>
-    current.endDate && latest && current.endDate > latest ? current.endDate : latest
-  , matching[0].endDate ?? null);
+  return matching.reduce(
+    (latest, current) =>
+      current.endDate && latest && current.endDate > latest ? current.endDate : latest,
+    matching[0].endDate ?? null
+  );
 };
 
-const withinRange = (value: number | null, min: number | null, max: number | null) => {
-  if (min === null && max === null) return true;
-  if (value === null) return false;
-  if (min !== null && value < min) return false;
-  if (max !== null && value > max) return false;
-  return true;
+// Returns a date exactly `years` calendar years before now.
+const yearsBefore = (years: number): Date => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - years);
+  return d;
 };
+
+const UNDERGRAD_KEYWORDS = ["bachelor", "b.s", "b.a", "bsc", "undergrad"];
+const GRAD_KEYWORDS = ["master", "m.s", "m.a", "mba", "phd", "doctor", "jd", "md"];
+
+// Translates yearsOut min/max bounds into a SQL degree sub-filter so Postgres
+// does the date math instead of loading all rows into Node first.
+//
+// yearsOut >= min  →  endDate <= now - min years
+// yearsOut <= max  →  endDate >= now - (max+1) years  (floor() means max.999 still counts)
+function buildDegreeYearsFilter(
+  keywords: string[],
+  minYears: number | null,
+  maxYears: number | null
+): Prisma.UserWhereInput | null {
+  if (minYears === null && maxYears === null) return null;
+
+  const endDateBounds: { lte?: Date; gte?: Date } = {};
+  if (minYears !== null) endDateBounds.lte = yearsBefore(minYears);
+  if (maxYears !== null) endDateBounds.gte = yearsBefore(maxYears + 1);
+
+  return {
+    degrees: {
+      some: {
+        AND: [
+          {
+            OR: keywords.map((kw) => ({
+              degree: { contains: kw, mode: "insensitive" as const },
+            })),
+          },
+          { endDate: endDateBounds },
+        ],
+      },
+    },
+  };
+}
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -193,29 +225,40 @@ export async function GET(request: Request) {
     });
   }
 
+  // Degree years-out filters — pushed into SQL so Postgres filters before pagination.
+  const ugFilter = buildDegreeYearsFilter(UNDERGRAD_KEYWORDS, ugYearsOutMin, ugYearsOutMax);
+  if (ugFilter) andFilters.push(ugFilter);
+
+  const gradFilter = buildDegreeYearsFilter(GRAD_KEYWORDS, gradYearsOutMin, gradYearsOutMax);
+  if (gradFilter) andFilters.push(gradFilter);
+
   if (andFilters.length > 0) {
     where.AND = andFilters;
   }
 
-  const candidates = (await prisma.user.findMany({
-    where,
-    orderBy: { name: "asc" },
-    select: candidateSelect,
-  })) as CandidateRow[];
+  // Count and fetch run in parallel; findMany uses skip/take so Postgres paginates.
+  const [total, candidates, savedCandidates] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: { name: "asc" },
+      select: candidateSelect,
+      skip,
+      take: pageSize,
+    }) as Promise<CandidateRow[]>,
+    prisma.savedCandidate.findMany({
+      where: { companyId: companyUser.id },
+      select: { candidateId: true },
+    }),
+  ]);
 
-  const savedCandidates = await prisma.savedCandidate.findMany({
-    where: { companyId: companyUser.id },
-    select: { candidateId: true },
-  });
-  const savedIds = new Set(savedCandidates.map((saved) => saved.candidateId));
+  const savedIds = new Set(savedCandidates.map((s) => s.candidateId));
 
   const mapped = candidates.map((candidate) => {
     const profile = candidate.profile;
     const computedName = `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim();
     const undergradEndDate = latestEndDate(candidate.degrees, "undergrad");
     const gradEndDate = latestEndDate(candidate.degrees, "grad");
-    const yearsOutUndergrad = computeYearsOut(undergradEndDate);
-    const yearsOutGraduate = computeYearsOut(gradEndDate);
 
     return {
       id: candidate.id,
@@ -245,32 +288,11 @@ export async function GET(request: Request) {
         name: userSkill.skill.name,
         years: userSkill.years ?? null,
       })) as CandidateSkill[],
-      yearsOutUndergrad,
-      yearsOutGraduate,
+      yearsOutUndergrad: computeYearsOut(undergradEndDate),
+      yearsOutGraduate: computeYearsOut(gradEndDate),
       isSaved: savedIds.has(candidate.id),
     };
   });
 
-  const filtered = mapped.filter((candidate) => {
-    const matchesUndergrad = withinRange(
-      candidate.yearsOutUndergrad,
-      ugYearsOutMin,
-      ugYearsOutMax
-    );
-    const matchesGrad = withinRange(
-      candidate.yearsOutGraduate,
-      gradYearsOutMin,
-      gradYearsOutMax
-    );
-    return matchesUndergrad && matchesGrad;
-  });
-
-  const pageResults = filtered.slice(skip, skip + pageSize);
-
-  return NextResponse.json({
-    candidates: pageResults,
-    total: filtered.length,
-    page,
-    pageSize,
-  });
+  return NextResponse.json({ candidates: mapped, total, page, pageSize });
 }

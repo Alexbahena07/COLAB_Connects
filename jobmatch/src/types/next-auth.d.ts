@@ -17,6 +17,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
+    accountType?: "COMPANY" | "STUDENT" | null;
     linkedinAccessToken?: string;
     linkedinRefreshToken?: string;
     linkedinAccessTokenExpires?: number;
