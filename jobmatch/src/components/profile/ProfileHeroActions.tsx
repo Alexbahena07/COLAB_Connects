@@ -1,11 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 import clsx from "clsx";
 
 export default function ProfileHeroActions() {
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    await signOut({ callbackUrl: "/login" });
+  };
 
   const handleShare = async () => {
     setShareError(null);
@@ -29,6 +36,8 @@ export default function ProfileHeroActions() {
 
       setShareError("Sharing isn't supported in this browser.");
     } catch (error) {
+      // The user dismissing the native share sheet isn't a failure — don't show an error for it.
+      if (error instanceof DOMException && error.name === "AbortError") return;
       console.error("Share failed", error);
       setShareError("Unable to share right now.");
     }
@@ -65,6 +74,28 @@ export default function ProfileHeroActions() {
       {shareError ? (
         <span className="text-xs font-medium text-red-300">{shareError}</span>
       ) : null}
+      <button
+        type="button"
+        onClick={handleSignOut}
+        disabled={isSigningOut}
+        className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/50 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-4 w-4 shrink-0"
+          aria-hidden="true"
+        >
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        {isSigningOut ? "Signing out…" : "Sign out"}
+      </button>
     </>
   );
 }

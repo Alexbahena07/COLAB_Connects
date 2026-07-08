@@ -87,7 +87,7 @@ export default function ProfileEditDrawer() {
               form="profile-form"
               className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brandBlue px-4 text-sm font-semibold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brandBlue"
             >
-              Save and continue
+              Save
             </button>
             <button
               ref={closeButtonRef}

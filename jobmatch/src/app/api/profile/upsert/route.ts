@@ -11,6 +11,7 @@ const UpsertSchema = z.object({
       firstName: z.string().max(100).optional().nullable(),
       lastName: z.string().max(100).optional().nullable(),
       headline: z.string().max(300).optional().nullable(),
+      about: z.string().max(5000).optional().nullable(),
       desiredLocation: z.string().max(200).optional().nullable(),
     })
     .optional(),
@@ -57,7 +58,7 @@ const UpsertSchema = z.object({
         years: z.number().int().min(0).max(50).optional().nullable(),
       })
     )
-    .max(50)
+    .max(10, "You can add up to 10 skills")
     .optional(),
   resume: z.unknown().optional(),
   avatar: z.unknown().optional(),
@@ -109,6 +110,7 @@ type ProfilePayload = {
   firstName?: string | null;
   lastName?: string | null;
   headline?: string | null;
+  about?: string | null;
   desiredLocation?: string | null;
 };
 
@@ -218,10 +220,14 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, accountType: true, profile: { select: { resumeUrl: true } } },
+    select: { id: true, accountType: true, status: true, profile: { select: { resumeUrl: true } } },
   });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  if (user.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Your account is not active" }, { status: 403 });
   }
 
   const parsed = UpsertSchema.safeParse(await req.json().catch(() => ({})));
@@ -246,6 +252,7 @@ export async function POST(req: Request) {
         firstName: rawProfile.firstName ?? null,
         lastName: rawProfile.lastName ?? null,
         headline: rawProfile.headline ?? null,
+        about: rawProfile.about ?? null,
         desiredLocation: rawProfile.desiredLocation ?? null,
       }
     : null;
@@ -302,6 +309,7 @@ export async function POST(req: Request) {
           firstName: profile?.firstName ?? null,
           lastName: profile?.lastName ?? null,
           headline: profile?.headline ?? null,
+          about: profile?.about ?? null,
           desiredLocation: profile?.desiredLocation ?? null,
           ...resumeFields,
         },
@@ -310,6 +318,7 @@ export async function POST(req: Request) {
           firstName: profile?.firstName ?? null,
           lastName: profile?.lastName ?? null,
           headline: profile?.headline ?? null,
+          about: profile?.about ?? null,
           desiredLocation: profile?.desiredLocation ?? null,
           resumeFileName: resumePayload?.fileName ?? null,
           resumeFileType: resumePayload?.fileType ?? "application/pdf",

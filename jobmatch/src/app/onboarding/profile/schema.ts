@@ -6,6 +6,7 @@ export const FormSchema = z.object({
       firstName: z.string().optional(),
       lastName: z.string().optional(),
       headline: z.string().optional(),
+      about: z.string().optional(),
       desiredLocation: z.string().optional(),
     })
     .optional(),
@@ -65,13 +66,14 @@ export const FormSchema = z.object({
         years: z.coerce.number().int().min(0).max(50).optional(),
       })
     )
+    .max(10, "You can add up to 10 skills")
     .optional(),
 });
 
 export type FormData = z.infer<typeof FormSchema>;
 
 export const DEFAULT_VALUES: FormData = {
-  profile: { firstName: "", lastName: "", headline: "", desiredLocation: "" },
+  profile: { firstName: "", lastName: "", headline: "", about: "", desiredLocation: "" },
   degrees: [],
   certificates: [],
   experiences: [],

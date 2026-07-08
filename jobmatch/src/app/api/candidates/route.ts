@@ -23,18 +23,31 @@ type CandidateDegree = {
   startDate: Date | null;
   endDate: Date | null;
 };
+type CandidateCertificate = {
+  id: string;
+  name: string | null;
+  issuer: string | null;
+  issuedAt: Date | null;
+  expirationDate: Date | null;
+  credentialId: string | null;
+  credentialUrl: string | null;
+};
 
 type CandidateRow = {
   id: string;
   name: string | null;
   email: string | null;
+  image: string | null;
   profile: {
     firstName: string | null;
     lastName: string | null;
     headline: string | null;
     desiredLocation: string | null;
+    resumeFileName: string | null;
+    openToWork: boolean;
   } | null;
   degrees: CandidateDegree[];
+  certificates: CandidateCertificate[];
   experiences: CandidateExperience[];
   userSkills: Array<{ skill: { name: string }; years: number | null }>;
 };
@@ -43,15 +56,19 @@ const candidateSelect = {
   id: true,
   name: true,
   email: true,
+  image: true,
   profile: {
     select: {
       firstName: true,
       lastName: true,
       headline: true,
       desiredLocation: true,
+      resumeFileName: true,
+      openToWork: true,
     },
   },
   degrees: true,
+  certificates: true,
   experiences: true,
   userSkills: {
     include: { skill: true },
@@ -264,8 +281,12 @@ export async function GET(request: Request) {
       id: candidate.id,
       name: candidate.name ?? (computedName || "Unknown candidate"),
       email: candidate.email ?? null,
+      photoUrl: candidate.image ?? null,
       headline: profile?.headline ?? null,
       desiredLocation: profile?.desiredLocation ?? null,
+      openToWork: profile?.openToWork ?? false,
+      resumeFileName: profile?.resumeFileName ?? null,
+      resumeUrl: profile?.resumeFileName ? `/api/candidates/${candidate.id}/resume` : null,
       degrees: candidate.degrees.map((degree) => ({
         id: degree.id,
         school: degree.school,
@@ -273,6 +294,15 @@ export async function GET(request: Request) {
         field: degree.field,
         startDate: degree.startDate ? degree.startDate.toISOString() : null,
         endDate: degree.endDate ? degree.endDate.toISOString() : null,
+      })),
+      certificates: candidate.certificates.map((certificate) => ({
+        id: certificate.id,
+        name: certificate.name,
+        issuer: certificate.issuer,
+        issuedAt: certificate.issuedAt ? certificate.issuedAt.toISOString() : null,
+        expirationDate: certificate.expirationDate ? certificate.expirationDate.toISOString() : null,
+        credentialId: certificate.credentialId,
+        credentialUrl: certificate.credentialUrl,
       })),
       experiences: candidate.experiences.map((experience) => ({
         id: experience.id,

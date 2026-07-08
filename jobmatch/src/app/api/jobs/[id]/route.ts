@@ -42,10 +42,14 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   const companyUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, accountType: true },
+    select: { id: true, accountType: true, status: true },
   });
 
-  if (!companyUser || companyUser.accountType !== "COMPANY") {
+  if (!companyUser || companyUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Your account is not active" }, { status: 403 });
+  }
+
+  if (companyUser.accountType !== "COMPANY") {
     return NextResponse.json(
       { error: "Only company accounts can update jobs" },
       { status: 403 }
@@ -169,10 +173,14 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   const companyUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, accountType: true },
+    select: { id: true, accountType: true, status: true },
   });
 
-  if (!companyUser || companyUser.accountType !== "COMPANY") {
+  if (!companyUser || companyUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Your account is not active" }, { status: 403 });
+  }
+
+  if (companyUser.accountType !== "COMPANY") {
     return NextResponse.json(
       { error: "Only company accounts can delete jobs" },
       { status: 403 }

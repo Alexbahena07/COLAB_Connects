@@ -24,3 +24,23 @@ export async function requireAdmin(): Promise<RequireAdminResult> {
 
   return { userId: session.user.id };
 }
+
+/**
+ * A signed-in user's JWT only reflects `status` as of their last sign-in, so a
+ * user who gets deactivated/banned mid-session would otherwise keep write access
+ * until their token naturally expires. Call this with the session's user id at
+ * the top of any mutating route to re-check status against the database on
+ * every request. Returns a ready-to-return NextResponse on failure, or null.
+ */
+export async function requireActiveStatus(userId: string): Promise<NextResponse | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { status: true },
+  });
+
+  if (!user || user.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Your account is not active" }, { status: 403 });
+  }
+
+  return null;
+}

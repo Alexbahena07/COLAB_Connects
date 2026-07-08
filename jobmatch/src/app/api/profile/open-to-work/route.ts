@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 const Schema = z.object({ openToWork: z.boolean() });
 
@@ -15,6 +16,9 @@ export async function PATCH(req: Request) {
   if (session.user.accountType !== "STUDENT") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
 
   const parsed = Schema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {

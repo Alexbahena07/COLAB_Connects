@@ -3,7 +3,13 @@ import { requireAdmin } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
 
 function csvField(value: string | null | undefined): string {
-  const str = value ?? "";
+  let str = value ?? "";
+  // Neutralize formula-triggering prefixes (CSV/formula injection) — a name or
+  // headline starting with =, +, -, @, tab, or CR would otherwise be interpreted
+  // as a formula by Excel/Sheets when the exported file is opened.
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
   if (/[",\n]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }

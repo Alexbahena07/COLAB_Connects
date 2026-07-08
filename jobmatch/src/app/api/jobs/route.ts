@@ -85,11 +85,16 @@ export async function POST(request: Request) {
     select: {
       id: true,
       accountType: true,
+      status: true,
       companyProfile: { select: { approvalStatus: true } },
     },
   });
 
-  if (!companyUser || companyUser.accountType !== "COMPANY") {
+  if (!companyUser || companyUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Your account is not active" }, { status: 403 });
+  }
+
+  if (companyUser.accountType !== "COMPANY") {
     return NextResponse.json({ error: "Only company accounts can post jobs" }, { status: 403 });
   }
 

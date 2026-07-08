@@ -18,6 +18,12 @@ const toDateInput = (value: Date | null): string => {
   return value.toISOString().slice(0, 10);
 };
 
+// Work history only asks for month/year, not the exact day.
+const toMonthInput = (value: Date | null): string => {
+  if (!value) return "";
+  return value.toISOString().slice(0, 7);
+};
+
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -57,6 +63,7 @@ export async function GET() {
       firstName: profileWithResume?.firstName ?? "",
       lastName: profileWithResume?.lastName ?? "",
       headline: profileWithResume?.headline ?? "",
+      about: profileWithResume?.about ?? "",
       desiredLocation: profileWithResume?.desiredLocation ?? "",
     },
     resume:
@@ -84,8 +91,8 @@ export async function GET() {
     experiences: user.experiences.map((experience) => ({
       title: experience.title ?? "",
       company: experience.company ?? "",
-      startDate: toDateInput(experience.startDate),
-      endDate: toDateInput(experience.endDate),
+      startDate: toMonthInput(experience.startDate),
+      endDate: toMonthInput(experience.endDate),
       description: experience.description ?? "",
     })),
     skills: user.userSkills.map((userSkill) => ({

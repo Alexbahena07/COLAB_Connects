@@ -24,15 +24,29 @@ type CandidateDegree = {
   startDate: string | null;
   endDate: string | null;
 };
+type CandidateCertificate = {
+  id: string;
+  name: string | null;
+  issuer: string | null;
+  issuedAt: string | null;
+  expirationDate: string | null;
+  credentialId: string | null;
+  credentialUrl: string | null;
+};
 
 type Candidate = {
   id: string;
   name: string;
   email: string | null;
+  photoUrl: string | null;
   headline: string | null;
   desiredLocation: string | null;
+  openToWork: boolean;
+  resumeFileName: string | null;
+  resumeUrl: string | null;
   skills: CandidateSkill[];
   degrees: CandidateDegree[];
+  certificates: CandidateCertificate[];
   experiences: CandidateExperience[];
   yearsOutUndergrad: number | null;
   yearsOutGraduate: number | null;
@@ -375,13 +389,23 @@ export default function CompanyCandidatesPage() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
-                                active
-                                  ? "border-white/60 bg-white/25 text-white"
-                                  : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
-                              }`}>
-                                {getInitials(candidate.name)}
-                              </div>
+                              {candidate.photoUrl ? (
+                                <img
+                                  src={candidate.photoUrl}
+                                  alt={candidate.name}
+                                  className={`h-10 w-10 shrink-0 rounded-full border object-cover transition ${
+                                    active ? "border-white/60" : "border-white/30 group-hover:border-white/60"
+                                  }`}
+                                />
+                              ) : (
+                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
+                                  active
+                                    ? "border-white/60 bg-white/25 text-white"
+                                    : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
+                                }`}>
+                                  {getInitials(candidate.name)}
+                                </div>
+                              )}
                               <div>
                                 <h3 className="font-semibold text-white">{candidate.name}</h3>
                                 <p className="mt-0.5 text-xs text-white/70 group-hover:text-white/85">
@@ -389,11 +413,18 @@ export default function CompanyCandidatesPage() {
                                 </p>
                               </div>
                             </div>
-                            {saved ? (
-                              <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
-                                Saved
-                              </span>
-                            ) : null}
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                              {saved ? (
+                                <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                                  Saved
+                                </span>
+                              ) : null}
+                              {candidate.openToWork ? (
+                                <span className="rounded-md bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50">
+                                  Open to work
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                           <p className="mt-2 text-xs text-white/55 group-hover:text-white/70">
                             {candidate.desiredLocation ?? "Location not specified"}
@@ -444,11 +475,26 @@ export default function CompanyCandidatesPage() {
                 {/* LEFT — scrollable main content */}
                 <div className="min-h-0 flex-1 overflow-y-auto border-b border-border p-6 lg:border-b-0 lg:border-r">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
-                      {getInitials(selectedCandidate.name)}
-                    </div>
+                    {selectedCandidate.photoUrl ? (
+                      <img
+                        src={selectedCandidate.photoUrl}
+                        alt={selectedCandidate.name}
+                        className="h-14 w-14 shrink-0 rounded-full border border-brandBlue/40 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
+                        {getInitials(selectedCandidate.name)}
+                      </div>
+                    )}
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground">{selectedCandidate.name}</h2>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-2xl font-bold text-foreground">{selectedCandidate.name}</h2>
+                        {selectedCandidate.openToWork ? (
+                          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                            Open to work
+                          </span>
+                        ) : null}
+                      </div>
                       <p className="mt-1 text-sm text-muted">{selectedCandidate.headline ?? "No headline yet"}</p>
                     </div>
                   </div>
@@ -521,6 +567,40 @@ export default function CompanyCandidatesPage() {
                       </div>
                     )}
                   </div>
+
+                  <div className="mt-6 space-y-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Certificates</h3>
+                    {selectedCandidate.certificates.length === 0 ? (
+                      <p className="text-sm text-muted">No certificates listed.</p>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {selectedCandidate.certificates.map((certificate) => (
+                          <div key={certificate.id} className="rounded-xl border border-border bg-surface p-4">
+                            <p className="font-semibold text-brand">
+                              {certificate.credentialUrl ? (
+                                <a
+                                  href={certificate.credentialUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="underline underline-offset-4 hover:opacity-80"
+                                >
+                                  {certificate.name ?? "Certificate"}
+                                </a>
+                              ) : (
+                                certificate.name ?? "Certificate"
+                              )}
+                            </p>
+                            <p className="text-sm text-muted">{certificate.issuer ?? "Issuer not specified"}</p>
+                            <p className="mt-1 text-xs text-muted/70">
+                              {[formatDate(certificate.issuedAt), formatDate(certificate.expirationDate)]
+                                .filter(Boolean)
+                                .join(" – ") || "Dates not provided"}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* RIGHT — sticky sidebar */}
@@ -542,6 +622,18 @@ export default function CompanyCandidatesPage() {
                       {selectedCandidate.desiredLocation ? (
                         <p className="mt-1 text-sm text-muted">{selectedCandidate.desiredLocation}</p>
                       ) : null}
+                      {selectedCandidate.resumeUrl ? (
+                        <a
+                          href={selectedCandidate.resumeUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn-outline-brand mt-3 inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs"
+                        >
+                          View resume
+                        </a>
+                      ) : (
+                        <p className="mt-3 text-xs text-muted">No resume uploaded</p>
+                      )}
                     </div>
 
                     <div className="rounded-xl border border-border bg-surface p-4">

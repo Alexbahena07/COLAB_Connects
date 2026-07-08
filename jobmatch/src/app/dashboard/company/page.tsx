@@ -38,8 +38,10 @@ type ApplicantProfile = {
   id: string;
   name: string;
   email: string | null;
+  photoUrl: string | null;
   headline: string | null;
   desiredLocation: string | null;
+  openToWork: boolean;
   resumeFileName: string | null;
   resumeFileType: string | null;
   resumeUrl: string | null;
@@ -441,13 +443,23 @@ export default function CompanyDashboardPage() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
-                                active
-                                  ? "border-white/60 bg-white/25 text-white"
-                                  : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
-                              }`}>
-                                {getInitials(candidate.applicant.name)}
-                              </div>
+                              {candidate.applicant.photoUrl ? (
+                                <img
+                                  src={candidate.applicant.photoUrl}
+                                  alt={candidate.applicant.name}
+                                  className={`h-10 w-10 shrink-0 rounded-full border object-cover transition ${
+                                    active ? "border-white/60" : "border-white/30 group-hover:border-white/60"
+                                  }`}
+                                />
+                              ) : (
+                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
+                                  active
+                                    ? "border-white/60 bg-white/25 text-white"
+                                    : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
+                                }`}>
+                                  {getInitials(candidate.applicant.name)}
+                                </div>
+                              )}
                               <div>
                                 <h3 className="font-semibold text-white">{candidate.applicant.name}</h3>
                                 <p className="mt-0.5 text-xs text-white/70 group-hover:text-white/85">
@@ -455,11 +467,18 @@ export default function CompanyDashboardPage() {
                                 </p>
                               </div>
                             </div>
-                            {saved ? (
-                              <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
-                                Saved
-                              </span>
-                            ) : null}
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                              {saved ? (
+                                <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                                  Saved
+                                </span>
+                              ) : null}
+                              {candidate.applicant.openToWork ? (
+                                <span className="rounded-md bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50">
+                                  Open to work
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                           <p className="mt-2 text-xs text-white/55 group-hover:text-white/70">
                             {formatDate(candidate.submittedAt) || "Pending"}
@@ -493,11 +512,26 @@ export default function CompanyDashboardPage() {
                 {/* LEFT — scrollable main content */}
                 <div className="min-h-0 flex-1 overflow-y-auto border-b border-border p-6 lg:border-b-0 lg:border-r">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
-                      {getInitials(selectedApplicant.applicant.name)}
-                    </div>
+                    {selectedApplicant.applicant.photoUrl ? (
+                      <img
+                        src={selectedApplicant.applicant.photoUrl}
+                        alt={selectedApplicant.applicant.name}
+                        className="h-14 w-14 shrink-0 rounded-full border border-brandBlue/40 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
+                        {getInitials(selectedApplicant.applicant.name)}
+                      </div>
+                    )}
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground">{selectedApplicant.applicant.name}</h2>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-2xl font-bold text-foreground">{selectedApplicant.applicant.name}</h2>
+                        {selectedApplicant.applicant.openToWork ? (
+                          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                            Open to work
+                          </span>
+                        ) : null}
+                      </div>
                       <p className="mt-1 text-sm text-muted">{selectedApplicant.applicant.headline ?? "No headline yet"}</p>
                     </div>
                   </div>

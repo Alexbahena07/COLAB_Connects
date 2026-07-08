@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 const messagingApiUrl = process.env.MESSAGING_API_URL;
 
@@ -118,6 +119,9 @@ export async function POST(
   if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const statusError = await requireActiveStatus(user.id);
+  if (statusError) return statusError;
 
   if (!jobId) {
     return NextResponse.json({ error: "Job id is required" }, { status: 400 });

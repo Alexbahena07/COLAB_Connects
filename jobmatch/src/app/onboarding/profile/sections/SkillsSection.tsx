@@ -11,19 +11,25 @@ type Props = {
   register: UseFormRegister<FormData>;
 };
 
+const MAX_SKILLS = 10;
+
 export function SkillsSection({ control, register }: Props) {
   const { fields, append, remove } = useFieldArray({ control, name: "skills" });
+  const atLimit = fields.length >= MAX_SKILLS;
 
   return (
     <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Skills</h2>
-          <p className="mt-1 text-sm text-muted">Add skills and (optionally) years of experience.</p>
+          <p className="mt-1 text-sm text-muted">
+            Add skills and (optionally) years of experience. {fields.length}/{MAX_SKILLS} used.
+          </p>
         </div>
         <button
           type="button"
-          className="rounded-xl bg-brandBlue px-4 py-2 text-sm font-semibold text-white hover:opacity-95"
+          disabled={atLimit}
+          className="rounded-xl bg-brandBlue px-4 py-2 text-sm font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => append({ name: "", years: undefined })}
         >
           Add skill
@@ -33,8 +39,14 @@ export function SkillsSection({ control, register }: Props) {
       <div className="mt-5 space-y-5">
         {fields.length === 0 ? (
           <div className="rounded-2xl border border-border bg-surface px-4 py-4 text-sm text-muted">
-            No skills yet. Add 8–12 relevant skills to start.
+            No skills yet. Add 8–10 relevant skills to start.
           </div>
+        ) : null}
+
+        {atLimit ? (
+          <p className="text-xs font-medium text-brandBlue">
+            You've reached the 10 skill limit. Remove one to add another.
+          </p>
         ) : null}
 
         {fields.map((f, i) => (

@@ -63,7 +63,7 @@ export function WorkHistorySection({ control, register, setValue }: Props) {
                 />
                 <Input
                   label="Start"
-                  type="date"
+                  type="month"
                   labelClassName="text-foreground"
                   className="border-border bg-background text-foreground"
                   {...register(`experiences.${i}.startDate`)}
@@ -71,7 +71,7 @@ export function WorkHistorySection({ control, register, setValue }: Props) {
                 <div className="flex flex-col gap-1">
                   <Input
                     label="End"
-                    type="date"
+                    type="month"
                     labelClassName={isCurrent ? "text-muted" : "text-foreground"}
                     className={`border-border bg-background text-foreground ${isCurrent ? "opacity-40 cursor-not-allowed" : ""}`}
                     disabled={isCurrent}
@@ -96,12 +96,20 @@ export function WorkHistorySection({ control, register, setValue }: Props) {
                     Still working here
                   </button>
                 </div>
-                <Input
-                  label="Description"
-                  labelClassName="text-foreground"
-                  className="col-span-2 border-border bg-background text-foreground placeholder:text-muted"
-                  {...register(`experiences.${i}.description`)}
-                />
+                <div className="col-span-2 flex flex-col gap-1">
+                  <label
+                    htmlFor={`experience-description-${i}`}
+                    className="block text-sm font-medium text-foreground"
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    id={`experience-description-${i}`}
+                    rows={5}
+                    className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:ring-2 focus:ring-foreground/15"
+                    {...register(`experiences.${i}.description`)}
+                  />
+                </div>
                 <div className="col-span-2">
                   <button
                     type="button"
