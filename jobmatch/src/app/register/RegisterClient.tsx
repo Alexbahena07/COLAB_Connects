@@ -171,7 +171,7 @@ export default function RegisterClient() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accountType: data.accountType,
+        accountType: data.accountType.toUpperCase(),
         name: normalizedName,
         firstName: data.accountType === "company" ? undefined : normalizedFirstName,
         lastName: data.accountType === "company" ? undefined : normalizedLastName,

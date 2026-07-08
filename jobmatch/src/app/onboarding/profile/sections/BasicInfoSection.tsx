@@ -3,8 +3,8 @@
 import { type ChangeEvent, type RefObject } from "react";
 import { Controller, type Control, type UseFormRegister } from "react-hook-form";
 import Input from "@/components/ui/Input";
-import Autocomplete from "@/components/ui/Autocomplete";
-import { CITY_OPTIONS } from "../options";
+import LocationMultiSelect from "@/components/ui/LocationMultiSelect";
+import { US_STATE_OPTIONS } from "../options";
 import type { FormData } from "../schema";
 
 type Props = {
@@ -108,30 +108,34 @@ export function BasicInfoSection({
               className="border-border bg-background text-foreground placeholder:text-muted"
               {...register("profile.lastName")}
             />
-            <Input
-              label="Headline"
-              placeholder="e.g., Financial Analyst • FP&A • SQL"
-              labelClassName="text-foreground"
-              className={`border-border bg-background text-foreground placeholder:text-muted ${isEmbedded ? "col-span-2" : ""}`}
-              {...register("profile.headline")}
-            />
-            <div className={isEmbedded ? "col-span-2" : "md:col-span-3"}>
+            <div>
               <Controller
                 control={control}
                 name="profile.desiredLocation"
                 render={({ field }) => (
-                  <Autocomplete
+                  <LocationMultiSelect
                     label="Desired work location"
                     value={field.value || ""}
                     onChange={field.onChange}
-                    placeholder="Start typing a city"
-                    options={CITY_OPTIONS}
+                    options={US_STATE_OPTIONS}
                     labelClassName="text-foreground"
-                    inputClassName="border-border bg-background text-foreground placeholder:text-muted"
+                    inputClassName="border-border bg-background text-foreground"
                     panelClassName="border-border bg-surface"
-                    optionClassName="text-foreground hover:bg-surface"
+                    optionClassName="text-foreground hover:bg-border/30"
                   />
                 )}
+              />
+            </div>
+            <div className={isEmbedded ? "col-span-2" : "md:col-span-3"}>
+              <label className="block text-sm font-medium text-foreground" htmlFor="profile-headline">
+                Headline
+              </label>
+              <textarea
+                id="profile-headline"
+                rows={3}
+                placeholder="e.g., Financial Analyst • FP&A • SQL"
+                className="mt-1 w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:ring-2 focus:ring-foreground/15"
+                {...register("profile.headline")}
               />
             </div>
           </div>

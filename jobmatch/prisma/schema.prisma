@@ -14,6 +14,36 @@ enum AccountType {
   COMPANY
 }
 
+enum UserStatus {
+  ACTIVE
+  DEACTIVATED
+  BANNED
+}
+
+enum CompanyApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum JobStatus {
+  APPROVED
+  REJECTED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum EventApplicationStatus {
+  SUBMITTED
+  ACCEPTED
+  WAITLISTED
+  REJECTED
+}
+
 enum NotificationType {
   NEW_JOB
 }
@@ -35,6 +65,11 @@ model User {
   notificationFrequency NotificationFrequency @default(WEEKLY)
   linkedinUrl           String?
   linkedinId            String?               @unique
+  createdAt             DateTime              @default(now())
+  isAdmin               Boolean               @default(false)
+  status                UserStatus            @default(ACTIVE)
+  flagged               Boolean               @default(false)
+  flagNote              String?
 
   // Existing NextAuth relations
   accounts Account[]
@@ -61,6 +96,12 @@ model User {
 
   savedCandidates  SavedCandidate[] @relation("CompanySavedCandidates")
   savedByCompanies SavedCandidate[] @relation("CandidateSavedCandidates")
+
+  // Admin relations
+  companyProfilesApproved CompanyProfile[]    @relation("CompanyApprovedBy")
+  jobsReviewed            Job[]               @relation("JobReviewedBy")
+  eventsCreated           Event[]             @relation("EventCreatedBy")
+  eventApplications       EventApplication[]  @relation("EventApplicant")
 }
 
 model Account {
@@ -203,7 +244,14 @@ model CompanyProfile {
   hiringFocus  String?
   about        String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approvalStatus CompanyApprovalStatus @default(PENDING)
+  approvedAt     DateTime?
+  approvedById   String?
+
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approvedBy User? @relation("CompanyApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([approvalStatus])
 }
 
 enum JobType {
@@ -223,7 +271,12 @@ model Job {
   description String
   postedAt    DateTime @default(now())
 
+  status       JobStatus @default(APPROVED)
+  reviewedAt   DateTime?
+  reviewedById String?
+
   company      User             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reviewedBy   User?            @relation("JobReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
   skills       JobSkill[]
   applications JobApplication[]
 
@@ -233,6 +286,7 @@ model Job {
 
   @@index([companyId])
   @@index([postedAt])
+  @@index([status])
 }
 
 model JobSkill {
@@ -329,4 +383,43 @@ model Notification {
   @@index([companyId])
   @@index([jobId])
   @@index([readAt])
+}
+
+model Event {
+  id                 String      @id @default(cuid())
+  title              String
+  description        String
+  location           String?
+  isVirtual          Boolean     @default(false)
+  virtualUrl         String?
+  eventDate          DateTime
+  applicationOpenAt  DateTime?
+  applicationCloseAt DateTime?
+  status             EventStatus @default(DRAFT)
+  createdById        String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  createdBy    User               @relation("EventCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  applications EventApplication[]
+
+  @@index([createdById])
+  @@index([status])
+}
+
+model EventApplication {
+  id          String                 @id @default(cuid())
+  eventId     String
+  applicantId String
+  status      EventApplicationStatus @default(SUBMITTED)
+  notes       String?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  applicant User  @relation("EventApplicant", fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, applicantId])
+  @@index([eventId])
+  @@index([applicantId])
 }
