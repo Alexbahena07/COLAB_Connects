@@ -86,7 +86,7 @@ export default function CompanyProfilePhotoEditor({
             alt="Company profile photo"
             width={64}
             height={64}
-            className="h-16 w-16 object-cover"
+            className="h-16 w-16 max-w-none shrink-0 object-cover"
             unoptimized
           />
         ) : (
