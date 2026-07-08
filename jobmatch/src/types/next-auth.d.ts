@@ -6,6 +6,8 @@ declare module "next-auth" {
       id: string;
       linkedinConnected?: boolean;
       accountType?: "COMPANY" | "STUDENT";
+      isAdmin?: boolean;
+      status?: "ACTIVE" | "DEACTIVATED" | "BANNED";
     } & DefaultSession["user"];
   }
 
@@ -18,6 +20,8 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     accountType?: "COMPANY" | "STUDENT" | null;
+    isAdmin?: boolean;
+    status?: "ACTIVE" | "DEACTIVATED" | "BANNED";
     linkedinAccessToken?: string;
     linkedinRefreshToken?: string;
     linkedinAccessTokenExpires?: number;

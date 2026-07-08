@@ -3,7 +3,7 @@
 import { Controller, useFieldArray, type Control, type UseFormRegister } from "react-hook-form";
 import Input from "@/components/ui/Input";
 import Autocomplete from "@/components/ui/Autocomplete";
-import { SCHOOL_OPTIONS } from "../options";
+import { SCHOOL_OPTIONS, DEGREE_OPTIONS } from "../options";
 import type { FormData } from "../schema";
 
 type Props = {
@@ -59,11 +59,22 @@ export function DegreesSection({ control, register }: Props) {
                   )}
                 />
               </div>
-              <Input
-                label="Degree"
-                labelClassName="text-foreground"
-                className="border-border bg-background text-foreground placeholder:text-muted"
-                {...register(`degrees.${i}.degree`)}
+              <Controller
+                control={control}
+                name={`degrees.${i}.degree`}
+                render={({ field }) => (
+                  <Autocomplete
+                    label="Degree"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="e.g. Bachelor of Science"
+                    options={DEGREE_OPTIONS}
+                    labelClassName="text-foreground"
+                    inputClassName="border-border bg-background text-foreground placeholder:text-muted"
+                    panelClassName="border-border bg-surface"
+                    optionClassName="text-foreground hover:bg-surface"
+                  />
+                )}
               />
               <Input
                 label="Field"

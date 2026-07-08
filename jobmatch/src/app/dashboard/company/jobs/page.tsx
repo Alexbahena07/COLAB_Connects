@@ -32,6 +32,7 @@ type CompanyJob = {
   description: string;
   postedAt: string;
   skills: string[];
+  status: "APPROVED" | "REJECTED";
 };
 
 const defaultFormState: JobFormState = {
@@ -88,6 +89,7 @@ const parseJob = (job: unknown): CompanyJob | null => {
     description,
     postedAt,
     skills,
+    status: raw.status === "REJECTED" ? "REJECTED" : "APPROVED",
   };
 };
 
@@ -408,7 +410,14 @@ export default function CompanyJobsPage() {
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0 space-y-0.5">
-                            <h3 className="truncate text-base font-semibold text-foreground">{job.title}</h3>
+                            <h3 className="flex items-center gap-2 truncate text-base font-semibold text-foreground">
+                              {job.title}
+                              {job.status === "REJECTED" ? (
+                                <span className="shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-700">
+                                  Removed by admin
+                                </span>
+                              ) : null}
+                            </h3>
                             <p className="text-xs text-muted">
                               {job.location}
                               <span className="mx-1.5 text-border">·</span>

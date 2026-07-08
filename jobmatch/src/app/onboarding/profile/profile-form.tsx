@@ -29,7 +29,7 @@ export default function ProfileForm({ redirectTo = "/dashboard", isEmbedded = fa
   const avatar = useAvatarUpload();
   const resume = useResumeUpload();
 
-  const { register, control, handleSubmit, formState: { isSubmitting }, reset } = useForm<FormData>({
+  const { register, control, handleSubmit, setValue, formState: { isSubmitting }, reset } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
     defaultValues: DEFAULT_VALUES,
   });
@@ -185,15 +185,38 @@ export default function ProfileForm({ redirectTo = "/dashboard", isEmbedded = fa
           onCancelRemoval={resume.cancelResumeRemoval}
         />
         <DegreesSection control={control} register={register} />
-        <CertificatesSection control={control} register={register} />
-        <WorkHistorySection control={control} register={register} />
+        <WorkHistorySection control={control} register={register} setValue={setValue} />
         <SkillsSection control={control} register={register} />
+        <CertificatesSection control={control} register={register} />
 
         {saveError ? (
           <p className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
             {saveError}
           </p>
         ) : null}
+
+        {!isEmbedded && (
+          <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="text-sm text-muted">
+                <span className="font-semibold text-foreground">You can always edit this later.</span>{" "}
+                Employers see your profile as soon as you save.
+              </p>
+              <button
+                type="submit"
+                disabled={formDisabled}
+                className="inline-flex items-center gap-2 rounded-xl bg-brandBlue px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+              >
+                {isSubmitting ? "Saving…" : "Save and continue"}
+                {!isSubmitting && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </form>
     </>
   );
@@ -219,14 +242,29 @@ export default function ProfileForm({ redirectTo = "/dashboard", isEmbedded = fa
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-6 py-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">Onboarding</p>
-          <h1 className="mt-2 font-serif text-3xl font-bold text-brand md:text-4xl">
-            Build a profile companies can trust.
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm text-foreground/75">
-            Add the basics now—then refine later. We keep everything structured so employers can scan fast.
-          </p>
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">Onboarding</p>
+            <h1 className="mt-2 font-serif text-3xl font-bold text-brand md:text-4xl">
+              Build a profile companies can trust.
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm text-foreground/75">
+              Add the basics now—then refine later. We keep everything structured so employers can scan fast.
+            </p>
+          </div>
+          <button
+            type="submit"
+            form="profile-form"
+            disabled={formDisabled}
+            className="inline-flex items-center gap-2 rounded-xl bg-brandBlue px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+          >
+            {isSubmitting ? "Saving…" : "Save and continue"}
+            {!isSubmitting && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-6 py-10">

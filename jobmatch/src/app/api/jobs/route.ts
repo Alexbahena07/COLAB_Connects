@@ -29,8 +29,10 @@ export async function GET(request: Request) {
     companyIdFilter = session.user.id;
   }
 
+  // The public/student feed only shows jobs an admin hasn't rejected. Companies
+  // viewing their own listings (scope=mine) see everything, including rejected.
   const jobs = await prisma.job.findMany({
-    where: companyIdFilter ? { companyId: companyIdFilter } : undefined,
+    where: companyIdFilter ? { companyId: companyIdFilter } : { status: "APPROVED" },
     orderBy: { postedAt: "desc" },
     include: {
       company: {
@@ -64,6 +66,7 @@ export async function GET(request: Request) {
     remote: job.remote,
     description: job.description,
     postedAt: job.postedAt.toISOString(),
+    status: job.status,
     skills: job.skills.map((jobSkill) => jobSkill.skill.name),
   }));
 
@@ -82,11 +85,19 @@ export async function POST(request: Request) {
     select: {
       id: true,
       accountType: true,
+      companyProfile: { select: { approvalStatus: true } },
     },
   });
 
   if (!companyUser || companyUser.accountType !== "COMPANY") {
     return NextResponse.json({ error: "Only company accounts can post jobs" }, { status: 403 });
+  }
+
+  if (companyUser.companyProfile?.approvalStatus !== "APPROVED") {
+    return NextResponse.json(
+      { error: "Your company account is pending admin approval before you can post jobs" },
+      { status: 403 }
+    );
   }
 
   const parsedPayload = createJobSchema.safeParse(await request.json().catch(() => ({})));
