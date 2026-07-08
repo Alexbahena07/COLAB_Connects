@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 const getCompanyUser = async (userId: string) => {
   const user = await prisma.user.findUnique({
@@ -39,6 +40,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
+
   const companyUser = await getCompanyUser(session.user.id);
   if (!companyUser) {
     return NextResponse.json(
@@ -70,6 +74,9 @@ export async function DELETE(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
 
   const companyUser = await getCompanyUser(session.user.id);
   if (!companyUser) {

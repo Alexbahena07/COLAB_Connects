@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 const CompanyProfileSchema = z.object({
   companyName: z.string().min(1, "Company name is required").max(200),
@@ -66,6 +67,9 @@ export async function PUT(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
 
   const companyUser = await prisma.user.findUnique({
     where: { id: session.user.id },

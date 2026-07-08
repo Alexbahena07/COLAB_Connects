@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 type MessageRequestPayload = {
   applicantId: string;
@@ -18,6 +19,9 @@ export async function POST(request: Request) {
   if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const statusError = await requireActiveStatus(user.id);
+  if (statusError) return statusError;
 
   const body = (await request.json().catch(() => null)) as Partial<MessageRequestPayload> | null;
 

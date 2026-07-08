@@ -146,6 +146,7 @@ model Profile {
   firstName       String?
   lastName        String?
   headline        String?
+  about           String?
   desiredLocation String?
   resumeFileName  String?
   resumeFileType  String?

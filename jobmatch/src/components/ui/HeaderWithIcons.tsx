@@ -22,7 +22,7 @@ export default function Header() {
               src="/COLAB_logo_reverse.png"
               alt="COLAB connects logo"
               width={180}
-              height={40}
+              height={65}
               priority
               style={{ width: "180px", height: "auto" }}
             />
@@ -33,7 +33,7 @@ export default function Header() {
               src="/COLAB_logo_reverse.png"
               alt="COLAB connects logo"
               width={180}
-              height={40}
+              height={65}
               priority
               style={{ width: "180px", height: "auto" }}
             />

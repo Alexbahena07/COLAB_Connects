@@ -5,6 +5,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fetchLinkedInPreview } from "@/lib/linkedin";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 const CommitSchema = z.object({
   experienceIds: z.array(z.string()).optional(),
@@ -26,6 +27,9 @@ export async function POST(request: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
 
   const token = await getToken({ req: request });
   const accessToken = (token as { linkedinAccessToken?: string } | null)?.linkedinAccessToken;

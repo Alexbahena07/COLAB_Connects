@@ -18,6 +18,7 @@ export default function Footer() {
                 src="/COLAB_logo_reverse.png"
                 alt="COLAB Connects logo"
                 fill
+                sizes="128px"
                 className="object-contain"
               />
             </div>

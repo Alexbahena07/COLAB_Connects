@@ -165,9 +165,12 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
                     href={website}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-brandBlue underline underline-offset-4 hover:opacity-80"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
                   >
-                    {website}
+                    Visit
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+                      <path d="M7 17 17 7M7 7h10v10" />
+                    </svg>
                   </a>
                 ) : (
                   <span className="text-muted">Not provided</span>

@@ -196,7 +196,7 @@ export default function RegisterClient() {
     if (signin && !signin.error) {
       const nextRoute =
         data.accountType === "company"
-          ? "/dashboard/company/candidates"
+          ? "/dashboard/company/profile"
           : "/onboarding/profile";
       router.push(nextRoute);
     } else {

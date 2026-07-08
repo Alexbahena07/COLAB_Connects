@@ -106,6 +106,7 @@ export default async function StudentProfilePage() {
           firstName: true,
           lastName: true,
           headline: true,
+          about: true,
           desiredLocation: true,
           resumeFileName: true,
           resumeFileType: true,
@@ -181,10 +182,7 @@ export default async function StudentProfilePage() {
       years: userSkill.years,
     })) ?? [];
 
-  const aboutText = headline;
-  const topSkills = [...skills]
-    .sort((a, b) => (b.years ?? 0) - (a.years ?? 0))
-    .slice(0, 3);
+  const aboutText = profile?.about?.trim() ?? "";
 
   return (
     <>
@@ -266,13 +264,15 @@ export default async function StudentProfilePage() {
             <section className="space-y-6">
               <SectionCard title="About" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}>
                 {aboutText ? (
-                  <p className="text-sm leading-relaxed text-foreground/90">
-                    {aboutText}
-                  </p>
+                  <div className="space-y-1.5 text-sm leading-relaxed text-foreground/90">
+                    {aboutText.split("\n").map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
                 ) : (
                   <p className="text-sm text-foreground/70">
                     Share a short introduction that highlights your goals, strengths, and what you are looking for
-                    next. Use Edit Profile to add a headline or summary.
+                    next. Use Edit Profile to add an About summary.
                   </p>
                 )}
               </SectionCard>
@@ -322,7 +322,7 @@ export default async function StudentProfilePage() {
                       const description = experience.description?.trim();
                       return (
                         <li key={experience.id} className="relative">
-                          <span className="absolute -left-[9px] top-2 h-3 w-3 rounded-full border border-brandBlue bg-surface" />
+                          <span className="absolute -left-6.5 top-2 h-3 w-3 rounded-full border border-brandBlue bg-surface" />
                           <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
                             <h3 className="text-sm font-semibold text-brand">
                               {experience.title || "Role"}
@@ -345,39 +345,6 @@ export default async function StudentProfilePage() {
                 ) : (
                   <p className="text-sm text-foreground/70">
                     Add internships, part-time roles, or meaningful projects to show how you apply your skills in practice.
-                  </p>
-                )}
-              </SectionCard>
-
-              <SectionCard title="Education" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>}>
-                {degrees.length ? (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {degrees.map((degree) => {
-                      const period = rangeLabel(degree.startDate, degree.endDate);
-                      const subtitle = [degree.degree, degree.field].filter(Boolean).join(" · ");
-                      return (
-                        <div
-                          key={degree.id}
-                          className="rounded-2xl border border-border bg-surface p-4 shadow-sm"
-                        >
-                          <h3 className="text-sm font-semibold text-brand">
-                            {degree.school || "Institution"}
-                          </h3>
-                          {subtitle ? (
-                            <p className="mt-1 text-xs text-foreground/80">{subtitle}</p>
-                          ) : null}
-                          {period ? (
-                            <p className="mt-1 text-[11px] uppercase tracking-wide text-foreground/60">
-                              {period}
-                            </p>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-foreground/70">
-                    Include your degree programs so recruiters know your academic background.
                   </p>
                 )}
               </SectionCard>
@@ -425,27 +392,6 @@ export default async function StudentProfilePage() {
                 )}
               </SectionCard>
 
-              <SectionCard title="Skills" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>}>
-                {skills.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((skill) => (
-                      <span
-                        key={skill.id}
-                        className="flex items-center gap-1 rounded-full bg-brandBlue px-3 py-1 text-xs font-semibold text-white shadow-sm"
-                      >
-                        {skill.name}
-                        {typeof skill.years === "number" ? (
-                          <span className="text-[10px] font-normal opacity-80">{skill.years}y</span>
-                        ) : null}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-foreground/70">
-                    Add skills so companies can quickly see where you excel.
-                  </p>
-                )}
-              </SectionCard>
             </section>
 
             {/* Right column */}
@@ -456,54 +402,63 @@ export default async function StudentProfilePage() {
                   Contact
                 </h3>
                 <p className="mt-2 text-sm text-white/90">{session.user.email}</p>
-                <div className="mt-4 border-t border-dashed border-white/40 pt-4">
-                  <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    Top skills
-                  </h4>
-                  {topSkills.length ? (
-                    <ul className="mt-3 space-y-2 text-sm">
-                      {topSkills.map((skill) => (
-                        <li
-                          key={skill.id}
-                          className="flex items-center justify-between rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-white shadow-sm"
-                        >
-                          <span>{skill.name}</span>
-                          {typeof skill.years === "number" ? (
-                            <span className="text-[10px] uppercase tracking-wide text-white/70">
-                              {skill.years} yrs
-                            </span>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-2 text-sm text-white/80">
-                      Add skills to spotlight your strengths.
-                    </p>
-                  )}
-                </div>
               </div>
 
               <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
                 <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
-                  Suggested improvements
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+                  Education
                 </h3>
-                <ul className="mt-3 space-y-2 text-sm text-white/90">
-                  <li className="flex items-start gap-2">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/70" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-                    <span>Add an "About" summary to share your story.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/70" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-                    <span>Upload coursework or projects under Experience.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/70" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-                    <span>List certifications that validate your expertise.</span>
-                  </li>
-                </ul>
+                {degrees.length ? (
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {degrees.map((degree) => {
+                      const period = rangeLabel(degree.startDate, degree.endDate);
+                      const subtitle = [degree.degree, degree.field].filter(Boolean).join(" · ");
+                      return (
+                        <li
+                          key={degree.id}
+                          className="rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-white shadow-sm"
+                        >
+                          <p className="font-semibold">{degree.school || "Institution"}</p>
+                          {subtitle ? <p className="text-xs text-white/80">{subtitle}</p> : null}
+                          {period ? (
+                            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/70">{period}</p>
+                          ) : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-white/80">
+                    Add your education to showcase your academic background.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  Skills
+                </h3>
+                {skills.length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {skills.map((skill) => (
+                      <span
+                        key={skill.id}
+                        className="flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white shadow-sm"
+                      >
+                        {skill.name}
+                        {typeof skill.years === "number" ? (
+                          <span className="text-[10px] font-normal text-white/70">{skill.years}y</span>
+                        ) : null}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-white/80">
+                    Add skills so companies can quickly see where you excel.
+                  </p>
+                )}
               </div>
             </aside>
           </div>

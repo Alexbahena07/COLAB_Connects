@@ -138,10 +138,23 @@ export function BasicInfoSection({
                 {...register("profile.headline")}
               />
             </div>
+            <div className={isEmbedded ? "col-span-2" : "md:col-span-3"}>
+              <label className="block text-sm font-medium text-foreground" htmlFor="profile-about">
+                About
+              </label>
+              <textarea
+                id="profile-about"
+                rows={5}
+                placeholder="Share your story — your goals, strengths, and what you're looking for next."
+                className="mt-1 w-full resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted focus:ring-2 focus:ring-foreground/15"
+                {...register("profile.about")}
+              />
+            </div>
           </div>
 
           <div className="mt-4 rounded-2xl border border-brandBlue/20 bg-brandBlue/5 px-4 py-3 text-xs text-foreground/70">
             Your headline is what recruiters scan first—lead with role + tools (ex: "Analyst • Excel • SQL").
+            Use About to go deeper into your story.
           </div>
         </div>
       </div>

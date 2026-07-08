@@ -2,11 +2,15 @@ import { put } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;

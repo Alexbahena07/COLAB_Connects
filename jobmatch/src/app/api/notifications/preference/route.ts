@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireActiveStatus } from "@/lib/auth-guards";
 
 type NotificationFrequency = "NONE" | "DAILY" | "WEEKLY";
 
@@ -31,6 +32,9 @@ export async function PATCH(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
 
   const body = (await request.json().catch(() => null)) as { frequency?: unknown } | null;
   if (!body || !isValidFrequency(body.frequency)) {
