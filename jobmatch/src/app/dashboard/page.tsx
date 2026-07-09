@@ -7,6 +7,18 @@ import Button from "@/components/ui/Button";
 import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
+type EventPost = {
+  id: string;
+  title: string;
+  about: string;
+  link: string | null;
+  linkLabel: string | null;
+  imageUrl: string | null;
+  companyId: string;
+  companyName: string;
+  companyImage: string | null;
+};
+
 type Job = {
   id: string;
   title: string;
@@ -85,6 +97,28 @@ export default function DashboardPage() {
   const [applyError, setApplyError] = useState<string | null>(null);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
+
+  const [events, setEvents] = useState<EventPost[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadEvents = async () => {
+      try {
+        const response = await fetch("/api/events", { cache: "no-store" });
+        const payload = await response.json().catch(() => null);
+        if (!active) return;
+        if (response.ok && Array.isArray(payload?.posts)) {
+          setEvents(payload.posts);
+        }
+      } catch (error) {
+        console.error("Unable to load company events", error);
+      }
+    };
+    loadEvents();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -442,6 +476,51 @@ export default function DashboardPage() {
             ) : null}
           </div>
         </div>
+
+        {events.length > 0 ? (
+          <div className="shrink-0 border-b border-border bg-surface">
+            <div className="mx-auto w-full max-w-6xl px-4 py-4">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">
+                Company events
+              </h2>
+              <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                {events.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex w-72 shrink-0 gap-3 rounded-2xl border border-border bg-background p-3"
+                  >
+                    {event.imageUrl ? (
+                      <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="h-14 w-14 shrink-0 rounded-xl border border-border object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-brand/10 text-sm font-bold text-brand">
+                        {event.companyName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">{event.title}</p>
+                      <p className="truncate text-xs text-muted">{event.companyName}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{event.about}</p>
+                      {event.link ? (
+                        <a
+                          href={event.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 inline-flex items-center rounded-full bg-brandBlue px-3 py-1 text-xs font-semibold text-white transition hover:opacity-90"
+                        >
+                          {event.linkLabel || "Learn more"}
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:flex-row">
         <aside

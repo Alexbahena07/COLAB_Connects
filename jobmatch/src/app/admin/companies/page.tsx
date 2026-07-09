@@ -5,6 +5,8 @@ import Button from "@/components/ui/Button";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { Table, TableHead, TableBody, Th, Td } from "@/components/ui/Table";
 
+type SponsorTier = "FREE" | "SILVER" | "GOLD" | "PLATINUM";
+
 type AdminCompany = {
   userId: string;
   companyName: string;
@@ -12,6 +14,7 @@ type AdminCompany = {
   headquarters: string | null;
   teamSize: string | null;
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  sponsorTier: SponsorTier | null;
   approvedAt: string | null;
   approvedByName: string | null;
   user: { id: string; name: string | null; email: string | null; status: string; createdAt: string };
@@ -25,12 +28,21 @@ const TAB_LABELS: Record<(typeof TABS)[number], string> = {
   "": "All",
 };
 
+const SPONSOR_TIERS: SponsorTier[] = ["FREE", "SILVER", "GOLD", "PLATINUM"];
+const SPONSOR_TIER_LABELS: Record<SponsorTier, string> = {
+  FREE: "Free",
+  SILVER: "Silver",
+  GOLD: "Gold",
+  PLATINUM: "Platinum",
+};
+
 export default function AdminCompaniesPage() {
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<(typeof TABS)[number]>("PENDING");
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [tierBusyUserId, setTierBusyUserId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -67,6 +79,23 @@ export default function AdminCompaniesPage() {
       setError(err instanceof Error ? err.message : "Failed to update approval status");
     } finally {
       setBusyUserId(null);
+    }
+  };
+
+  const setSponsorTier = async (userId: string, sponsorTier: SponsorTier) => {
+    setTierBusyUserId(userId);
+    try {
+      const res = await fetch(`/api/admin/companies/${userId}/sponsor-tier`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sponsorTier }),
+      });
+      if (!res.ok) throw new Error("Failed to update sponsor tier");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update sponsor tier");
+    } finally {
+      setTierBusyUserId(null);
     }
   };
 
@@ -107,6 +136,7 @@ export default function AdminCompaniesPage() {
             <Th>Website</Th>
             <Th>Signed up</Th>
             <Th>Status</Th>
+            <Th>Sponsor tier</Th>
             <Th>Actions</Th>
           </TableHead>
           <TableBody>
@@ -130,6 +160,20 @@ export default function AdminCompaniesPage() {
                 <Td>{new Date(c.user.createdAt).toLocaleDateString()}</Td>
                 <Td>
                   <StatusBadge status={c.approvalStatus} />
+                </Td>
+                <Td>
+                  <select
+                    value={c.sponsorTier ?? "FREE"}
+                    disabled={tierBusyUserId === c.userId}
+                    onChange={(e) => setSponsorTier(c.userId, e.target.value as SponsorTier)}
+                    className="h-9 rounded-lg border border-border bg-background px-2 text-sm text-foreground outline-none focus:border-brand disabled:opacity-60"
+                  >
+                    {SPONSOR_TIERS.map((tier) => (
+                      <option key={tier} value={tier}>
+                        {SPONSOR_TIER_LABELS[tier]}
+                      </option>
+                    ))}
+                  </select>
                 </Td>
                 <Td>
                   <div className="flex gap-2">

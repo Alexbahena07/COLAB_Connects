@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import CompanyEditDrawer from "@/components/profile/CompanyEditDrawer";
 import ProfileHeroActions from "@/components/profile/ProfileHeroActions";
+import CompanyEventPostsManager from "@/components/company/CompanyEventPostsManager";
+import { getEffectiveSponsorTier } from "@/lib/sponsorTier";
 import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
@@ -54,6 +57,7 @@ export default async function CompanyProfilePage() {
           teamSize: true,
           hiringFocus: true,
           about: true,
+          sponsorTier: true,
         },
       },
     },
@@ -67,6 +71,8 @@ export default async function CompanyProfilePage() {
   const teamSize = cp?.teamSize?.trim() ?? null;
   const hiringFocus = cp?.hiringFocus?.trim() ?? null;
   const about = cp?.about?.trim() ?? null;
+  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), cp?.sponsorTier);
+  const canPostEvents = sponsorTier === "GOLD" || sponsorTier === "PLATINUM";
 
   return (
     <>
@@ -150,7 +156,7 @@ export default async function CompanyProfilePage() {
               </SectionCard>
 
               <SectionCard
-                title="Job Board"
+                title="Events"
                 icon={
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                     <rect x="3" y="7" width="18" height="14" rx="2"/>
@@ -158,9 +164,30 @@ export default async function CompanyProfilePage() {
                   </svg>
                 }
               >
-                <p className="text-sm text-foreground/70">
-                  This is where the job board is displayed for scholars.
-                </p>
+                {canPostEvents ? (
+                  <CompanyEventPostsManager />
+                ) : (
+                  <div className="rounded-2xl border border-border bg-background p-6 text-center">
+                    <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
+                        <rect x="3" y="7" width="18" height="14" rx="2"/>
+                        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/>
+                      </svg>
+                    </span>
+                    <h3 className="mt-3 text-base font-bold text-foreground">Posting events is a Gold+ sponsor feature</h3>
+                    <p className="mt-2 text-sm text-foreground/70">
+                      Event posts let you promote recruiting nights, info sessions, and other events
+                      directly on the student job listings page. It&apos;s available to Gold and
+                      Platinum sponsors.
+                    </p>
+                    <Link
+                      href="/dashboard/company/application#sponsorship"
+                      className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                      See sponsorship tiers
+                    </Link>
+                  </div>
+                )}
               </SectionCard>
             </section>
 

@@ -3,7 +3,6 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/HeaderWithIcons";
 
 type ApplicantSkill = { name: string; years: number | null };
 type ApplicantExperience = {
@@ -120,7 +119,7 @@ export default function CompanyDashboardPage() {
   const [jobsError, setJobsError] = useState<string | null>(null);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
-  const [applications, setApplications] = useState<ApplicantApplication[]>([]);
+  const [allApplications, setAllApplications] = useState<ApplicantApplication[]>([]);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [savedApplicationIds, setSavedApplicationIds] = useState<Set<string>>(new Set());
   const [applicantsError, setApplicantsError] = useState<string | null>(null);
@@ -128,64 +127,16 @@ export default function CompanyDashboardPage() {
 
   const [showSavedOnly, setShowSavedOnly] = useState(false);
 
+  // Jobs and applicants used to be two sequential requests (load jobs, wait,
+  // then load applicants for whichever job ended up selected). They're
+  // independent of each other, so a single endpoint now loads both at once.
   useEffect(() => {
     let active = true;
-    const loadJobs = async () => {
+    const load = async () => {
       setIsLoadingJobs(true);
-      try {
-        const response = await fetch("/api/jobs?scope=mine", { cache: "no-store" });
-        const payload = await response.json().catch(() => null);
-        if (!active) return;
-
-        if (response.ok && Array.isArray(payload?.jobs)) {
-          const parsed = payload.jobs
-            .map((job: unknown): JobListing | null => parseJobListing(job))
-            .filter((job: JobListing | null): job is JobListing => job !== null);
-
-          setJobs(parsed);
-          setJobsError(null);
-          setSelectedJobId((current) =>
-          parsed.some((job: JobListing) => job.id === current) ? current : parsed[0]?.id ?? "");
-
-        } else {
-          setJobs([]);
-          const errorMessage =
-            typeof payload?.error === "string"
-              ? payload.error
-              : "We couldn't load your job listings.";
-          setJobsError(errorMessage);
-        }
-      } catch (error) {
-        console.error("Unable to load company jobs", error);
-        if (!active) return;
-        setJobsError("We couldn't load your job listings.");
-        setJobs([]);
-      } finally {
-        if (active) {
-          setIsLoadingJobs(false);
-        }
-      }
-    };
-
-    loadJobs();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!selectedJobId) {
-      setApplications([]);
-      setSelectedApplicationId(null);
-      return;
-    }
-
-    let active = true;
-    const loadApplicants = async () => {
       setIsLoadingApplicants(true);
-      setApplicantsError(null);
       try {
-        const response = await fetch(`/api/jobs/${selectedJobId}/applicants`, { cache: "no-store" });
+        const response = await fetch("/api/jobs/mine/applicants", { cache: "no-store" });
         const payload = await response.json().catch(() => null);
         if (!active) return;
 
@@ -193,49 +144,63 @@ export default function CompanyDashboardPage() {
           const errorMessage =
             typeof payload?.error === "string"
               ? payload.error
-              : "We couldn't load applicants for this job.";
+              : "We couldn't load your job listings.";
+          setJobsError(errorMessage);
           setApplicantsError(errorMessage);
-          setApplications([]);
-          setSelectedApplicationId(null);
+          setJobs([]);
+          setAllApplications([]);
+          setSelectedJobId("");
           return;
         }
 
+        const parsedJobs: JobListing[] = Array.isArray(payload?.jobs)
+          ? payload.jobs
+              .map((job: unknown): JobListing | null => parseJobListing(job))
+              .filter((job: JobListing | null): job is JobListing => job !== null)
+          : [];
+
         const parsedApplicants: ApplicantApplication[] = Array.isArray(payload?.applicants)
-        ? payload.applicants
-            .map((application: unknown) =>
-              parseApplicantApplication(application, selectedJobId)
-            )
-            .filter(
-              (application: ApplicantApplication | null): application is ApplicantApplication =>
-                application !== null
-            )
-        : [];
+          ? payload.applicants
+              .map((application: unknown) => parseApplicantApplication(application, ""))
+              .filter(
+                (application: ApplicantApplication | null): application is ApplicantApplication =>
+                  application !== null
+              )
+          : [];
 
-
-        setApplications(parsedApplicants);
-        setSelectedApplicationId((current) =>
-          parsedApplicants.some((app) => app.applicationId === current)
-            ? current
-            : parsedApplicants[0]?.applicationId ?? null
+        setJobs(parsedJobs);
+        setJobsError(null);
+        setAllApplications(parsedApplicants);
+        setApplicantsError(null);
+        setSelectedJobId((current) =>
+          parsedJobs.some((job: JobListing) => job.id === current) ? current : parsedJobs[0]?.id ?? ""
         );
       } catch (error) {
         console.error("Unable to load applicants", error);
         if (!active) return;
-        setApplicantsError("We couldn't load applicants for this job.");
-        setApplications([]);
-        setSelectedApplicationId(null);
+        const message = "We couldn't load your job listings.";
+        setJobsError(message);
+        setApplicantsError(message);
+        setJobs([]);
+        setAllApplications([]);
       } finally {
         if (active) {
+          setIsLoadingJobs(false);
           setIsLoadingApplicants(false);
         }
       }
     };
 
-    loadApplicants();
+    load();
     return () => {
       active = false;
     };
-  }, [selectedJobId]);
+  }, []);
+
+  const applications = useMemo(
+    () => allApplications.filter((application) => application.jobId === selectedJobId),
+    [allApplications, selectedJobId]
+  );
 
   const skillOptions = useMemo(() => {
   const unique = new Set<string>();
@@ -316,8 +281,6 @@ export default function CompanyDashboardPage() {
     name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <Header />
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
 
         {/* Filter bar */}
@@ -447,12 +410,12 @@ export default function CompanyDashboardPage() {
                                 <img
                                   src={candidate.applicant.photoUrl}
                                   alt={candidate.applicant.name}
-                                  className={`h-10 w-10 shrink-0 rounded-full border object-cover transition ${
+                                  className={`h-10 w-10 shrink-0 rounded-xl border object-cover transition ${
                                     active ? "border-white/60" : "border-white/30 group-hover:border-white/60"
                                   }`}
                                 />
                               ) : (
-                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
+                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-xs font-semibold transition ${
                                   active
                                     ? "border-white/60 bg-white/25 text-white"
                                     : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -516,10 +479,10 @@ export default function CompanyDashboardPage() {
                       <img
                         src={selectedApplicant.applicant.photoUrl}
                         alt={selectedApplicant.applicant.name}
-                        className="h-14 w-14 shrink-0 rounded-full border border-brandBlue/40 object-cover"
+                        className="h-14 w-14 shrink-0 rounded-xl border border-brandBlue/40 object-cover"
                       />
                     ) : (
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
                         {getInitials(selectedApplicant.applicant.name)}
                       </div>
                     )}
@@ -668,6 +631,5 @@ export default function CompanyDashboardPage() {
           </section>
         </div>
       </main>
-    </div>
   );
 }
