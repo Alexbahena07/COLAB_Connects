@@ -29,7 +29,7 @@ export function ResumeSection({
   onCancelRemoval,
 }: Props) {
   return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+    <section className="rounded-3xl border border-border bg-surface p-4 shadow-sm ring-1 ring-black/5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Resume (PDF)</h2>

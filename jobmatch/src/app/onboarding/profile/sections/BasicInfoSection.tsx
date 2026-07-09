@@ -29,7 +29,7 @@ export function BasicInfoSection({
   onAvatarChange,
 }: Props) {
   return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+    <section className="rounded-3xl border border-border bg-surface p-4 shadow-sm ring-1 ring-black/5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Basic info</h2>
@@ -39,7 +39,7 @@ export function BasicInfoSection({
 
       <div className={`mt-6 grid gap-6 ${isEmbedded ? "" : "lg:grid-cols-[360px_1fr]"}`}>
         {/* Avatar card */}
-        <div className="rounded-3xl border border-white/10 bg-brand p-5 ring-1 ring-white/10">
+        <div className="rounded-3xl border border-white/10 bg-brand p-4 ring-1 ring-white/10 sm:p-5">
           <div>
             <p className="text-sm font-semibold text-white">Profile photo</p>
             <p className="mt-1 text-xs text-white/70">Upload a photo and crop it to look your best.</p>
@@ -94,8 +94,8 @@ export function BasicInfoSection({
         </div>
 
         {/* Profile fields */}
-        <div className="rounded-3xl border border-border bg-surface p-5 ring-1 ring-black/5">
-          <div className={`grid gap-4 ${isEmbedded ? "grid-cols-2" : "md:grid-cols-3"}`}>
+        <div className="rounded-3xl border border-border bg-surface p-4 ring-1 ring-black/5 sm:p-5">
+          <div className={`grid gap-4 ${isEmbedded ? "grid-cols-1 sm:grid-cols-2" : "md:grid-cols-3"}`}>
             <Input
               label="First name"
               labelClassName="text-foreground"
@@ -126,7 +126,7 @@ export function BasicInfoSection({
                 )}
               />
             </div>
-            <div className={isEmbedded ? "col-span-2" : "md:col-span-3"}>
+            <div className={isEmbedded ? "sm:col-span-2" : "md:col-span-3"}>
               <label className="block text-sm font-medium text-foreground" htmlFor="profile-headline">
                 Headline
               </label>
@@ -138,7 +138,7 @@ export function BasicInfoSection({
                 {...register("profile.headline")}
               />
             </div>
-            <div className={isEmbedded ? "col-span-2" : "md:col-span-3"}>
+            <div className={isEmbedded ? "sm:col-span-2" : "md:col-span-3"}>
               <label className="block text-sm font-medium text-foreground" htmlFor="profile-about">
                 About
               </label>

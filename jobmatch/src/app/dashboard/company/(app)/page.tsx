@@ -281,7 +281,7 @@ export default function CompanyDashboardPage() {
     name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
 
   return (
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
+      <main className="flex flex-1 flex-col bg-background text-foreground md:min-h-0 md:overflow-hidden">
 
         {/* Filter bar */}
         <div className="shrink-0 border-b border-brand/10 bg-brand/5">
@@ -374,11 +374,11 @@ export default function CompanyDashboardPage() {
         </div>
 
         {/* Content */}
-        <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:flex-row">
+        <div className="flex flex-1 flex-col gap-4 p-4 md:min-h-0 md:flex-row md:overflow-hidden">
 
           {/* Applicant sidebar */}
           <aside
-            className="flex min-h-0 w-full flex-col overflow-hidden rounded-2xl bg-brandBlue md:w-96 md:max-w-sm md:shrink-0"
+            className="flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-brandBlue md:max-h-none md:min-h-0 md:w-96 md:max-w-sm"
             aria-label="Applicant list"
           >
             <div className="min-h-0 flex-1 overflow-y-auto">
@@ -456,7 +456,7 @@ export default function CompanyDashboardPage() {
           </aside>
 
           {/* Detail panel */}
-          <section className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-background">
+          <section className="w-full flex-1 rounded-2xl bg-background md:min-h-0 md:overflow-hidden">
             {!selectedJobId ? (
               <div className="flex h-full items-center justify-center text-sm text-muted">
                 Select a job to view its applicants.

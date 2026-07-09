@@ -429,9 +429,9 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex min-h-screen flex-col md:h-screen md:overflow-hidden">
       <Header />
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
+      <main className="flex flex-1 flex-col bg-background text-foreground md:min-h-0 md:overflow-hidden">
         <div className="shrink-0 border-b border-brand/10 bg-brand/5">
           <div className="mx-auto w-full max-w-6xl px-4 py-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -563,9 +563,9 @@ function DashboardContent() {
           </div>
         </div>
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:flex-row">
+      <div className="flex flex-1 flex-col gap-4 p-4 md:min-h-0 md:flex-row md:overflow-hidden">
         <aside
-          className="flex min-h-0 w-full flex-col overflow-hidden rounded-2xl bg-brandBlue md:w-96 md:max-w-sm md:shrink-0"
+          className="flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-brandBlue md:max-h-none md:min-h-0 md:w-96 md:max-w-sm"
           aria-label="Job and event list"
         >
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -600,7 +600,7 @@ function DashboardContent() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border text-xs font-semibold transition ${
+                              <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border text-xs font-semibold transition ${
                                 active
                                   ? "border-white/60 bg-white/25 text-white"
                                   : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -648,7 +648,7 @@ function DashboardContent() {
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border text-xs font-semibold transition ${
+                            <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border text-xs font-semibold transition ${
                               active
                                 ? "border-white/60 bg-white/25 text-white"
                                 : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -686,7 +686,7 @@ function DashboardContent() {
           </div>
         </aside>
 
-        <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-background">
+        <section className="w-full flex-1 rounded-2xl bg-background md:min-h-0 md:overflow-y-auto">
           {!selectedItem ? (
             <div className="flex h-full items-center justify-center text-sm text-muted">
               Select a job or event to view details.
