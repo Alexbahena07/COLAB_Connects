@@ -339,7 +339,7 @@ export default function JobsPageClient({ sponsorTier }: { sponsorTier: SponsorTi
   };
 
   return (
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
+      <main className="flex flex-1 flex-col bg-background text-foreground md:min-h-0 md:overflow-hidden">
 
         {/* Filter bar */}
         <div className="shrink-0 border-b border-brand/10 bg-brand/5">
@@ -356,10 +356,10 @@ export default function JobsPageClient({ sponsorTier }: { sponsorTier: SponsorTi
         </div>
 
         {/* Main content — full-height two-pane */}
-        <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 md:min-h-0 md:flex-row md:overflow-hidden">
 
           {/* LEFT — job listings */}
-          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          <section className="flex max-h-[50vh] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm md:max-h-none md:min-h-0 md:flex-1">
             {/* Panel header */}
             <div className="shrink-0 border-b border-border px-6 py-4">
               <h2 className="text-lg font-semibold text-brand">Your job listings</h2>
@@ -511,7 +511,7 @@ export default function JobsPageClient({ sponsorTier }: { sponsorTier: SponsorTi
           </section>
 
           {/* RIGHT — post / edit form */}
-          <section className="flex min-h-0 w-[420px] shrink-0 flex-col overflow-hidden rounded-2xl bg-brand shadow-sm">
+          <section className="flex w-full flex-col overflow-hidden rounded-2xl bg-brand shadow-sm md:min-h-0 md:w-105 md:shrink-0">
             {/* Panel header */}
             <div className="shrink-0 border-b border-white/10 px-6 py-4">
               <h2 className="text-lg font-semibold text-white">

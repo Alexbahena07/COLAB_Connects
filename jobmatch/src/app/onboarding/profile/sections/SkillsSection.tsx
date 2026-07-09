@@ -18,7 +18,7 @@ export function SkillsSection({ control, register }: Props) {
   const atLimit = fields.length >= MAX_SKILLS;
 
   return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+    <section className="rounded-3xl border border-border bg-surface p-4 shadow-sm ring-1 ring-black/5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Skills</h2>
@@ -50,7 +50,7 @@ export function SkillsSection({ control, register }: Props) {
         ) : null}
 
         {fields.map((f, i) => (
-          <div key={f.id} className="rounded-3xl border border-border bg-surface p-5">
+          <div key={f.id} className="rounded-3xl border border-border bg-surface p-4 sm:p-5">
             <div className="grid gap-3 md:grid-cols-3">
               <Controller
                 control={control}

@@ -15,7 +15,7 @@ export function DegreesSection({ control, register }: Props) {
   const { fields, append, remove } = useFieldArray({ control, name: "degrees" });
 
   return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+    <section className="rounded-3xl border border-border bg-surface p-4 shadow-sm ring-1 ring-black/5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">Degrees</h2>
@@ -38,9 +38,9 @@ export function DegreesSection({ control, register }: Props) {
         ) : null}
 
         {fields.map((f, i) => (
-          <div key={f.id} className="rounded-3xl border border-border bg-surface p-5">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
+          <div key={f.id} className="rounded-3xl border border-border bg-surface p-4 sm:p-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
                 <Controller
                   control={control}
                   name={`degrees.${i}.school`}
@@ -96,7 +96,7 @@ export function DegreesSection({ control, register }: Props) {
                 className="border-border bg-background text-foreground"
                 {...register(`degrees.${i}.endDate`)}
               />
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <button
                   type="button"
                   className="text-xs font-semibold text-red-600 hover:text-red-700"
