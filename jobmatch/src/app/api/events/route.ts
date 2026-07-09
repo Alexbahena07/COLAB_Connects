@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Only company accounts can post events" }, { status: 403 });
   }
 
-  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), companyUser.companyProfile?.sponsorTier);
+  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), companyUser.companyProfile?.sponsorTier, companyUser.accountType);
   if (sponsorTier !== "GOLD" && sponsorTier !== "PLATINUM") {
     return NextResponse.json(
       { error: "Posting events requires a Gold or Platinum sponsorship" },
@@ -116,16 +116,37 @@ export async function POST(request: Request) {
 
   const { title, about, link, linkLabel, imageUrl } = parsed.data;
 
-  const post = await prisma.companyEventPost.create({
-    data: {
-      companyId: session.user.id,
-      title,
-      about,
-      link: link || null,
-      // A button label only makes sense when there's a link to attach it to.
-      linkLabel: link ? linkLabel || null : null,
-      imageUrl: imageUrl || null,
-    },
+  const post = await prisma.$transaction(async (tx) => {
+    const created = await tx.companyEventPost.create({
+      data: {
+        companyId: session.user.id,
+        title,
+        about,
+        link: link || null,
+        // A button label only makes sense when there's a link to attach it to.
+        linkLabel: link ? linkLabel || null : null,
+        imageUrl: imageUrl || null,
+      },
+    });
+
+    const followers = await tx.companyFollow.findMany({
+      where: { companyId: session.user.id },
+      select: { userId: true },
+    });
+
+    if (followers.length > 0) {
+      await tx.notification.createMany({
+        data: followers.map((f) => ({
+          userId: f.userId,
+          companyId: session.user.id,
+          eventPostId: created.id,
+          eventTitle: created.title,
+          type: "NEW_EVENT",
+        })),
+      });
+    }
+
+    return created;
   });
 
   return NextResponse.json({ post }, { status: 201 });

@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -86,7 +87,16 @@ const JOB_TYPE_LABEL: Record<Job["type"], string> = {
 
 const JOB_TYPE_VALUES: Job["type"][] = ["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP"];
 
-export default function DashboardPage() {
+function DashboardContent() {
+  const searchParams = useSearchParams();
+  const urlKey = useMemo(() => {
+    const jobId = searchParams.get("jobId");
+    if (jobId) return `job:${jobId}`;
+    const eventId = searchParams.get("eventId");
+    if (eventId) return `event:${eventId}`;
+    return null;
+  }, [searchParams]);
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -293,9 +303,11 @@ export default function DashboardPage() {
     }
 
     if (!selectedKey || !listItems.some((item) => item.key === selectedKey)) {
-      setSelectedKey(listItems[0].key);
+      const preferred =
+        urlKey && listItems.some((item) => item.key === urlKey) ? urlKey : listItems[0].key;
+      setSelectedKey(preferred);
     }
-  }, [listItems, selectedKey]);
+  }, [listItems, selectedKey, urlKey]);
 
   const selectedItem =
     (selectedKey ? listItems.find((item) => item.key === selectedKey) : listItems[0]) ?? null;
@@ -910,5 +922,19 @@ export default function DashboardPage() {
       </div>
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center text-sm text-muted">
+          Loading...
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
