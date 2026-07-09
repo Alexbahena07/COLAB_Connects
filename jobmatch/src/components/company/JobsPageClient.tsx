@@ -1,9 +1,9 @@
 ﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/HeaderWithIcons";
 
 type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
 
@@ -94,7 +94,9 @@ const parseJob = (job: unknown): CompanyJob | null => {
 };
 
 
-export default function CompanyJobsPage() {
+type SponsorTier = "FREE" | "SILVER" | "GOLD" | "PLATINUM";
+
+export default function JobsPageClient({ sponsorTier }: { sponsorTier: SponsorTier }) {
   const [companyJobs, setCompanyJobs] = useState<CompanyJob[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [jobsError, setJobsError] = useState<string | null>(null);
@@ -337,8 +339,6 @@ export default function CompanyJobsPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <Header />
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
 
         {/* Filter bar */}
@@ -369,6 +369,17 @@ export default function CompanyJobsPage() {
                   : companyJobs.length === 0
                   ? "You haven't published any roles yet."
                   : `${companyJobs.length} job${companyJobs.length === 1 ? "" : "s"} visible to students`}
+                {sponsorTier !== "PLATINUM" ? (
+                  <>
+                    {" · "}
+                    <Link
+                      href="/dashboard/company/application#sponsorship"
+                      className="font-semibold text-brandBlue underline underline-offset-4"
+                    >
+                      Upgrade to Platinum for job listings priority in the algorithm
+                    </Link>
+                  </>
+                ) : null}
               </p>
 
               {deleteError ? (
@@ -698,6 +709,5 @@ export default function CompanyJobsPage() {
         ) : null}
 
       </main>
-    </div>
   );
 }

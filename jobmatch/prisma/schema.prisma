@@ -26,6 +26,13 @@ enum CompanyApprovalStatus {
   REJECTED
 }
 
+enum SponsorTier {
+  FREE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
 enum JobStatus {
   APPROVED
   REJECTED
@@ -96,6 +103,8 @@ model User {
 
   savedCandidates  SavedCandidate[] @relation("CompanySavedCandidates")
   savedByCompanies SavedCandidate[] @relation("CandidateSavedCandidates")
+
+  companyEventPosts CompanyEventPost[] @relation("CompanyEventPosts")
 
   // Admin relations
   companyProfilesApproved CompanyProfile[]    @relation("CompanyApprovedBy")
@@ -249,10 +258,29 @@ model CompanyProfile {
   approvedAt     DateTime?
   approvedById   String?
 
+  sponsorTier SponsorTier @default(FREE)
+
   user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   approvedBy User? @relation("CompanyApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
   @@index([approvalStatus])
+  @@index([sponsorTier])
+}
+
+model CompanyEventPost {
+  id        String   @id @default(cuid())
+  companyId String
+  title     String
+  about     String
+  link      String?
+  linkLabel String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  company User @relation("CompanyEventPosts", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([createdAt])
 }
 
 enum JobType {

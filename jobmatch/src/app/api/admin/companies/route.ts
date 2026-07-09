@@ -28,6 +28,7 @@ export async function GET(request: Request) {
     headquarters: u.companyProfile?.headquarters ?? null,
     teamSize: u.companyProfile?.teamSize ?? null,
     approvalStatus: u.companyProfile?.approvalStatus ?? "NO_PROFILE",
+    sponsorTier: u.companyProfile?.sponsorTier ?? null,
     approvedAt: u.companyProfile?.approvedAt?.toISOString() ?? null,
     approvedByName:
       u.companyProfile?.approvedBy?.name ??

@@ -208,7 +208,7 @@ export default function CompanyEventApplicationPage() {
         </div>
 
         {/* Sponsorship tiers */}
-        <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+        <div id="sponsorship" className="mx-auto w-full max-w-6xl flex-1 scroll-mt-24 px-4 py-10">
           <h2 className="flex items-center gap-3 text-3xl font-bold">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10">
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2" className="h-5 w-5">
@@ -277,7 +277,7 @@ export default function CompanyEventApplicationPage() {
                   "Everything in Silver",
                   "Company logo on event materials and signage",
                   "Dedicated booth/table at the forum",
-                  "Access to pre-screened top candidate shortlist",
+                  "Access to posting events on website",
                   "Direct candidate messaging on COLAB Connects",
                   "2 professional passes to attend the forum",
                 ].map((perk) => (
@@ -320,7 +320,7 @@ export default function CompanyEventApplicationPage() {
                   "First access to candidates before the general pool opens",
                   "Featured company spotlight in post-event email to all scholars",
                   "5 professional passes + exclusive VIP networking session",
-                  "Dedicated company profile promoted to all candidates",
+                  "Job listings and events take priority over other listings",
                 ].map((perk) => (
                   <li key={perk} className="flex items-start gap-2.5 text-sm text-white/85">
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#c7d0f8" strokeWidth="2.5" className="mt-0.5 h-4 w-4 shrink-0">

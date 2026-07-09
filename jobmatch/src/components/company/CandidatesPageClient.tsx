@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/HeaderWithIcons";
 
 type CandidateSkill = { name: string; years: number | null };
 type CandidateExperience = {
@@ -89,7 +88,7 @@ const formatDate = (value: string | null) => {
   return Number.isNaN(parsed.valueOf()) ? "" : parsed.toLocaleDateString();
 };
 
-export default function CompanyCandidatesPage() {
+export default function CandidatesPageClient() {
   const [draftFilters, setDraftFilters] = useState<Filters>(defaultFilters);
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -234,8 +233,6 @@ export default function CompanyCandidatesPage() {
     name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <Header />
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
 
         {/* Filter bar */}
@@ -393,12 +390,12 @@ export default function CompanyCandidatesPage() {
                                 <img
                                   src={candidate.photoUrl}
                                   alt={candidate.name}
-                                  className={`h-10 w-10 shrink-0 rounded-full border object-cover transition ${
+                                  className={`h-10 w-10 shrink-0 rounded-xl border object-cover transition ${
                                     active ? "border-white/60" : "border-white/30 group-hover:border-white/60"
                                   }`}
                                 />
                               ) : (
-                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
+                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-xs font-semibold transition ${
                                   active
                                     ? "border-white/60 bg-white/25 text-white"
                                     : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -479,10 +476,10 @@ export default function CompanyCandidatesPage() {
                       <img
                         src={selectedCandidate.photoUrl}
                         alt={selectedCandidate.name}
-                        className="h-14 w-14 shrink-0 rounded-full border border-brandBlue/40 object-cover"
+                        className="h-14 w-14 shrink-0 rounded-xl border border-brandBlue/40 object-cover"
                       />
                     ) : (
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-brandBlue/40 bg-brandBlue/10 text-sm font-semibold text-brandBlue">
                         {getInitials(selectedCandidate.name)}
                       </div>
                     )}
@@ -659,6 +656,5 @@ export default function CompanyCandidatesPage() {
           </section>
         </div>
       </main>
-    </div>
   );
 }
