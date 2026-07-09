@@ -109,7 +109,7 @@ export default async function CompanyProfilePage() {
               <div className="flex-1 space-y-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f4e7ff]/80">
-                    Company Profile
+                    Profile
                   </p>
                   <h1 className="mt-1 text-4xl font-bold tracking-tight text-[#fdfbff]">
                     {companyName}

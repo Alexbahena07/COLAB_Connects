@@ -79,7 +79,7 @@ export default function Header() {
                 <path d="M5 9.5A2.5 2.5 0 0 1 7.5 7h9A2.5 2.5 0 0 1 19 9.5v7A2.5 2.5 0 0 1 16.5 19h-9A2.5 2.5 0 0 1 5 16.5Z" />
                 <path d="M5 12h14" />
               </svg>
-              <span className="text-xs font-semibold">Job Listings</span>
+              <span className="text-xs font-semibold">Opportunities</span>
             </Link>
           ) : null}
           {!isCompany ? (
@@ -176,7 +176,7 @@ export default function Header() {
                   <circle cx="12" cy="7.5" r="3" />
                   <path d="M5 18.5a7 7 0 0 1 14 0" />
                 </svg>
-                <span className="text-xs font-semibold">Company Profile</span>
+                <span className="text-xs font-semibold">Profile</span>
               </Link>
             </>
           )}

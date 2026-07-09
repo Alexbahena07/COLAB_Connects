@@ -369,18 +369,38 @@ export default function JobsPageClient({ sponsorTier }: { sponsorTier: SponsorTi
                   : companyJobs.length === 0
                   ? "You haven't published any roles yet."
                   : `${companyJobs.length} job${companyJobs.length === 1 ? "" : "s"} visible to students`}
-                {sponsorTier !== "PLATINUM" ? (
-                  <>
-                    {" · "}
-                    <Link
-                      href="/dashboard/company/application#sponsorship"
-                      className="font-semibold text-brandBlue underline underline-offset-4"
-                    >
-                      Upgrade to Platinum for job listings priority in the algorithm
-                    </Link>
-                  </>
-                ) : null}
               </p>
+
+              {sponsorTier !== "PLATINUM" ? (
+                <Link
+                  href="/dashboard/company/application#sponsorship"
+                  className="mt-3 flex items-center gap-3 rounded-xl border-2 border-[#8B8FA8] bg-[#1a1f36] px-4 py-3 shadow-sm transition hover:opacity-90"
+                >
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="#c7d0f8"
+                      stroke="#c7d0f8"
+                      strokeWidth="1"
+                      className="h-4.5 w-4.5"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-xs font-semibold uppercase tracking-widest text-[#c7d0f8]">
+                      Platinum
+                    </span>
+                    <span className="block text-sm font-semibold text-white">
+                      Upgrade to Platinum for job listings priority in the algorithm
+                    </span>
+                  </span>
+                  <span className="shrink-0 rounded-lg bg-[#c7d0f8]/20 px-3 py-1.5 text-xs font-semibold text-white">
+                    Upgrade
+                  </span>
+                </Link>
+              ) : null}
 
               {deleteError ? (
                 <div className="mt-3 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">

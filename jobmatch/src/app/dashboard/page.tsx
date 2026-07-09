@@ -17,7 +17,12 @@ type EventPost = {
   companyId: string;
   companyName: string;
   companyImage: string | null;
+  createdAt: string;
 };
+
+type ListItem =
+  | { key: string; kind: "job"; sortTime: number; job: Job }
+  | { key: string; kind: "event"; sortTime: number; event: EventPost };
 
 type Job = {
   id: string;
@@ -83,7 +88,7 @@ const JOB_TYPE_VALUES: Job["type"][] = ["FULL_TIME", "PART_TIME", "CONTRACT", "I
 
 export default function DashboardPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [q, setQ] = useState("");
@@ -93,6 +98,7 @@ export default function DashboardPage() {
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [viewFilter, setViewFilter] = useState<"all" | "jobs" | "events">("all");
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
@@ -246,29 +252,66 @@ export default function DashboardPage() {
     });
   }, [jobs, q, type, remoteOnly, location, showSavedOnly, savedJobIds]);
 
+  const filteredEvents = useMemo(() => {
+    if (showSavedOnly) return [];
+    const query = q.toLowerCase().trim();
+    if (!query) return events;
+    return events.filter(
+      (event) =>
+        event.title.toLowerCase().includes(query) ||
+        event.companyName.toLowerCase().includes(query) ||
+        event.about.toLowerCase().includes(query)
+    );
+  }, [events, q, showSavedOnly]);
+
+  const listItems: ListItem[] = useMemo(() => {
+    const jobItems: ListItem[] =
+      viewFilter === "events"
+        ? []
+        : filteredJobs.map((job) => ({
+            key: `job:${job.id}`,
+            kind: "job",
+            sortTime: new Date(job.postedAt).getTime(),
+            job,
+          }));
+    const eventItems: ListItem[] =
+      viewFilter === "jobs"
+        ? []
+        : filteredEvents.map((event) => ({
+            key: `event:${event.id}`,
+            kind: "event",
+            sortTime: new Date(event.createdAt).getTime(),
+            event,
+          }));
+    return [...jobItems, ...eventItems].sort((a, b) => b.sortTime - a.sortTime);
+  }, [filteredJobs, filteredEvents, viewFilter]);
+
   useEffect(() => {
-    if (filteredJobs.length === 0) {
-      setSelectedJobId(null);
+    if (listItems.length === 0) {
+      setSelectedKey(null);
       return;
     }
 
-    if (!selectedJobId || !filteredJobs.some((job) => job.id === selectedJobId)) {
-      setSelectedJobId(filteredJobs[0].id);
+    if (!selectedKey || !listItems.some((item) => item.key === selectedKey)) {
+      setSelectedKey(listItems[0].key);
     }
-  }, [filteredJobs, selectedJobId]);
+  }, [listItems, selectedKey]);
 
-  const selectedJob =
-    (selectedJobId ? filteredJobs.find((job) => job.id === selectedJobId) : filteredJobs[0]) ?? null;
+  const selectedItem =
+    (selectedKey ? listItems.find((item) => item.key === selectedKey) : listItems[0]) ?? null;
+  const selectedJob = selectedItem?.kind === "job" ? selectedItem.job : null;
+  const selectedEvent = selectedItem?.kind === "event" ? selectedItem.event : null;
   const hasApplied = selectedJob ? appliedJobIds.has(selectedJob.id) : false;
 
   useEffect(() => {
     setApplyError(null);
     setIsApplying(false);
-  }, [selectedJobId]);
+  }, [selectedKey]);
 
   const noJobsAvailable =
     !isLoading &&
     jobs.length === 0 &&
+    events.length === 0 &&
     q.trim() === "" &&
     type === "" &&
     !remoteOnly &&
@@ -381,12 +424,34 @@ export default function DashboardPage() {
           <div className="mx-auto w-full max-w-6xl px-4 py-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2">
-                <h1 className="text-2xl font-semibold text-brand">Browse job listings</h1>
+                <h1 className="text-2xl font-semibold text-brand">Browse opportunities</h1>
                 <p className="text-sm text-muted">
-                  Filter roles by skill, location, type, or remote status and save your top picks.
+                  Filter jobs and events by skill, location, type, or remote status and save your top picks.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1">
+                  {(
+                    [
+                      { value: "all", label: "All" },
+                      { value: "jobs", label: "Jobs only" },
+                      { value: "events", label: "Events only" },
+                    ] as const
+                  ).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setViewFilter(option.value)}
+                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                        viewFilter === option.value
+                          ? "bg-brand text-white"
+                          : "text-foreground/70 hover:bg-brand/10"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
                 <Button
                   className="btn-outline-brand h-10"
                   onClick={() => setShowSavedOnly((prev) => !prev)}
@@ -401,6 +466,7 @@ export default function DashboardPage() {
                     setRemoteOnly(false);
                     setLocation("");
                     setShowSavedOnly(false);
+                    setViewFilter("all");
                   }}
                 >
                   Reset filters
@@ -465,7 +531,15 @@ export default function DashboardPage() {
               <p className="text-sm text-muted">
                 {isLoading
                   ? "Loading jobs..."
-                  : `${filteredJobs.length} job${filteredJobs.length === 1 ? "" : "s"} found`}
+                  : viewFilter === "jobs"
+                  ? `${filteredJobs.length} job${filteredJobs.length === 1 ? "" : "s"} found`
+                  : viewFilter === "events"
+                  ? `${filteredEvents.length} event${filteredEvents.length === 1 ? "" : "s"} found`
+                  : `${filteredJobs.length} job${filteredJobs.length === 1 ? "" : "s"} found${
+                      filteredEvents.length > 0
+                        ? ` · ${filteredEvents.length} event${filteredEvents.length === 1 ? "" : "s"}`
+                        : ""
+                    }`}
               </p>
             </div>
 
@@ -477,76 +551,83 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {events.length > 0 ? (
-          <div className="shrink-0 border-b border-border bg-surface">
-            <div className="mx-auto w-full max-w-6xl px-4 py-4">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">
-                Company events
-              </h2>
-              <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
-                {events.map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex w-72 shrink-0 gap-3 rounded-2xl border border-border bg-background p-3"
-                  >
-                    {event.imageUrl ? (
-                      <img
-                        src={event.imageUrl}
-                        alt={event.title}
-                        className="h-14 w-14 shrink-0 rounded-xl border border-border object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-brand/10 text-sm font-bold text-brand">
-                        {event.companyName.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">{event.title}</p>
-                      <p className="truncate text-xs text-muted">{event.companyName}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{event.about}</p>
-                      {event.link ? (
-                        <a
-                          href={event.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-2 inline-flex items-center rounded-full bg-brandBlue px-3 py-1 text-xs font-semibold text-white transition hover:opacity-90"
-                        >
-                          {event.linkLabel || "Learn more"}
-                        </a>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : null}
-
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:flex-row">
         <aside
           className="flex min-h-0 w-full flex-col overflow-hidden rounded-2xl bg-brandBlue md:w-96 md:max-w-sm md:shrink-0"
-          aria-label="Job list"
+          aria-label="Job and event list"
         >
           <div className="min-h-0 flex-1 overflow-y-auto">
             <ul className="divide-y divide-white/10">
               {isLoading ? (
                 <li className="p-4 text-sm text-white/70">Loading jobs...</li>
-              ) : filteredJobs.length === 0 ? (
+              ) : listItems.length === 0 ? (
                 <li className="p-4 text-sm text-white/70">
                   {showSavedOnly
                     ? "You haven't saved any jobs yet."
+                    : viewFilter === "events"
+                    ? "No events posted yet."
                     : noJobsAvailable
                     ? "No job listings are available yet."
                     : "No results. Try adjusting filters."}
                 </li>
               ) : (
-                filteredJobs.map((job) => {
-                  const active = job.id === selectedJob?.id;
+                listItems.map((item) => {
+                  const active = item.key === selectedItem?.key;
+                  if (item.kind === "job") {
+                    const job = item.job;
+                    return (
+                      <li key={item.key}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedKey(item.key)}
+                          className={`group w-full p-4 text-left transition ${
+                            active
+                              ? "border-l-4 border-l-white bg-white/20"
+                              : "border-l-4 border-l-transparent hover:border-l-white hover:bg-brand"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border text-xs font-semibold transition ${
+                                active
+                                  ? "border-white/60 bg-white/25 text-white"
+                                  : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
+                              }`}>
+                                {job.companyImage ? (
+                                  <img
+                                    src={job.companyImage}
+                                    alt={`${job.company} logo`}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  getCompanyInitials(job.company)
+                                )}
+                              </div>
+                              <div>
+                                <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{job.title}</h3>
+                                <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
+                                  {job.company} · {job.location}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                              {JOB_TYPE_LABEL[job.type]}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-xs text-white/55 transition group-hover:text-white/70">
+                            {new Date(job.postedAt).toLocaleDateString()}
+                          </p>
+                        </button>
+                      </li>
+                    );
+                  }
+
+                  const event = item.event;
                   return (
-                    <li key={job.id}>
+                    <li key={item.key}>
                       <button
                         type="button"
-                        onClick={() => setSelectedJobId(job.id)}
+                        onClick={() => setSelectedKey(item.key)}
                         className={`group w-full p-4 text-left transition ${
                           active
                             ? "border-l-4 border-l-white bg-white/20"
@@ -560,29 +641,29 @@ export default function DashboardPage() {
                                 ? "border-white/60 bg-white/25 text-white"
                                 : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
                             }`}>
-                              {job.companyImage ? (
+                              {event.imageUrl || event.companyImage ? (
                                 <img
-                                  src={job.companyImage}
-                                  alt={`${job.company} logo`}
+                                  src={event.imageUrl || event.companyImage || ""}
+                                  alt={`${event.companyName} logo`}
                                   className="h-full w-full object-cover"
                                 />
                               ) : (
-                                getCompanyInitials(job.company)
+                                getCompanyInitials(event.companyName)
                               )}
                             </div>
                             <div>
-                              <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{job.title}</h3>
+                              <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{event.title}</h3>
                               <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
-                                {job.company} · {job.location}
+                                {event.companyName}
                               </p>
                             </div>
                           </div>
                           <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
-                            {JOB_TYPE_LABEL[job.type]}
+                            Event
                           </span>
                         </div>
                         <p className="mt-2 text-xs text-white/55 transition group-hover:text-white/70">
-                          {new Date(job.postedAt).toLocaleDateString()}
+                          {new Date(event.createdAt).toLocaleDateString()}
                         </p>
                       </button>
                     </li>
@@ -594,11 +675,79 @@ export default function DashboardPage() {
         </aside>
 
         <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-background">
-          {!selectedJob ? (
+          {!selectedItem ? (
             <div className="flex h-full items-center justify-center text-sm text-muted">
-              Select a job to view details.
+              Select a job or event to view details.
             </div>
-          ) : (
+          ) : selectedEvent ? (
+            <div className="flex h-full flex-col gap-0 lg:flex-row">
+              {/* LEFT — description */}
+              <div className="min-h-0 flex-1 overflow-y-auto border-b border-border p-6 lg:border-b-0 lg:border-r">
+                {/* Event header */}
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-brand/10 text-sm font-bold text-brand">
+                    {selectedEvent.imageUrl || selectedEvent.companyImage ? (
+                      <img
+                        src={selectedEvent.imageUrl || selectedEvent.companyImage || ""}
+                        alt={`${selectedEvent.companyName} logo`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      getCompanyInitials(selectedEvent.companyName)
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground">{selectedEvent.title}</h2>
+                    <p className="mt-1 text-sm text-muted">{selectedEvent.companyName} · Event</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="mt-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">About this event</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-foreground/85">{selectedEvent.about}</p>
+                </div>
+              </div>
+
+              {/* RIGHT — sticky action sidebar */}
+              <div className="w-full shrink-0 p-6 lg:w-72 lg:overflow-y-auto">
+                <div className="lg:sticky lg:top-6 space-y-4">
+                  {selectedEvent.link ? (
+                    <a href={selectedEvent.link} target="_blank" rel="noreferrer" className="block">
+                      <Button className="btn-brand w-full h-11 text-base">
+                        {selectedEvent.linkLabel || "Learn more"}
+                      </Button>
+                    </a>
+                  ) : null}
+
+                  {/* Divider */}
+                  <div className="h-px bg-border" />
+
+                  {/* Company card */}
+                  <div className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Company</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-brand/10 text-xs font-bold text-brand">
+                        {selectedEvent.companyImage ? (
+                          <img src={selectedEvent.companyImage} alt={`${selectedEvent.companyName} logo`} className="h-full w-full object-cover" />
+                        ) : (
+                          getCompanyInitials(selectedEvent.companyName)
+                        )}
+                      </div>
+                      <p className="font-semibold text-foreground">{selectedEvent.companyName}</p>
+                    </div>
+                    {selectedEvent.companyId && (
+                      <Link href={`/companies/${selectedEvent.companyId}`} className="block">
+                        <Button className="btn-outline-brand w-full h-9 text-sm">
+                          View company profile
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : selectedJob ? (
             <div className="flex h-full flex-col gap-0 lg:flex-row">
 
               {/* LEFT — description */}
@@ -756,7 +905,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
         </section>
       </div>
       </main>

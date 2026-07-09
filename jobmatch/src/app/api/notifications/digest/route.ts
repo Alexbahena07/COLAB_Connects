@@ -8,11 +8,14 @@ const isValidFrequency = (value: unknown): value is DigestFrequency =>
 const parseCommit = (value: unknown) => value === true || value === "true";
 
 const requireSecret = (request: Request) => {
-  const secret = process.env.DIGEST_SECRET;
+  const secret = process.env.CRON_SECRET;
   if (!secret) {
-    return NextResponse.json({ error: "Digest secret not configured" }, { status: 500 });
+    return NextResponse.json({ error: "Cron secret not configured" }, { status: 500 });
   }
-  if (request.headers.get("x-digest-secret") !== secret) {
+  // Vercel Cron automatically sends `Authorization: Bearer $CRON_SECRET` when
+  // invoking this route on schedule. See:
+  // https://vercel.com/docs/cron-jobs/manage-cron-jobs#securing-cron-jobs
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return null;

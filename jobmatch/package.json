@@ -7,7 +7,9 @@
     "postinstall": "prisma generate",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "digest:daily": "curl -H \"Authorization: Bearer $CRON_SECRET\" \"http://localhost:3000/api/notifications/digest?frequency=DAILY&commit=true\"",
+    "digest:weekly": "curl -H \"Authorization: Bearer $CRON_SECRET\" \"http://localhost:3000/api/notifications/digest?frequency=WEEKLY&commit=true\""
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
