@@ -21,7 +21,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const profile = await prisma.companyProfile.findUnique({ where: { userId }, select: { id: true } });
+  const profile = await prisma.companyProfile.findUnique({ where: { userId }, select: { id: true, approvalStatus: true } });
   if (!profile) {
     return NextResponse.json({ error: "Company profile not found" }, { status: 404 });
   }
@@ -35,6 +35,12 @@ export async function PATCH(
     },
     select: { userId: true, approvalStatus: true, approvedAt: true },
   });
+
+  if (parsed.data.status === "APPROVED" && profile.approvalStatus !== "APPROVED") {
+    await prisma.notification.create({
+      data: { userId, type: "COMPANY_APPROVED" },
+    });
+  }
 
   return NextResponse.json({ company: updated });
 }

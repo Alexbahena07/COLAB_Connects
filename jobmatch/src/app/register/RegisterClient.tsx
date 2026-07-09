@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -92,7 +92,6 @@ async function fileToDataUrl(file: File): Promise<string> {
 }
 
 export default function RegisterClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -198,10 +197,12 @@ export default function RegisterClient() {
         data.accountType === "company"
           ? "/dashboard/company/profile"
           : "/onboarding/profile";
-      router.push(nextRoute);
+      // Hard navigation: avoids Next.js replaying a Server Component payload
+      // cached under a different account's session earlier in this tab.
+      window.location.href = nextRoute;
     } else {
       setServerError("Account created, but sign-in failed. Please log in.");
-      router.push("/login");
+      window.location.href = "/login";
     }
   };
 

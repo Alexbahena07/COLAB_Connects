@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +18,6 @@ const LoginSchema = z.object({
 type FormData = z.infer<typeof LoginSchema>;
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
@@ -47,7 +46,11 @@ function LoginForm() {
       const accountType = session?.user?.accountType;
       const defaultRoute =
         accountType === "COMPANY" ? "/dashboard/company/profile" : "/dashboard/profile";
-      router.push(callbackUrl ?? defaultRoute);
+      // A hard navigation (not router.push) is required here: Next.js caches
+      // rendered Server Component payloads per-URL on the client, independent
+      // of the session cookie. A soft navigation right after sign-in can
+      // replay a page cached under a previous account's session in this tab.
+      window.location.href = callbackUrl ?? defaultRoute;
     } else {
       setServerError("Invalid email or password");
     }
