@@ -44,6 +44,7 @@ function SectionCard({ title, icon, action, children }: SectionCardProps) {
 export default async function CompanyProfilePage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect("/login");
+  if (session.user.accountType !== "COMPANY") redirect("/dashboard/profile");
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -71,7 +72,7 @@ export default async function CompanyProfilePage() {
   const teamSize = cp?.teamSize?.trim() ?? null;
   const hiringFocus = cp?.hiringFocus?.trim() ?? null;
   const about = cp?.about?.trim() ?? null;
-  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), cp?.sponsorTier);
+  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), cp?.sponsorTier, session.user.accountType);
   const canPostEvents = sponsorTier === "GOLD" || sponsorTier === "PLATINUM";
 
   return (

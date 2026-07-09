@@ -53,6 +53,7 @@ enum EventApplicationStatus {
 
 enum NotificationType {
   NEW_JOB
+  NEW_EVENT
 }
 
 enum NotificationFrequency {
@@ -278,6 +279,7 @@ model CompanyEventPost {
   createdAt DateTime @default(now())
 
   company User @relation("CompanyEventPosts", fields: [companyId], references: [id], onDelete: Cascade)
+  notifications Notification[]
 
   @@index([companyId])
   @@index([createdAt])
@@ -395,22 +397,26 @@ model JobPostEvent {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  type      NotificationType
-  jobId     String?
-  companyId String?
-  jobTitle  String?
-  readAt    DateTime?
-  createdAt DateTime         @default(now())
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  jobId       String?
+  companyId   String?
+  jobTitle    String?
+  eventPostId String?
+  eventTitle  String?
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
 
-  user    User  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-  job     Job?  @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  company User? @relation("CompanyNotifications", fields: [companyId], references: [id], onDelete: Cascade)
+  user      User              @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  job       Job?              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  company   User?             @relation("CompanyNotifications", fields: [companyId], references: [id], onDelete: Cascade)
+  eventPost CompanyEventPost? @relation(fields: [eventPostId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([companyId])
   @@index([jobId])
+  @@index([eventPostId])
   @@index([readAt])
 }
 

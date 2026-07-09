@@ -8,13 +8,14 @@ import JobsPageClient from "@/components/company/JobsPageClient";
 export default async function CompanyJobsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
+  if (session.user.accountType !== "COMPANY") redirect("/dashboard/profile");
 
   const companyProfile = await prisma.companyProfile.findUnique({
     where: { userId: session.user.id },
     select: { sponsorTier: true },
   });
 
-  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), companyProfile?.sponsorTier);
+  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), companyProfile?.sponsorTier, session.user.accountType);
 
   return <JobsPageClient sponsorTier={sponsorTier} />;
 }

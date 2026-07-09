@@ -1,11 +1,14 @@
 export type SponsorTier = "FREE" | "SILVER" | "GOLD" | "PLATINUM";
+export type AccountType = "STUDENT" | "COMPANY";
 
-// Admins get every benefit a Platinum sponsor would, regardless of what
-// tier (if any) is actually set on their company profile.
+// Company admins get every benefit a Platinum sponsor would, regardless of
+// what tier (if any) is actually set on their company profile. Admins whose
+// account is a student account do not get company sponsorship benefits.
 export function getEffectiveSponsorTier(
   isAdmin: boolean,
-  actualTier: SponsorTier | null | undefined
+  actualTier: SponsorTier | null | undefined,
+  accountType?: AccountType | null
 ): SponsorTier {
-  if (isAdmin) return "PLATINUM";
+  if (isAdmin && accountType === "COMPANY") return "PLATINUM";
   return actualTier ?? "FREE";
 }

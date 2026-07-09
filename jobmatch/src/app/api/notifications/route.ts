@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       take: limit,
       include: {
         job: { select: { id: true, title: true } },
+        eventPost: { select: { id: true, title: true } },
         company: {
           select: {
             id: true,
@@ -47,6 +48,8 @@ export async function GET(request: Request) {
     jobId: notification.jobId,
     companyId: notification.companyId,
     jobTitle: notification.jobTitle ?? notification.job?.title ?? null,
+    eventPostId: notification.eventPostId,
+    eventTitle: notification.eventTitle ?? notification.eventPost?.title ?? null,
     companyName:
       notification.company?.companyProfile?.companyName ??
       notification.company?.name ??

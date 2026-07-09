@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
-type NotificationType = "NEW_JOB";
+type NotificationType = "NEW_JOB" | "NEW_EVENT";
 
 type NotificationItem = {
   id: string;
@@ -13,9 +13,18 @@ type NotificationItem = {
   jobId: string | null;
   companyId: string | null;
   jobTitle: string | null;
+  eventPostId: string | null;
+  eventTitle: string | null;
   companyName: string | null;
   createdAt: string;
   readAt: string | null;
+};
+
+type FollowedCompany = {
+  companyId: string;
+  companyName: string;
+  companyImage: string | null;
+  followedAt: string;
 };
 
 const formatTimestamp = (value: string) => {
@@ -25,13 +34,25 @@ const formatTimestamp = (value: string) => {
 };
 
 const messageForNotification = (item: NotificationItem) => {
+  const company = item.companyName ?? "A company";
   if (item.type === "NEW_JOB") {
-    const company = item.companyName ?? "A company";
     const title = item.jobTitle ?? "a new job";
     return `${company} posted ${title}.`;
   }
+  if (item.type === "NEW_EVENT") {
+    const title = item.eventTitle ?? "a new event";
+    return `${company} posted a new event: ${title}.`;
+  }
   return "You have a new notification.";
 };
+
+const getCompanyInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -43,6 +64,11 @@ export default function NotificationsPage() {
   const [prefSaving, setPrefSaving] = useState(false);
   const [prefError, setPrefError] = useState<string | null>(null);
   const [prefSuccess, setPrefSuccess] = useState<string | null>(null);
+
+  const [following, setFollowing] = useState<FollowedCompany[]>([]);
+  const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
+  const [followingError, setFollowingError] = useState<string | null>(null);
+  const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
 
   const hasUnread = unreadCount > 0;
 
@@ -75,6 +101,48 @@ export default function NotificationsPage() {
   useEffect(() => {
     loadNotifications();
   }, []);
+
+  const loadFollowing = async () => {
+    setIsLoadingFollowing(true);
+    setFollowingError(null);
+    try {
+      const response = await fetch("/api/companies/follows", { cache: "no-store" });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          typeof payload?.error === "string"
+            ? payload.error
+            : "We couldn't load the companies you follow.";
+        setFollowingError(message);
+        return;
+      }
+
+      setFollowing(Array.isArray(payload?.companies) ? payload.companies : []);
+    } catch (err) {
+      console.error("Failed to load followed companies", err);
+      setFollowingError("We couldn't load the companies you follow.");
+    } finally {
+      setIsLoadingFollowing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadFollowing();
+  }, []);
+
+  const unfollow = async (companyId: string) => {
+    setUnfollowingId(companyId);
+    try {
+      const response = await fetch(`/api/companies/${companyId}/follow`, { method: "DELETE" });
+      if (!response.ok) return;
+      setFollowing((prev) => prev.filter((company) => company.companyId !== companyId));
+    } catch (err) {
+      console.error("Failed to unfollow company", err);
+    } finally {
+      setUnfollowingId(null);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -184,7 +252,7 @@ export default function NotificationsPage() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen flex-col bg-[var(--background)] text-foreground">
+      <main className="flex min-h-screen flex-col bg-background text-foreground">
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -241,6 +309,61 @@ export default function NotificationsPage() {
             {prefSuccess ? <p className="mt-3 text-sm text-green-600">{prefSuccess}</p> : null}
           </section>
 
+          <section className="mt-6 rounded-2xl border border-border bg-surface px-4 py-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
+              Following
+            </h2>
+            <p className="mt-1 text-xs text-muted">
+              Companies you follow show up here. You'll get notified when they post new jobs or
+              events.
+            </p>
+            <div className="mt-4 space-y-2">
+              {isLoadingFollowing ? (
+                <p className="text-sm text-muted">Loading...</p>
+              ) : followingError ? (
+                <p className="text-sm text-red-500">{followingError}</p>
+              ) : following.length === 0 ? (
+                <p className="text-sm text-foreground/70">
+                  You aren't following any companies yet. Follow a company from its profile page
+                  to see their updates here.
+                </p>
+              ) : (
+                following.map((company) => (
+                  <div
+                    key={company.companyId}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-background p-3"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-brand/10 text-xs font-bold text-brand">
+                      {company.companyImage ? (
+                        <img
+                          src={company.companyImage}
+                          alt={`${company.companyName} logo`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        getCompanyInitials(company.companyName)
+                      )}
+                    </div>
+                    <Link
+                      href={`/companies/${company.companyId}`}
+                      className="min-w-0 flex-1 font-semibold text-foreground hover:underline"
+                    >
+                      {company.companyName}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => unfollow(company.companyId)}
+                      disabled={unfollowingId === company.companyId}
+                      className="shrink-0 rounded-full border border-border px-3 py-1 text-xs font-semibold text-foreground/70 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                    >
+                      {unfollowingId === company.companyId ? "Removing..." : "Unfollow"}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
           <div className="mt-6 space-y-3">
             {isLoading ? (
               <p className="text-sm text-muted">Loading notifications...</p>
@@ -251,7 +374,12 @@ export default function NotificationsPage() {
             ) : (
               notifications.map((item) => {
                 const isUnread = !item.readAt;
-                const href = item.jobId ? `/dashboard?jobId=${item.jobId}` : "/dashboard";
+                const href = item.jobId
+                  ? `/dashboard?jobId=${item.jobId}`
+                  : item.eventPostId
+                  ? `/dashboard?eventId=${item.eventPostId}`
+                  : "/dashboard";
+                const ctaLabel = item.jobId ? "View Job" : item.eventPostId ? "View Event" : null;
                 return (
                   <div
                     key={item.id}
@@ -276,13 +404,13 @@ export default function NotificationsPage() {
                             New
                           </span>
                         )}
-                        {item.jobId && (
+                        {ctaLabel && (
                           <Link
                             href={href}
                             onClick={() => markRead(item.id)}
                             className="rounded-full bg-brandBlue px-3 py-1 text-xs font-semibold text-white hover:opacity-90"
                           >
-                            View Job
+                            {ctaLabel}
                           </Link>
                         )}
                       </div>
