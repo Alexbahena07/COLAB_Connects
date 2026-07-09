@@ -39,6 +39,7 @@ export default function CompanyEventPostsManager() {
   const [imageError, setImageError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const loadPosts = async () => {
     setIsLoadingPosts(true);
@@ -89,6 +90,18 @@ export default function CompanyEventPostsManager() {
     setLink("");
     setLinkLabel("");
     setImageDataUrl(null);
+    setImageError(null);
+    setEditingId(null);
+  };
+
+  const handleEdit = (post: EventPost) => {
+    setError(null);
+    setEditingId(post.id);
+    setTitle(post.title);
+    setAbout(post.about);
+    setLink(post.link ?? "");
+    setLinkLabel(post.linkLabel ?? "");
+    setImageDataUrl(post.imageUrl ?? null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -96,8 +109,8 @@ export default function CompanyEventPostsManager() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/events", {
-        method: "POST",
+      const res = await fetch(editingId ? `/api/events/${editingId}` : "/api/events", {
+        method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
@@ -109,20 +122,21 @@ export default function CompanyEventPostsManager() {
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) {
-        setError(body?.error ?? "Couldn't post that event. Try again.");
+        setError(body?.error ?? "Couldn't save that event. Try again.");
         return;
       }
       resetForm();
       await loadPosts();
     } catch (err) {
-      console.error("Failed to create event post", err);
-      setError("Couldn't post that event. Try again.");
+      console.error("Failed to save event post", err);
+      setError("Couldn't save that event. Try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    if (editingId === id) resetForm();
     setPosts((prev) => prev.filter((post) => post.id !== id));
     try {
       const res = await fetch(`/api/events/${id}`, { method: "DELETE" });
@@ -196,9 +210,20 @@ export default function CompanyEventPostsManager() {
           ) : null}
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <Button type="submit" className="btn-brand h-10" isLoading={isSubmitting}>
-          Post event
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button type="submit" className="btn-brand h-10" isLoading={isSubmitting}>
+            {editingId ? "Save changes" : "Post event"}
+          </Button>
+          {editingId ? (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="text-sm font-semibold text-muted hover:text-foreground"
+            >
+              Cancel
+            </button>
+          ) : null}
+        </div>
       </form>
 
       <div className="border-t border-border pt-6">
@@ -240,16 +265,28 @@ export default function CompanyEventPostsManager() {
                     </a>
                   ) : null}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(post.id)}
-                  aria-label={`Delete ${post.title}`}
-                  className="shrink-0 rounded-lg p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
-                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" />
-                  </svg>
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleEdit(post)}
+                    aria-label={`Edit ${post.title}`}
+                    className="rounded-lg p-1.5 text-muted transition hover:bg-brand/10 hover:text-brand"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(post.id)}
+                    aria-label={`Delete ${post.title}`}
+                    className="rounded-lg p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+                      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" />
+                    </svg>
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

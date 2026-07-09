@@ -46,7 +46,7 @@ function LoginForm() {
       const session = await getSession();
       const accountType = session?.user?.accountType;
       const defaultRoute =
-        accountType === "COMPANY" ? "/dashboard/company/candidates" : "/dashboard/profile";
+        accountType === "COMPANY" ? "/dashboard/company/profile" : "/dashboard/profile";
       router.push(callbackUrl ?? defaultRoute);
     } else {
       setServerError("Invalid email or password");
