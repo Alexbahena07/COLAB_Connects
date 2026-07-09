@@ -54,6 +54,9 @@ enum EventApplicationStatus {
 enum NotificationType {
   NEW_JOB
   NEW_EVENT
+  SPONSOR_TIER_UPGRADED
+  COMPANY_APPROVED
+  APPLICANT_MILESTONE
 }
 
 enum NotificationFrequency {
@@ -405,6 +408,8 @@ model Notification {
   jobTitle    String?
   eventPostId String?
   eventTitle  String?
+  sponsorTier SponsorTier?
+  milestoneCount Int?
   readAt      DateTime?
   createdAt   DateTime         @default(now())
 

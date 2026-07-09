@@ -7,6 +7,8 @@ import { requireActiveStatus } from "@/lib/auth-guards";
 
 const messagingApiUrl = process.env.MESSAGING_API_URL;
 
+const APPLICANT_MILESTONES = [1, 10, 25, 50, 100, 250, 500];
+
 const applicantSelect = {
   id: true,
   email: true,
@@ -173,6 +175,21 @@ export async function POST(
         },
         select: { id: true, status: true, createdAt: true },
       }));
+
+    if (isNewApplication) {
+      const applicantCount = await prisma.jobApplication.count({ where: { jobId } });
+      if (APPLICANT_MILESTONES.includes(applicantCount)) {
+        await prisma.notification.create({
+          data: {
+            userId: job.companyId,
+            type: "APPLICANT_MILESTONE",
+            jobId: job.id,
+            jobTitle: job.title,
+            milestoneCount: applicantCount,
+          },
+        });
+      }
+    }
 
     const applicantPayload = formatApplicant(applicant);
     const applicationPayload = {

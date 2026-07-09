@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
-type NotificationType = "NEW_JOB" | "NEW_EVENT";
+type NotificationType =
+  | "NEW_JOB"
+  | "NEW_EVENT"
+  | "SPONSOR_TIER_UPGRADED"
+  | "COMPANY_APPROVED"
+  | "APPLICANT_MILESTONE";
 
 type NotificationItem = {
   id: string;
@@ -15,6 +21,8 @@ type NotificationItem = {
   jobTitle: string | null;
   eventPostId: string | null;
   eventTitle: string | null;
+  sponsorTier: "FREE" | "SILVER" | "GOLD" | "PLATINUM" | null;
+  milestoneCount: number | null;
   companyName: string | null;
   createdAt: string;
   readAt: string | null;
@@ -33,6 +41,11 @@ const formatTimestamp = (value: string) => {
   return parsed.toLocaleString();
 };
 
+const tierLabel = (tier: NotificationItem["sponsorTier"]) => {
+  if (!tier) return null;
+  return tier.charAt(0) + tier.slice(1).toLowerCase();
+};
+
 const messageForNotification = (item: NotificationItem) => {
   const company = item.companyName ?? "A company";
   if (item.type === "NEW_JOB") {
@@ -42,6 +55,22 @@ const messageForNotification = (item: NotificationItem) => {
   if (item.type === "NEW_EVENT") {
     const title = item.eventTitle ?? "a new event";
     return `${company} posted a new event: ${title}.`;
+  }
+  if (item.type === "SPONSOR_TIER_UPGRADED") {
+    const tier = tierLabel(item.sponsorTier);
+    return tier
+      ? `Your sponsorship plan was upgraded to ${tier}. New benefits are live on your profile.`
+      : "Your sponsorship plan was upgraded.";
+  }
+  if (item.type === "COMPANY_APPROVED") {
+    return "Your company account has been approved. You can now post jobs and events.";
+  }
+  if (item.type === "APPLICANT_MILESTONE") {
+    const title = item.jobTitle ?? "Your job listing";
+    if (item.milestoneCount === 1) {
+      return `${title} just received its first applicant.`;
+    }
+    return `${title} has reached ${item.milestoneCount ?? "a new milestone of"} applicants.`;
   }
   return "You have a new notification.";
 };
@@ -55,6 +84,9 @@ const getCompanyInitials = (name: string) =>
     .join("");
 
 export default function NotificationsPage() {
+  const { data: session } = useSession();
+  const isCompany = session?.user?.accountType === "COMPANY";
+
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,8 +160,9 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => {
+    if (isCompany) return;
     loadFollowing();
-  }, []);
+  }, [isCompany]);
 
   const unfollow = async (companyId: string) => {
     setUnfollowingId(companyId);
@@ -309,6 +342,7 @@ export default function NotificationsPage() {
             {prefSuccess ? <p className="mt-3 text-sm text-green-600">{prefSuccess}</p> : null}
           </section>
 
+          {!isCompany ? (
           <section className="mt-6 rounded-2xl border border-border bg-surface px-4 py-4">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
               Following
@@ -363,6 +397,7 @@ export default function NotificationsPage() {
               )}
             </div>
           </section>
+          ) : null}
 
           <div className="mt-6 space-y-3">
             {isLoading ? (
@@ -374,12 +409,30 @@ export default function NotificationsPage() {
             ) : (
               notifications.map((item) => {
                 const isUnread = !item.readAt;
-                const href = item.jobId
-                  ? `/dashboard?jobId=${item.jobId}`
-                  : item.eventPostId
-                  ? `/dashboard?eventId=${item.eventPostId}`
-                  : "/dashboard";
-                const ctaLabel = item.jobId ? "View Job" : item.eventPostId ? "View Event" : null;
+                const href =
+                  item.type === "SPONSOR_TIER_UPGRADED"
+                    ? "/dashboard/company/application#sponsorship"
+                    : item.type === "COMPANY_APPROVED"
+                    ? "/dashboard/company/profile"
+                    : item.type === "APPLICANT_MILESTONE"
+                    ? "/dashboard/company"
+                    : item.jobId
+                    ? `/dashboard?jobId=${item.jobId}`
+                    : item.eventPostId
+                    ? `/dashboard?eventId=${item.eventPostId}`
+                    : "/dashboard";
+                const ctaLabel =
+                  item.type === "SPONSOR_TIER_UPGRADED"
+                    ? "View Plan"
+                    : item.type === "COMPANY_APPROVED"
+                    ? "View Profile"
+                    : item.type === "APPLICANT_MILESTONE"
+                    ? "View Applicants"
+                    : item.jobId
+                    ? "View Job"
+                    : item.eventPostId
+                    ? "View Event"
+                    : null;
                 return (
                   <div
                     key={item.id}

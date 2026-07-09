@@ -50,6 +50,8 @@ export async function GET(request: Request) {
     jobTitle: notification.jobTitle ?? notification.job?.title ?? null,
     eventPostId: notification.eventPostId,
     eventTitle: notification.eventTitle ?? notification.eventPost?.title ?? null,
+    sponsorTier: notification.sponsorTier,
+    milestoneCount: notification.milestoneCount,
     companyName:
       notification.company?.companyProfile?.companyName ??
       notification.company?.name ??
