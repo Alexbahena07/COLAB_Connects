@@ -109,6 +109,7 @@ function DashboardContent() {
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [viewFilter, setViewFilter] = useState<"all" | "jobs" | "events">("all");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
@@ -428,6 +429,10 @@ function DashboardContent() {
     }
   };
 
+  const activeFieldFilterCount = [q.trim() !== "", type !== "", location.trim() !== "", remoteOnly].filter(
+    Boolean
+  ).length;
+
   return (
     <div className="flex min-h-screen flex-col md:h-screen md:overflow-hidden">
       <Header />
@@ -468,28 +473,59 @@ function DashboardContent() {
                   className="btn-outline-brand h-10"
                   onClick={() => setShowSavedOnly((prev) => !prev)}
                 >
-                  {showSavedOnly ? "Show all" : "Show saved"}
-                </Button>
-                <Button
-                  className="btn-outline-brand h-10"
-                  onClick={() => {
-                    setQ("");
-                    setType("");
-                    setRemoteOnly(false);
-                    setLocation("");
-                    setShowSavedOnly(false);
-                    setViewFilter("all");
-                  }}
-                >
-                  Reset filters
+                  {showSavedOnly ? "Show all" : "Saved"}
                 </Button>
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Filters toggle — mobile only. Keeps the search/type/location/remote
+                fields out of the way by default so the list gets more vertical
+                space; the view tabs and saved/reset buttons above stay visible
+                since they're compact and used more often. */}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((prev) => !prev)}
+              aria-expanded={filtersOpen}
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground md:hidden"
+            >
+              <span className="flex items-center gap-2">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <circle cx="9" cy="6" r="2" fill="currentColor" stroke="none" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <circle cx="15" cy="12" r="2" fill="currentColor" stroke="none" />
+                  <line x1="4" y1="18" x2="20" y2="18" />
+                  <circle cx="11" cy="18" r="2" fill="currentColor" stroke="none" />
+                </svg>
+                Filters
+                {activeFieldFilterCount > 0 ? (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold text-white">
+                    {activeFieldFilterCount}
+                  </span>
+                ) : null}
+              </span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`h-4 w-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            <div
+              className={`mt-4 gap-4 md:mt-6 md:grid md:grid-cols-2 lg:grid-cols-4 ${
+                filtersOpen ? "grid" : "hidden"
+              }`}
+            >
               <Input
                 label="Search"
-                placeholder="Search job title, company, or skill..."
+                placeholder="Title, company, or skill"
                 value={q}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
                 className="h-11 border-border bg-background text-foreground placeholder:text-muted"
@@ -536,6 +572,22 @@ function DashboardContent() {
                   />
                   Remote only
                 </label>
+              </div>
+
+              <div className="flex justify-end md:col-span-2 lg:col-span-4">
+                <Button
+                  className="btn-outline-brand h-10"
+                  onClick={() => {
+                    setQ("");
+                    setType("");
+                    setRemoteOnly(false);
+                    setLocation("");
+                    setShowSavedOnly(false);
+                    setViewFilter("all");
+                  }}
+                >
+                  Reset filters
+                </Button>
               </div>
             </div>
 

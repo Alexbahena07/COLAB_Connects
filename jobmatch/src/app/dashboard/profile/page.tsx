@@ -65,7 +65,7 @@ function rangeLabel(start: Date | null, end: Date | null): string | null {
 
 function SectionCard({ title, icon, action, children }: SectionCardProps) {
   return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+    <section className="rounded-3xl border border-border bg-surface p-4 shadow-sm ring-1 ring-black/5 sm:p-6">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -190,37 +190,37 @@ export default async function StudentProfilePage() {
       <main className="min-h-screen bg-background px-4 pb-16 pt-10 text-foreground">
         <div className="mx-auto w-full max-w-6xl space-y-8">
           {/* Hero band */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-brandBlue px-6 pb-6 pt-10 shadow-lg">
+          <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-brandBlue px-4 pb-5 pt-8 shadow-lg sm:px-6 sm:pb-6 sm:pt-10">
             <div className="pointer-events-none absolute inset-0 opacity-30 mix-blend-soft-light">
               <div className="absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
               <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-[#f5f1ff]/20 blur-3xl" />
             </div>
 
-            <div className="relative flex flex-wrap items-start gap-6">
-              {/* Avatar */}
-              {userImage ? (
-                <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-3xl border-4 border-white/60 bg-surface shadow-xl ring-2 ring-(--brandBlue)/50">
-                  <Image
-                    src={userImage}
-                    alt={`${fullName} profile photo`}
-                    fill
-                    sizes="112px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl bg-surface text-3xl font-semibold text-brand shadow-xl ring-2 ring-(--brandBlue)/40">
-                  {fullName.charAt(0).toUpperCase()}
-                </div>
-              )}
+            <div className="relative space-y-4 sm:space-y-5">
+              {/* Photo + name row */}
+              <div className="flex items-start gap-4 sm:gap-6">
+                {/* Avatar */}
+                {userImage ? (
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-3xl border-4 border-white/60 bg-surface shadow-xl ring-2 ring-(--brandBlue)/50 sm:h-28 sm:w-28">
+                    <Image
+                      src={userImage}
+                      alt={`${fullName} profile photo`}
+                      fill
+                      sizes="112px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-surface text-2xl font-semibold text-brand shadow-xl ring-2 ring-(--brandBlue)/40 sm:h-28 sm:w-28 sm:text-3xl">
+                    {fullName.charAt(0).toUpperCase()}
+                  </div>
+                )}
 
-              {/* Main hero info */}
-              <div className="flex-1 space-y-4">
-                <div>
+                <div className="min-w-0 flex-1 pt-1">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f4e7ff]/80">
                     Student profile
                   </p>
-                  <h1 className="mt-1 text-4xl font-bold tracking-tight text-[#fdfbff]">
+                  <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#fdfbff] sm:text-4xl">
                     {fullName}
                   </h1>
                   {headline ? (
@@ -233,27 +233,23 @@ export default async function StudentProfilePage() {
                     </p>
                   )}
                 </div>
+              </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-[#fdfbff]/90">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-                    {location ? `Based in ${location}` : "Location not specified"}
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                    <OpenToWorkToggle initialValue={openToWork} />
-                  </span>
-                  {skills.length > 0 ? (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                      {skills.length} skills listed
-                    </span>
-                  ) : null}
-                </div>
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-[#fdfbff]/90">
+                <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                  {location ? `Based in ${location}` : "Location not specified"}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
+                  <OpenToWorkToggle initialValue={openToWork} />
+                </span>
+              </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <ProfileEditDrawer />
-                  <ProfileHeroActions />
-                </div>
+              {/* Actions */}
+              <div className="flex flex-wrap items-center gap-3">
+                <ProfileEditDrawer />
+                <ProfileHeroActions />
               </div>
             </div>
           </div>
@@ -396,16 +392,16 @@ export default async function StudentProfilePage() {
 
             {/* Right column */}
             <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-              <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
-                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                   Contact
                 </h3>
-                <p className="mt-2 text-sm text-white/90">{session.user.email}</p>
+                <p className="mt-2 break-all text-sm text-foreground/80 lg:text-white/90">{session.user.email}</p>
               </div>
 
-              <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
-                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
                   Education
                 </h3>
@@ -417,26 +413,26 @@ export default async function StudentProfilePage() {
                       return (
                         <li
                           key={degree.id}
-                          className="rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-white shadow-sm"
+                          className="rounded-xl border border-border bg-background px-3 py-2 text-foreground shadow-sm lg:border-white/30 lg:bg-white/10 lg:text-white"
                         >
                           <p className="font-semibold">{degree.school || "Institution"}</p>
-                          {subtitle ? <p className="text-xs text-white/80">{subtitle}</p> : null}
+                          {subtitle ? <p className="text-xs text-foreground/70 lg:text-white/80">{subtitle}</p> : null}
                           {period ? (
-                            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/70">{period}</p>
+                            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-foreground/60 lg:text-white/70">{period}</p>
                           ) : null}
                         </li>
                       );
                     })}
                   </ul>
                 ) : (
-                  <p className="mt-2 text-sm text-white/80">
+                  <p className="mt-2 text-sm text-foreground/70 lg:text-white/80">
                     Add your education to showcase your academic background.
                   </p>
                 )}
               </div>
 
-              <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
-                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                   Skills
                 </h3>
@@ -445,17 +441,17 @@ export default async function StudentProfilePage() {
                     {skills.map((skill) => (
                       <span
                         key={skill.id}
-                        className="flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white shadow-sm"
+                        className="flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-foreground shadow-sm lg:border-white/30 lg:bg-white/10 lg:text-white"
                       >
                         {skill.name}
                         {typeof skill.years === "number" ? (
-                          <span className="text-[10px] font-normal text-white/70">{skill.years}y</span>
+                          <span className="text-[10px] font-normal text-foreground/60 lg:text-white/70">{skill.years}y</span>
                         ) : null}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-2 text-sm text-white/80">
+                  <p className="mt-2 text-sm text-foreground/70 lg:text-white/80">
                     Add skills so companies can quickly see where you excel.
                   </p>
                 )}

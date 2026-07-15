@@ -59,18 +59,6 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
           skills: { select: { skill: { select: { name: true } } } },
         },
       },
-      companyEventPosts: {
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          title: true,
-          about: true,
-          link: true,
-          linkLabel: true,
-          imageUrl: true,
-          createdAt: true,
-        },
-      },
     },
   });
 
@@ -97,7 +85,6 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
   const bio = profile?.about ?? null;
   const profilePhoto = company.image ?? null;
   const jobs = company.jobs ?? [];
-  const events = company.companyEventPosts ?? [];
 
   const JOB_TYPE_LABELS: Record<string, string> = {
     FULL_TIME: "Full-time",
@@ -304,62 +291,6 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
                         </div>
                       )}
                     </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {/* Events */}
-          <section className="mt-6 rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
-            <header className="mb-4">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                    <rect x="3" y="5" width="18" height="16" rx="2" />
-                    <path d="M3 9h18M8 3v4M16 3v4" />
-                  </svg>
-                </span>
-                <h2 className="text-lg font-semibold uppercase tracking-tight text-brand">Events</h2>
-              </div>
-              <div className="mt-1 h-0.5 w-10 rounded-full bg-brandBlue" />
-            </header>
-
-            {events.length === 0 ? (
-              <p className="text-sm text-muted">This company has no upcoming events right now.</p>
-            ) : (
-              <ul className="space-y-3">
-                {events.map((event) => (
-                  <li
-                    key={event.id}
-                    className="flex flex-col gap-2 rounded-2xl border border-border bg-background p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <p className="font-semibold text-foreground">{event.title}</p>
-                        <p className="mt-0.5 text-xs text-muted">
-                          {new Date(event.createdAt).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </div>
-                      {event.link ? (
-                        <a
-                          href={event.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand"
-                        >
-                          {event.linkLabel || "Learn more"}
-                          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3">
-                            <path d="M7 17 17 7M7 7h10v10" />
-                          </svg>
-                        </a>
-                      ) : null}
-                    </div>
-                    <p className="text-sm leading-relaxed text-foreground/80">{event.about}</p>
                   </li>
                 ))}
               </ul>

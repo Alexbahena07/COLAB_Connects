@@ -101,6 +101,7 @@ export default function CandidatesPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [totalResults, setTotalResults] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const buildQuery = (current: Filters, nextPage: number) => {
     const params = new URLSearchParams();
@@ -229,6 +230,17 @@ export default function CandidatesPageClient() {
     }
   };
 
+  const activeFieldFilterCount = [
+    draftFilters.q.trim() !== "",
+    draftFilters.location.trim() !== "",
+    draftFilters.skills.trim() !== "",
+    draftFilters.employmentType !== "",
+    draftFilters.ugYearsOutMin.trim() !== "",
+    draftFilters.ugYearsOutMax.trim() !== "",
+    draftFilters.gradYearsOutMin.trim() !== "",
+    draftFilters.gradYearsOutMax.trim() !== "",
+  ].filter(Boolean).length;
+
   const getInitials = (name: string) =>
     name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
 
@@ -262,7 +274,45 @@ export default function CandidatesPageClient() {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Filters toggle — mobile only. Keeps the filter fields out of the
+                way by default so the candidate list gets more vertical space. */}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((prev) => !prev)}
+              aria-expanded={filtersOpen}
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground md:hidden"
+            >
+              <span className="flex items-center gap-2">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <circle cx="9" cy="6" r="2" fill="currentColor" stroke="none" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <circle cx="15" cy="12" r="2" fill="currentColor" stroke="none" />
+                  <line x1="4" y1="18" x2="20" y2="18" />
+                  <circle cx="11" cy="18" r="2" fill="currentColor" stroke="none" />
+                </svg>
+                Filters
+                {activeFieldFilterCount > 0 ? (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold text-white">
+                    {activeFieldFilterCount}
+                  </span>
+                ) : null}
+              </span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`h-4 w-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            <div className={`mt-4 gap-4 md:mt-6 md:grid md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
               <Input
                 label="Search"
                 value={draftFilters.q}
@@ -302,7 +352,7 @@ export default function CandidatesPageClient() {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className={`mt-4 gap-4 md:grid md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
               <Input
                 label="Undergrad yrs out (min)"
                 type="number" min="0"
@@ -605,7 +655,7 @@ export default function CandidatesPageClient() {
                   <div className="space-y-4 lg:sticky lg:top-6">
                     <Button
                       type="button"
-                      className={`w-full h-11 ${savedCandidateIds.has(selectedCandidate.id) ? "btn-brand" : "btn-outline-brand"}`}
+                      className="btn-brand w-full h-11"
                       onClick={() => toggleSave(selectedCandidate.id)}
                     >
                       {savedCandidateIds.has(selectedCandidate.id) ? "Unsave" : "Save candidate"}
