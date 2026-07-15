@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveSponsorTier } from "@/lib/sponsorTier";
-import JobsPageClient from "@/components/company/JobsPageClient";
+import CompanyPostsPageClient from "@/components/company/CompanyPostsPageClient";
 
 export default async function CompanyJobsPage() {
   const session = await getServerSession(authOptions);
@@ -17,5 +17,5 @@ export default async function CompanyJobsPage() {
 
   const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), companyProfile?.sponsorTier, session.user.accountType);
 
-  return <JobsPageClient sponsorTier={sponsorTier} />;
+  return <CompanyPostsPageClient sponsorTier={sponsorTier} />;
 }

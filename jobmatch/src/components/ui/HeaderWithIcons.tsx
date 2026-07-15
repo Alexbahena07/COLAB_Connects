@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import NotificationBell from "@/components/ui/NotificationBell";
 
 type NavItem = {
@@ -61,8 +61,8 @@ const ManageJobsIcon = (
 );
 
 export default function Header() {
-  const pathname = usePathname();
-  const isCompany = pathname?.startsWith("/dashboard/company");
+  const { data: session } = useSession();
+  const isCompany = session?.user?.accountType === "COMPANY";
   const applicationHref = isCompany ? "/dashboard/company/application" : "/dashboard/application";
   const jobListingsHref = "/dashboard";
   const logoHref = "/dashboard/company";
@@ -73,7 +73,7 @@ export default function Header() {
         { href: applicationHref, label: "Career Forum", icon: CareerForumIcon },
         { href: "/dashboard/company", label: "Applicants", icon: ApplicantsIcon },
         { href: "/dashboard/company/candidates", label: "Candidates", icon: CandidatesIcon },
-        { href: "/dashboard/company/jobs", label: "Manage Jobs", icon: ManageJobsIcon },
+        { href: "/dashboard/company/jobs", label: "Manage Posts", icon: ManageJobsIcon },
         { href: "/dashboard/company/profile", label: "Profile", icon: ProfileIcon },
       ]
     : [

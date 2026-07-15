@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Montserrat, Libre_Baskerville } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import Providers from "./providers";
 
 const montserrat = Montserrat({
@@ -30,11 +32,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <body className={`${montserrat.variable} ${libre.variable}`}>
-        <Providers>{children}</Providers>
+        <Providers session={session}>{children}</Providers>
         <Analytics />
       </body>
     </html>
