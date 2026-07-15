@@ -56,7 +56,7 @@ export default function NotificationBell() {
         <path d="M9.5 17a2.5 2.5 0 0 0 5 0" />
         <path d="M8 9a4 4 0 1 1 8 0c0 4 2 4 2 6H6c0-2 2-2 2-6Z" />
       </svg>
-      <span className="text-xs font-semibold">Notifications</span>
+      <span className="hidden text-xs font-semibold sm:inline">Notifications</span>
       {hasUnread ? (
         <span className="absolute right-3 top-3 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
           {unreadCount}

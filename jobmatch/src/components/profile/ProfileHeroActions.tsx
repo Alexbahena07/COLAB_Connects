@@ -42,7 +42,9 @@ export default function ProfileHeroActions() {
       <button
         type="button"
         onClick={handleShare}
-        className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/50"
+        aria-label="Share"
+        title="Share"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/50"
       >
         <svg
           viewBox="0 0 24 24"
@@ -60,7 +62,6 @@ export default function ProfileHeroActions() {
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
           <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
         </svg>
-        Share
       </button>
       {shareNotice ? (
         <span className="text-xs font-medium text-white/80">{shareNotice}</span>
