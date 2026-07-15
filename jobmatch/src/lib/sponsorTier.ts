@@ -12,3 +12,7 @@ export function getEffectiveSponsorTier(
   if (isAdmin && accountType === "COMPANY") return "PLATINUM";
   return actualTier ?? "FREE";
 }
+
+export function canPostEvents(tier: SponsorTier): boolean {
+  return tier === "GOLD" || tier === "PLATINUM";
+}

@@ -1,14 +1,11 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import CompanyEditDrawer from "@/components/profile/CompanyEditDrawer";
 import ProfileHeroActions from "@/components/profile/ProfileHeroActions";
-import CompanyEventPostsManager from "@/components/company/CompanyEventPostsManager";
-import { getEffectiveSponsorTier } from "@/lib/sponsorTier";
 import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
 
@@ -58,7 +55,6 @@ export default async function CompanyProfilePage() {
           teamSize: true,
           hiringFocus: true,
           about: true,
-          sponsorTier: true,
         },
       },
     },
@@ -72,8 +68,6 @@ export default async function CompanyProfilePage() {
   const teamSize = cp?.teamSize?.trim() ?? null;
   const hiringFocus = cp?.hiringFocus?.trim() ?? null;
   const about = cp?.about?.trim() ?? null;
-  const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), cp?.sponsorTier, session.user.accountType);
-  const canPostEvents = sponsorTier === "GOLD" || sponsorTier === "PLATINUM";
 
   return (
     <>
@@ -88,54 +82,47 @@ export default async function CompanyProfilePage() {
               <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-[#f5f1ff]/20 blur-3xl" />
             </div>
 
-            <div className="relative flex flex-wrap items-start gap-6">
-              {/* Company logo / avatar */}
-              {profilePhoto ? (
-                <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-3xl border-4 border-white/60 bg-surface shadow-xl ring-2 ring-white/20">
-                  <Image
-                    src={profilePhoto}
-                    alt={`${companyName} logo`}
-                    fill
-                    sizes="112px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl bg-surface text-3xl font-semibold text-brand shadow-xl ring-2 ring-white/20">
-                  {companyName.charAt(0).toUpperCase()}
-                </div>
-              )}
+            <div className="relative space-y-4 sm:space-y-5">
+              {/* Logo + name row */}
+              <div className="flex items-start gap-4 sm:items-center sm:gap-6">
+                {/* Company logo / avatar */}
+                {profilePhoto ? (
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-3xl border-4 border-white/60 bg-surface shadow-xl ring-2 ring-white/20 sm:h-28 sm:w-28">
+                    <Image
+                      src={profilePhoto}
+                      alt={`${companyName} logo`}
+                      fill
+                      sizes="112px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-surface text-2xl font-semibold text-brand shadow-xl ring-2 ring-white/20 sm:h-28 sm:w-28 sm:text-3xl">
+                    {companyName.charAt(0).toUpperCase()}
+                  </div>
+                )}
 
-              {/* Main info */}
-              <div className="flex-1 space-y-4">
-                <div>
+                <div className="min-w-0 flex-1 pt-1 sm:pt-0">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f4e7ff]/80">
-                    Profile
+                    Company Profile
                   </p>
-                  <h1 className="mt-1 text-4xl font-bold tracking-tight text-[#fdfbff]">
+                  <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#fdfbff] sm:text-4xl">
                     {companyName}
                   </h1>
-                  {about ? (
-                    <p className="mt-2 max-w-2xl text-sm text-[#fdfbff]/90 line-clamp-2">{about}</p>
-                  ) : (
-                    <p className="mt-2 max-w-2xl text-sm text-[#fdfbff]/75">
-                      Add an about section to tell candidates what makes your company a great place to work.
-                    </p>
-                  )}
                 </div>
+              </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <CompanyEditDrawer profilePhoto={profilePhoto} />
-                  <ProfileHeroActions />
-                </div>
+              {/* Actions */}
+              <div className="flex flex-wrap items-center gap-3">
+                <CompanyEditDrawer profilePhoto={profilePhoto} />
+                <ProfileHeroActions />
               </div>
             </div>
           </div>
 
           {/* Profile view */}
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
+          <div className="grid gap-6">
 
-            {/* Left column */}
             <section className="space-y-6">
               <SectionCard
                 title="About"
@@ -157,81 +144,44 @@ export default async function CompanyProfilePage() {
               </SectionCard>
 
               <SectionCard
-                title="Events"
+                title="Company Details"
                 icon={
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                    <rect x="3" y="7" width="18" height="14" rx="2"/>
-                    <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/>
-                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 }
               >
-                {canPostEvents ? (
-                  <CompanyEventPostsManager />
-                ) : (
-                  <div className="rounded-2xl border border-border bg-background p-6 text-center">
-                    <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-                        <rect x="3" y="7" width="18" height="14" rx="2"/>
-                        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/>
-                      </svg>
-                    </span>
-                    <h3 className="mt-3 text-base font-bold text-foreground">Posting events is a Gold+ sponsor feature</h3>
-                    <p className="mt-2 text-sm text-foreground/70">
-                      Event posts let you promote recruiting nights, info sessions, and other events
-                      directly on the student job listings page. It&apos;s available to Gold and
-                      Platinum sponsors.
-                    </p>
-                    <Link
-                      href="/dashboard/company/application#sponsorship"
-                      className="mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:opacity-90"
-                    >
-                      See sponsorship tiers
-                    </Link>
-                  </div>
-                )}
-              </SectionCard>
-            </section>
-
-            {/* Right sidebar */}
-            <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-              <div className="rounded-3xl border border-brandBlue bg-brandBlue p-6 text-white shadow-sm">
-                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                  Company Details
-                </h3>
-                <dl className="mt-3 space-y-2 text-sm text-white/90">
+                <dl className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-white/60">Headquarters</dt>
-                    <dd>{headquarters ?? "Not specified"}</dd>
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted">Headquarters</dt>
+                    <dd className="text-sm text-foreground/90">{headquarters ?? "Not specified"}</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-white/60">Team size</dt>
-                    <dd>{teamSize ?? "Not specified"}</dd>
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted">Team size</dt>
+                    <dd className="text-sm text-foreground/90">{teamSize ?? "Not specified"}</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-white/60">Hiring focus</dt>
-                    <dd>{hiringFocus ?? "Not specified"}</dd>
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted">Hiring focus</dt>
+                    <dd className="text-sm text-foreground/90">{hiringFocus ?? "Not specified"}</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-white/60">Website</dt>
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted">Website</dt>
                     {website ? (
                       <dd className="mt-1">
                         <a
                           href={website}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-brandBlue shadow-sm transition hover:bg-white/90"
+                          className="inline-flex items-center rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
                         >
                           Visit website
                         </a>
                       </dd>
                     ) : (
-                      <dd>Not provided</dd>
+                      <dd className="text-sm text-foreground/90">Not provided</dd>
                     )}
                   </div>
                 </dl>
-              </div>
-            </aside>
+              </SectionCard>
+            </section>
           </div>
 
         </div>
