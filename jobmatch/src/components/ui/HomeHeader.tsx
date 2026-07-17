@@ -59,6 +59,20 @@ const navItems: NavItem[] = [
 export default function HomeHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    const id = href.slice(1);
+    // Wait for the mobile menu panel to collapse (if open) before measuring
+    // the target's position — otherwise the browser scrolls to where the
+    // section was before the panel closed, landing short or past it.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-brand text-brand">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
@@ -81,6 +95,7 @@ export default function HomeHeader() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={(e) => handleNavClick(e, item.href)}
               className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               {item.icon}
@@ -113,7 +128,7 @@ export default function HomeHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => handleNavClick(e, item.href)}
                 className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 <span className="[&_svg]:h-6 [&_svg]:w-6">{item.icon}</span>
