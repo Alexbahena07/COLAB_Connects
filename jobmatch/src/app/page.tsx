@@ -30,34 +30,34 @@ export default async function Home() {
         <div className="relative mx-auto flex min-h-[calc(100svh-80px)] max-w-6xl items-center px-6 py-24">
           <div className="grid w-full items-center gap-10 md:grid-cols-2 md:justify-items-center">
             <div className="w-full max-w-xl text-center">
-              <div className="rounded-3xl border border-white/15 bg-black/55 px-6 py-6 text-white shadow-lg backdrop-blur-sm">
+              <div className="rounded-3xl border border-white/15 bg-black/55 px-5 py-5 text-white shadow-lg backdrop-blur-sm sm:px-6 sm:py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
                 COLAB Connects
               </p>
 
-              <h1 className="mt-3 font-serif text-4xl font-bold leading-tight text-white md:text-5xl">
+              <h1 className="mt-3 font-serif text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl">
                 A hiring hub built for early-career finance talent and growing teams.
               </h1>
 
-              <p className="mt-4 text-lg text-white/85">
+              <p className="mt-4 text-base text-white/85 sm:text-lg">
                 Candidates search and apply to curated roles, save favorites, and follow
                 companies. Employers publish jobs, review applicants by skill, and tell
                 their story with a polished company profile.
               </p>
 
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link href="/register">
-                  <Button className="btn-brand border border-white/20 bg-white text-brand hover:bg-white/15">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+                <Link href="/register" className="w-full sm:w-auto">
+                  <Button className="btn-brand w-full border border-white/20 bg-white text-brand hover:bg-white/15 sm:w-auto">
                     Join as a candidate
                   </Button>
                 </Link>
-                <Link href="/register?type=company">
-                  <Button className="btn-brand border border-white/20 bg-white/10 text-white hover:bg-white/15">
+                <Link href="/register?type=company" className="w-full sm:w-auto">
+                  <Button className="btn-brand w-full border border-white/20 bg-white/10 text-white hover:bg-white/15 sm:w-auto">
                     Join as a company
                   </Button>
                 </Link>
-                <Link href="/login">
-                  <Button className="btn-brand border border-white/20 bg-transparent text-white hover:bg-white/10">
+                <Link href="/login" className="w-full sm:w-auto">
+                  <Button className="btn-brand w-full border border-white/20 bg-transparent text-white hover:bg-white/10 sm:w-auto">
                     Log in
                   </Button>
                 </Link>
@@ -66,7 +66,7 @@ export default async function Home() {
               <div className="mt-4 flex justify-center">
                 <Link
                   href={careerForumHref}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
                 >
                   Learn about the Career Forum
                   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
@@ -77,8 +77,8 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Hero mock panels */}
-            <div className="mx-auto w-full max-w-md space-y-4">
+            {/* Hero mock panels (desktop only — too much scroll for mobile) */}
+            <div className="mx-auto hidden w-full max-w-md space-y-4 md:block">
               <div className="rounded-2xl border border-white/15 bg-black/55 p-5 backdrop-blur">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-white">Candidate dashboard</h3>
@@ -166,7 +166,7 @@ export default async function Home() {
         <a
           href="#how-it-works"
           aria-label="Scroll to How COLAB works"
-          className="absolute bottom-14 left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:bg-white/20"
+          className="absolute bottom-4 left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:bg-white/20 md:bottom-14"
         >
           <svg
             viewBox="0 0 24 24"
@@ -186,7 +186,7 @@ export default async function Home() {
       </section>
 
       {/* How it works */}
-      <section className="home-section" id="how-it-works">
+      <section className="home-section scroll-mt-24" id="how-it-works">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <h2 className="text-center text-4xl font-bold text-foreground md:text-5xl">
             How COLAB works
@@ -359,9 +359,9 @@ export default async function Home() {
                   Companies manage listings, review applicants, and keep follow-ups organized.
                 </p>
 
-                <div className="mt-6 flex gap-3">
-                  <Link href="/register">
-                    <Button className="btn-brand border border-white/40 bg-brandBlue text-white hover:opacity-95">
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <Link href="/register" className="w-full sm:w-auto">
+                    <Button className="btn-brand w-full border border-white/40 bg-brandBlue text-white hover:opacity-95 sm:w-auto">
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -377,8 +377,8 @@ export default async function Home() {
                       Get Started
                     </Button>
                   </Link>
-                  <Link href="/login">
-                    <Button className="btn-outline-brand text-white! border-white/40! hover:bg-white/10">
+                  <Link href="/login" className="w-full sm:w-auto">
+                    <Button className="btn-outline-brand w-full text-white! border-white/40! hover:bg-white/10 sm:w-auto">
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
