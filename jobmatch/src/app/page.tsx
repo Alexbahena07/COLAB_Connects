@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import Header from "@/components/ui/Header";
+import HomeHeader from "@/components/ui/HomeHeader";
 import Footer from "@/components/ui/Footer";
 import Image from "next/image";
 import MarqueeTrack from "@/components/ui/MarqueeTrack";
@@ -18,10 +18,10 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <Header />
+      <HomeHeader />
 
       {/* Hero */}
-      <section className="relative min-h-[calc(100svh-80px)] overflow-hidden">
+      <section id="top" className="relative min-h-[calc(100svh-80px)] overflow-hidden scroll-mt-24">
         <div className="absolute inset-0 bg-[url('/Backgrounds/EventPhoto.JPG')] bg-cover bg-center" />
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
@@ -273,7 +273,7 @@ export default async function Home() {
       </section>
 
       {/* Photo gallery */}
-      <section className="bg-brand/5 py-16">
+      <section id="forum" className="scroll-mt-24 bg-brand/5 py-16">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10 text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-brandBlue/30 bg-brandBlue/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brandBlue">
@@ -327,7 +327,7 @@ export default async function Home() {
       </section>
 
       {/* Product highlight */}
-      <section className="home-section py-14">
+      <section id="features" className="home-section scroll-mt-24 py-14">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-bold text-foreground md:text-5xl">
@@ -501,7 +501,7 @@ export default async function Home() {
       </section>
 
         {/* Founders / Backed by */}
-        <section className="bg-background py-16">
+        <section id="sponsors" className="scroll-mt-24 bg-background py-16">
           <h3 className="text-center text-2xl font-semibold text-foreground md:text-3xl">
             Our Sponsors
           </h3>
