@@ -33,6 +33,13 @@ enum SponsorTier {
   PLATINUM
 }
 
+enum SponsorPaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
 enum JobStatus {
   APPROVED
   REJECTED
@@ -110,11 +117,13 @@ model User {
 
   companyEventPosts CompanyEventPost[] @relation("CompanyEventPosts")
 
+  sponsorPayments Sponsor[]
+
   // Admin relations
-  companyProfilesApproved CompanyProfile[]    @relation("CompanyApprovedBy")
-  jobsReviewed            Job[]               @relation("JobReviewedBy")
-  eventsCreated           Event[]             @relation("EventCreatedBy")
-  eventApplications       EventApplication[]  @relation("EventApplicant")
+  companyProfilesApproved CompanyProfile[]   @relation("CompanyApprovedBy")
+  jobsReviewed            Job[]              @relation("JobReviewedBy")
+  eventsCreated           Event[]            @relation("EventCreatedBy")
+  eventApplications       EventApplication[] @relation("EventApplicant")
 }
 
 model Account {
@@ -281,7 +290,7 @@ model CompanyEventPost {
   imageUrl  String?
   createdAt DateTime @default(now())
 
-  company User @relation("CompanyEventPosts", fields: [companyId], references: [id], onDelete: Cascade)
+  company       User           @relation("CompanyEventPosts", fields: [companyId], references: [id], onDelete: Cascade)
   notifications Notification[]
 
   @@index([companyId])
@@ -382,12 +391,12 @@ model SavedCandidate {
 }
 
 model JobPostEvent {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   companyId String
   jobId     String
   jobTitle  String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   emailedAt DateTime?
 
   user    User @relation("UserPostedJobEvents", fields: [userId], references: [id], onDelete: Cascade)
@@ -400,18 +409,18 @@ model JobPostEvent {
 }
 
 model Notification {
-  id          String           @id @default(cuid())
-  userId      String
-  type        NotificationType
-  jobId       String?
-  companyId   String?
-  jobTitle    String?
-  eventPostId String?
-  eventTitle  String?
-  sponsorTier SponsorTier?
+  id             String           @id @default(cuid())
+  userId         String
+  type           NotificationType
+  jobId          String?
+  companyId      String?
+  jobTitle       String?
+  eventPostId    String?
+  eventTitle     String?
+  sponsorTier    SponsorTier?
   milestoneCount Int?
-  readAt      DateTime?
-  createdAt   DateTime         @default(now())
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
 
   user      User              @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
   job       Job?              @relation(fields: [jobId], references: [id], onDelete: Cascade)
@@ -462,4 +471,24 @@ model EventApplication {
   @@unique([eventId, applicantId])
   @@index([eventId])
   @@index([applicantId])
+}
+
+model Sponsor {
+  id              String               @id @default(cuid())
+  userId          String
+  email           String
+  companyName     String
+  tier            SponsorTier
+  stripeSessionId String               @unique
+  amountPaid      Int
+  currency        String
+  status          SponsorPaymentStatus @default(PENDING)
+  paidAt          DateTime?
+  createdAt       DateTime             @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([email])
+  @@index([status])
 }
