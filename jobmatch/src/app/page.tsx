@@ -27,25 +27,25 @@ export default async function Home() {
         <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
 
-        <div className="relative mx-auto flex min-h-[calc(100svh-80px)] max-w-6xl items-center px-6 py-24">
+        <div className="relative mx-auto flex min-h-[calc(100svh-80px)] max-w-6xl items-center px-6 py-12 sm:py-16 md:py-24">
           <div className="grid w-full items-center gap-10 md:grid-cols-2 md:justify-items-center">
             <div className="w-full max-w-xl text-center">
-              <div className="rounded-3xl border border-white/15 bg-black/55 px-5 py-5 text-white shadow-lg backdrop-blur-sm sm:px-6 sm:py-6">
+              <div className="rounded-3xl border border-white/15 bg-black/55 px-4 py-4 text-white shadow-lg backdrop-blur-sm sm:px-6 sm:py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
                 COLAB Connects
               </p>
 
-              <h1 className="mt-3 font-serif text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl">
+              <h1 className="mt-2 font-serif text-2xl font-bold leading-tight text-white sm:mt-3 sm:text-4xl md:text-5xl">
                 A hiring hub built for early-career finance talent and growing teams.
               </h1>
 
-              <p className="mt-4 text-base text-white/85 sm:text-lg">
+              <p className="mt-3 text-sm text-white/85 sm:mt-4 sm:text-lg">
                 Candidates search and apply to curated roles, save favorites, and follow
                 companies. Employers publish jobs, review applicants by skill, and tell
                 their story with a polished company profile.
               </p>
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+              <div className="mt-4 flex flex-col gap-2 sm:mt-6 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3">
                 <Link href="/register" className="w-full sm:w-auto">
                   <Button className="btn-brand w-full border border-white/20 bg-white text-brand hover:bg-white/15 sm:w-auto">
                     Join as a candidate
@@ -63,7 +63,7 @@ export default async function Home() {
                 </Link>
               </div>
 
-              <div className="mt-4 flex justify-center">
+              <div className="mt-3 flex justify-center sm:mt-4">
                 <Link
                   href={careerForumHref}
                   className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
@@ -166,7 +166,7 @@ export default async function Home() {
         <a
           href="#how-it-works"
           aria-label="Scroll to How COLAB works"
-          className="absolute bottom-4 left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:bg-white/20 md:bottom-14"
+          className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:bg-white/20 md:bottom-14"
         >
           <svg
             viewBox="0 0 24 24"

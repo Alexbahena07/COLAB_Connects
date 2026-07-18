@@ -64,6 +64,45 @@ function PhotoCarousel() {
   );
 }
 
+type SponsorTierId = "SILVER" | "GOLD" | "PLATINUM";
+
+function useSponsorCheckout() {
+  const [pendingTier, setPendingTier] = useState<SponsorTierId | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const startCheckout = async (tier: SponsorTierId) => {
+    setError(null);
+    setPendingTier(tier);
+    try {
+      const res = await fetch("/api/payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = `/login?callbackUrl=${encodeURIComponent(
+            "/dashboard/company/application#sponsorship"
+          )}`;
+          return;
+        }
+        setError(data.error ?? "Something went wrong. Please try again.");
+        setPendingTier(null);
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setPendingTier(null);
+    }
+  };
+
+  return { pendingTier, error, startCheckout };
+}
+
 const FAQS = [
   {
     question: "What is the deadline to apply?",
@@ -110,6 +149,16 @@ const FAQS = [
 ];
 
 export default function CompanyEventApplicationPage() {
+  const { pendingTier, error, startCheckout } = useSponsorCheckout();
+  const [sponsorStatus, setSponsorStatus] = useState<"success" | "cancelled" | null>(null);
+
+  useEffect(() => {
+    const sponsor = new URLSearchParams(window.location.search).get("sponsor");
+    if (sponsor === "success" || sponsor === "cancelled") {
+      setSponsorStatus(sponsor);
+    }
+  }, []);
+
   return (
     <>
       <Header />
@@ -221,6 +270,20 @@ export default function CompanyEventApplicationPage() {
             Partner with COLAB to connect with the next generation of finance talent.
           </p>
 
+          {sponsorStatus === "success" ? (
+            <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              Thanks for sponsoring! Your payment was received — we&apos;ll follow up shortly.
+            </p>
+          ) : null}
+          {sponsorStatus === "cancelled" ? (
+            <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              Checkout was cancelled — no payment was made.
+            </p>
+          ) : null}
+          {error ? (
+            <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+          ) : null}
+
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {/* Silver */}
             <div className="flex flex-col rounded-2xl border-2 border-[#C0C0C0] bg-background p-6 shadow-sm">
@@ -250,12 +313,14 @@ export default function CompanyEventApplicationPage() {
                 ))}
               </ul>
 
-              <a
-                href="mailto:info@colabconnects.org?subject=Silver Sponsorship Inquiry"
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#C0C0C0] px-4 py-2.5 text-sm font-semibold text-foreground no-underline transition hover:bg-[#C0C0C0]/10"
+              <button
+                type="button"
+                onClick={() => startCheckout("SILVER")}
+                disabled={pendingTier === "SILVER"}
+                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#C0C0C0] px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-[#C0C0C0]/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Inquire about Silver
-              </a>
+                {pendingTier === "SILVER" ? "Redirecting…" : "Become a Silver Sponsor"}
+              </button>
             </div>
 
             {/* Gold */}
@@ -290,12 +355,14 @@ export default function CompanyEventApplicationPage() {
                 ))}
               </ul>
 
-              <a
-                href="mailto:info@colabconnects.org?subject=Gold Sponsorship Inquiry"
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-foreground no-underline transition hover:bg-[#D4AF37]/10"
+              <button
+                type="button"
+                onClick={() => startCheckout("GOLD")}
+                disabled={pendingTier === "GOLD"}
+                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-[#D4AF37]/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Inquire about Gold
-              </a>
+                {pendingTier === "GOLD" ? "Redirecting…" : "Become a Gold Sponsor"}
+              </button>
             </div>
 
             {/* Platinum */}
@@ -331,12 +398,14 @@ export default function CompanyEventApplicationPage() {
                 ))}
               </ul>
 
-              <a
-                href="mailto:info@colabconnects.org?subject=Platinum Sponsorship Inquiry"
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-[#c7d0f8]/20 px-4 py-2.5 text-sm font-semibold text-white no-underline transition hover:bg-[#c7d0f8]/30 border border-[#c7d0f8]/30"
+              <button
+                type="button"
+                onClick={() => startCheckout("PLATINUM")}
+                disabled={pendingTier === "PLATINUM"}
+                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl border border-[#c7d0f8]/30 bg-[#c7d0f8]/20 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#c7d0f8]/30 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Inquire about Platinum
-              </a>
+                {pendingTier === "PLATINUM" ? "Redirecting…" : "Become a Platinum Sponsor"}
+              </button>
             </div>
           </div>
         </div>
