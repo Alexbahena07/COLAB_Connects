@@ -21,13 +21,13 @@ export default async function Home() {
       <HomeHeader />
 
       {/* Hero */}
-      <section id="top" className="relative min-h-[calc(100svh-80px)] overflow-hidden scroll-mt-24">
+      <section id="top" className="relative min-h-[calc(100svh-var(--home-header-h,80px))] overflow-hidden scroll-mt-[var(--home-header-h,96px)]">
         <div className="absolute inset-0 bg-[url('/Backgrounds/EventPhoto.JPG')] bg-cover bg-center" />
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
 
-        <div className="relative mx-auto flex min-h-[calc(100svh-80px)] max-w-6xl items-center px-6 py-12 sm:py-16 md:py-24">
+        <div className="relative mx-auto flex min-h-[calc(100svh-var(--home-header-h,80px))] max-w-6xl items-center px-6 py-12 sm:py-16 md:py-24">
           <div className="grid w-full items-center gap-10 md:grid-cols-2 md:justify-items-center">
             <div className="w-full max-w-xl text-center">
               <div className="rounded-3xl border border-white/15 bg-black/55 px-4 py-4 text-white shadow-lg backdrop-blur-sm sm:px-6 sm:py-6">
@@ -186,7 +186,7 @@ export default async function Home() {
       </section>
 
       {/* How it works */}
-      <section className="home-section scroll-mt-24" id="how-it-works">
+      <section className="home-section scroll-mt-[var(--home-header-h,96px)]" id="how-it-works">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <h2 className="text-center text-4xl font-bold text-foreground md:text-5xl">
             How COLAB works
@@ -273,7 +273,7 @@ export default async function Home() {
       </section>
 
       {/* Photo gallery */}
-      <section id="forum" className="scroll-mt-24 bg-brand/5 py-16">
+      <section id="forum" className="scroll-mt-[var(--home-header-h,96px)] bg-brand/5 py-16">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10 text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-brandBlue/30 bg-brandBlue/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brandBlue">
@@ -327,7 +327,7 @@ export default async function Home() {
       </section>
 
       {/* Product highlight */}
-      <section id="features" className="home-section scroll-mt-24 py-14">
+      <section id="features" className="home-section scroll-mt-[var(--home-header-h,96px)] py-14">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-bold text-foreground md:text-5xl">
@@ -501,7 +501,7 @@ export default async function Home() {
       </section>
 
         {/* Founders / Backed by */}
-        <section id="sponsors" className="scroll-mt-24 bg-background py-16">
+        <section id="sponsors" className="scroll-mt-[var(--home-header-h,96px)] bg-background py-16">
           <h3 className="text-center text-2xl font-semibold text-foreground md:text-3xl">
             Our Sponsors
           </h3>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -58,6 +58,27 @@ const navItems: NavItem[] = [
 
 export default function HomeHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  // Sections offset their anchor-scroll landing with scroll-margin-top, but
+  // the sticky header's height varies with viewport (the logo scales down on
+  // mobile) and a fixed offset leaves a sliver of the previous section
+  // showing. Publish the measured height of the top bar (not the expandable
+  // mobile menu panel) as a CSS variable the sections can use.
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    const setHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        "--home-header-h",
+        `${bar.offsetHeight}px`
+      );
+    };
+    setHeaderHeight();
+    const observer = new ResizeObserver(setHeaderHeight);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -75,7 +96,7 @@ export default function HomeHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-brand text-brand">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+      <div ref={barRef} className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
         {/* Logo on the left, centered vertically */}
         <div className="flex shrink-0 items-center">
           <Image
