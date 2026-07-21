@@ -273,7 +273,7 @@ export default async function Home() {
       </section>
 
       {/* Photo gallery */}
-      <section id="forum" className="scroll-mt-[var(--home-header-h,96px)] bg-brand/5 py-16">
+      <section id="forum" className="scroll-mt-[var(--home-header-h,96px)] bg-brand/5 py-8 md:py-16">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10 text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-brandBlue/30 bg-brandBlue/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brandBlue">
@@ -327,7 +327,7 @@ export default async function Home() {
       </section>
 
       {/* Product highlight */}
-      <section id="features" className="home-section scroll-mt-[var(--home-header-h,96px)] py-14">
+      <section id="features" className="home-section scroll-mt-[var(--home-header-h,96px)] py-8 md:py-14">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-bold text-foreground md:text-5xl">
