@@ -34,8 +34,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Account not found" }, { status: 404 });
   }
 
-  // Accounts created via OAuth (e.g. LinkedIn) may not have a password yet.
-  // Only require the current password when one is already set.
+  // Accounts created via OAuth may not have a password yet. Only require the
+  // current password when one is already set.
   if (user.password) {
     if (!currentPassword) {
       return NextResponse.json({ error: "Current password is required" }, { status: 400 });

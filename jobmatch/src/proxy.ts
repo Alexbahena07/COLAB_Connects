@@ -1,6 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 
-export default withAuth(function middleware() {}, {
+export default withAuth(function proxy() {}, {
   pages: {
     signIn: "/login",
   },
