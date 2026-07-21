@@ -66,7 +66,7 @@ export default async function Home() {
               <div className="mt-3 flex justify-center sm:mt-4">
                 <Link
                   href={careerForumHref}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto"
                 >
                   Learn about the Career Forum
                   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
