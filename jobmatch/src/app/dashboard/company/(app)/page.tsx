@@ -3,6 +3,40 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import StatusBadge from "@/components/ui/StatusBadge";
+
+export type ApplicationStatus =
+  | "SUBMITTED"
+  | "UNDER_REVIEW"
+  | "INTERVIEWING"
+  | "OFFERED"
+  | "HIRED"
+  | "REJECTED";
+
+const APPLICATION_STATUS_OPTIONS: { value: ApplicationStatus; label: string }[] = [
+  { value: "SUBMITTED", label: "Submitted" },
+  { value: "UNDER_REVIEW", label: "Under review" },
+  { value: "INTERVIEWING", label: "Interviewing" },
+  { value: "OFFERED", label: "Offer extended" },
+  { value: "HIRED", label: "Hired" },
+  { value: "REJECTED", label: "Rejected" },
+];
+
+const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = Object.fromEntries(
+  APPLICATION_STATUS_OPTIONS.map((option) => [option.value, option.label])
+) as Record<ApplicationStatus, string>;
+
+// Sidebar pills sit on a dark bg-brandBlue background, so they use the same
+// translucent-white/emerald treatment as the existing "Saved"/"Open to work"
+// pills there rather than StatusBadge's light-surface pastel chips.
+const SIDEBAR_STATUS_PILL: Record<ApplicationStatus, string> = {
+  SUBMITTED: "bg-white/15 text-white/80",
+  UNDER_REVIEW: "bg-amber-400/25 text-amber-50",
+  INTERVIEWING: "bg-amber-400/25 text-amber-50",
+  OFFERED: "bg-emerald-400/25 text-emerald-50",
+  HIRED: "bg-emerald-400/25 text-emerald-50",
+  REJECTED: "bg-red-400/25 text-red-50",
+};
 
 type ApplicantSkill = { name: string; years: number | null };
 type ApplicantExperience = {
@@ -53,7 +87,7 @@ type ApplicantProfile = {
 type ApplicantApplication = {
   applicationId: string;
   jobId: string;
-  status: string;
+  status: ApplicationStatus;
   submittedAt: string; // ISO
   applicant: ApplicantProfile;
 };
@@ -92,10 +126,14 @@ const parseApplicantApplication = (
     ? (applicantRaw as ApplicantProfile).skills
     : [];
 
+  const isApplicationStatus = (value: unknown): value is ApplicationStatus =>
+    typeof value === "string" &&
+    APPLICATION_STATUS_OPTIONS.some((option) => option.value === value);
+
   return {
     applicationId,
     jobId: typeof raw.jobId === "string" ? raw.jobId : fallbackJobId,
-    status: typeof raw.status === "string" ? raw.status : "SUBMITTED",
+    status: isApplicationStatus(raw.status) ? raw.status : "SUBMITTED",
     submittedAt:
       typeof raw.submittedAt === "string" ? raw.submittedAt : new Date().toISOString(),
     applicant: {
@@ -114,6 +152,7 @@ const formatDate = (value: string | null | undefined) => {
 export default function CompanyDashboardPage() {
   const [q, setQ] = useState("");
   const [skill, setSkill] = useState("");
+  const [stage, setStage] = useState<ApplicationStatus | "">("");
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   const [jobsError, setJobsError] = useState<string | null>(null);
@@ -121,12 +160,32 @@ export default function CompanyDashboardPage() {
 
   const [allApplications, setAllApplications] = useState<ApplicantApplication[]>([]);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
-  const [savedApplicationIds, setSavedApplicationIds] = useState<Set<string>>(new Set());
+  const [savedCandidateIds, setSavedCandidateIds] = useState<Set<string>>(new Set());
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [applicantsError, setApplicantsError] = useState<string | null>(null);
   const [isLoadingApplicants, setIsLoadingApplicants] = useState(false);
 
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // Saved candidates are persisted separately from the applicant list itself
+  // (the same SavedCandidate table the candidate-pool search page uses), so
+  // load the current company's saved set once on mount.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/candidates/saved", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data) return;
+        const ids = Array.isArray(data.savedCandidateIds) ? data.savedCandidateIds : [];
+        setSavedCandidateIds(new Set(ids));
+      })
+      .catch((err) => console.error("Failed to load saved candidates", err));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Jobs and applicants used to be two sequential requests (load jobs, wait,
   // then load applicants for whichever job ended up selected). They're
@@ -218,7 +277,7 @@ export default function CompanyDashboardPage() {
     const query = q.trim().toLowerCase();
     const base = showSavedOnly
     ? applications.filter((application: ApplicantApplication) =>
-        savedApplicationIds.has(application.applicationId)
+        savedCandidateIds.has(application.applicant.id)
       )
     : applications;
 
@@ -233,10 +292,11 @@ export default function CompanyDashboardPage() {
     applicant.skills.some((s) => s.name.toLowerCase().includes(query));
 
   const matchesSkill = !skill || applicant.skills.some((s) => s.name === skill);
-  return matchesQuery && matchesSkill;
+  const matchesStage = !stage || application.status === stage;
+  return matchesQuery && matchesSkill && matchesStage;
   });
 
-  }, [applications, q, skill, savedApplicationIds, showSavedOnly]);
+  }, [applications, q, skill, stage, savedCandidateIds, showSavedOnly]);
 
   useEffect(() => {
     if (filteredApplicants.length === 0) {
@@ -261,23 +321,79 @@ export default function CompanyDashboardPage() {
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => setQ(e.target.value);
 
-  const activeFieldFilterCount = [q.trim() !== "", skill !== ""].filter(Boolean).length;
+  const activeFieldFilterCount = [q.trim() !== "", skill !== "", stage !== ""].filter(Boolean).length;
 
-  const toggleSave = (applicationId: string) => {
-    setSavedApplicationIds((previous) => {
+  const toggleSave = async (candidateId: string) => {
+    const currentlySaved = savedCandidateIds.has(candidateId);
+    setSaveError(null);
+    setSavedCandidateIds((previous) => {
       const next = new Set(previous);
-      if (next.has(applicationId)) {
-        next.delete(applicationId);
+      if (currentlySaved) {
+        next.delete(candidateId);
       } else {
-        next.add(applicationId);
+        next.add(candidateId);
       }
       return next;
     });
+
+    try {
+      const response = await fetch("/api/candidates/saved", {
+        method: currentlySaved ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId }),
+      });
+      if (!response.ok) throw new Error(`Failed to update saved candidate (${response.status})`);
+    } catch (err) {
+      console.error("Failed to save candidate", err);
+      setSaveError("We couldn't update saved candidates. Please try again.");
+      setSavedCandidateIds((previous) => {
+        const next = new Set(previous);
+        if (currentlySaved) {
+          next.add(candidateId);
+        } else {
+          next.delete(candidateId);
+        }
+        return next;
+      });
+    }
   };
 
-  const isSaved = (applicationId: string | null) => {
-    if (!applicationId) return false;
-    return savedApplicationIds.has(applicationId);
+  const isSaved = (candidateId: string | null) => {
+    if (!candidateId) return false;
+    return savedCandidateIds.has(candidateId);
+  };
+
+  const updateApplicationStatus = async (
+    application: ApplicantApplication,
+    status: ApplicationStatus
+  ) => {
+    const previousStatus = application.status;
+    setStatusError(null);
+    setAllApplications((previous) =>
+      previous.map((app) =>
+        app.applicationId === application.applicationId ? { ...app, status } : app
+      )
+    );
+
+    try {
+      const response = await fetch(
+        `/api/jobs/${application.jobId}/applicants/${application.applicant.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        }
+      );
+      if (!response.ok) throw new Error(`Failed to update status (${response.status})`);
+    } catch (err) {
+      console.error("Failed to update application status", err);
+      setStatusError("We couldn't update this applicant's status. Please try again.");
+      setAllApplications((previous) =>
+        previous.map((app) =>
+          app.applicationId === application.applicationId ? { ...app, status: previousStatus } : app
+        )
+      );
+    }
   };
 
   const getInitials = (name: string) =>
@@ -293,7 +409,7 @@ export default function CompanyDashboardPage() {
               <div className="space-y-1">
                 <h1 className="text-2xl font-semibold text-brand">Browse applicants</h1>
                 <p className="text-sm text-muted">
-                  Filter by name, skill, or job listing. Save top candidates for follow-up.
+                  Filter by name, skill, stage, or job listing. Star top candidates for follow-up.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -302,11 +418,11 @@ export default function CompanyDashboardPage() {
                   onClick={() => setShowSavedOnly((prev) => !prev)}
                   disabled={applications.length === 0}
                 >
-                  {showSavedOnly ? "Show all" : "Show saved"}
+                  {showSavedOnly ? "Show all" : "Show starred"}
                 </Button>
                 <Button
                   className="btn-outline-brand h-10"
-                  onClick={() => { setQ(""); setSkill(""); }}
+                  onClick={() => { setQ(""); setSkill(""); setStage(""); }}
                 >
                   Reset filters
                 </Button>
@@ -377,7 +493,24 @@ export default function CompanyDashboardPage() {
                 </select>
               </div>
 
-              <div className="flex flex-col gap-2 lg:col-span-2">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="filter-stage" className="text-sm font-medium text-foreground">
+                  Stage
+                </label>
+                <select
+                  id="filter-stage"
+                  value={stage}
+                  onChange={(e) => setStage(e.target.value as ApplicationStatus | "")}
+                  className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+                >
+                  <option value="">All stages</option>
+                  {APPLICATION_STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2">
                 <label htmlFor="filter-job" className="text-sm font-medium text-foreground">
                   Job listing
                 </label>
@@ -433,7 +566,7 @@ export default function CompanyDashboardPage() {
                 ) : (
                   filteredApplicants.map((candidate) => {
                     const active = candidate.applicationId === selectedApplicant?.applicationId;
-                    const saved = isSaved(candidate.applicationId);
+                    const saved = isSaved(candidate.applicant.id);
                     return (
                       <li key={candidate.applicationId}>
                         <button
@@ -472,9 +605,14 @@ export default function CompanyDashboardPage() {
                               </div>
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1">
+                              <span
+                                className={`rounded-md px-2 py-0.5 text-xs font-medium ${SIDEBAR_STATUS_PILL[candidate.status]}`}
+                              >
+                                {APPLICATION_STATUS_LABEL[candidate.status]}
+                              </span>
                               {saved ? (
                                 <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
-                                  Saved
+                                  Starred
                                 </span>
                               ) : null}
                               {candidate.applicant.openToWork ? (
@@ -530,6 +668,7 @@ export default function CompanyDashboardPage() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-2xl font-bold text-foreground">{selectedApplicant.applicant.name}</h2>
+                        <StatusBadge status={selectedApplicant.status} />
                         {selectedApplicant.applicant.openToWork ? (
                           <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                             Open to work
@@ -639,19 +778,46 @@ export default function CompanyDashboardPage() {
 
                     <Button
                       type="button"
-                      className={`w-full h-11 ${isSaved(selectedApplicant.applicationId) ? "btn-brand" : "btn-outline-brand"}`}
-                      onClick={() => toggleSave(selectedApplicant.applicationId)}
+                      className="w-full h-11 btn-brand"
+                      onClick={() => toggleSave(selectedApplicant.applicant.id)}
                     >
-                      {isSaved(selectedApplicant.applicationId) ? "Unsave" : "Save applicant"}
+                      {isSaved(selectedApplicant.applicant.id) ? "Unstar" : "Star applicant"}
                     </Button>
+                    {saveError ? <p className="text-xs text-red-600">{saveError}</p> : null}
+
+                    <select
+                      id="applicant-stage"
+                      aria-label="Stage"
+                      value={selectedApplicant.status}
+                      onChange={(e) =>
+                        updateApplicationStatus(selectedApplicant, e.target.value as ApplicationStatus)
+                      }
+                      className="btn-brand h-11 w-full text-center text-sm outline-none"
+                    >
+                      {APPLICATION_STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    {statusError ? <p className="text-xs text-red-600">{statusError}</p> : null}
 
                     <div className="rounded-xl border border-border bg-surface p-4">
                       <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Contact</h3>
-                      <p className="mt-2 break-all text-sm text-foreground">
-                        {selectedApplicant.applicant.email ?? "Email unavailable"}
-                      </p>
+                      {selectedApplicant.applicant.email ? (
+                        <a
+                          href={`mailto:${selectedApplicant.applicant.email}?subject=${encodeURIComponent(
+                            selectedJob ? `Regarding your application for ${selectedJob.title}` : "Regarding your application"
+                          )}`}
+                          className="mt-2 block break-all text-sm font-medium text-brandBlue underline underline-offset-4"
+                        >
+                          {selectedApplicant.applicant.email}
+                        </a>
+                      ) : (
+                        <p className="mt-2 break-all text-sm text-foreground">Email unavailable</p>
+                      )}
                       {selectedApplicant.applicant.desiredLocation ? (
-                        <p className="mt-1 text-sm text-muted">{selectedApplicant.applicant.desiredLocation}</p>
+                        <p className="mt-1 text-sm text-muted">State: {selectedApplicant.applicant.desiredLocation}</p>
                       ) : null}
                     </div>
 

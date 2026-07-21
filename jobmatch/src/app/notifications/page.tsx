@@ -11,7 +11,10 @@ type NotificationType =
   | "NEW_EVENT"
   | "SPONSOR_TIER_UPGRADED"
   | "COMPANY_APPROVED"
-  | "APPLICANT_MILESTONE";
+  | "APPLICANT_MILESTONE"
+  | "APPLICATION_STATUS_CHANGED";
+
+type JobApplicationStatus = "SUBMITTED" | "UNDER_REVIEW" | "INTERVIEWING" | "OFFERED" | "HIRED" | "REJECTED";
 
 type NotificationItem = {
   id: string;
@@ -23,6 +26,7 @@ type NotificationItem = {
   eventTitle: string | null;
   sponsorTier: "FREE" | "SILVER" | "GOLD" | "PLATINUM" | null;
   milestoneCount: number | null;
+  applicationStatus: JobApplicationStatus | null;
   companyName: string | null;
   createdAt: string;
   readAt: string | null;
@@ -44,6 +48,15 @@ const formatTimestamp = (value: string) => {
 const tierLabel = (tier: NotificationItem["sponsorTier"]) => {
   if (!tier) return null;
   return tier.charAt(0) + tier.slice(1).toLowerCase();
+};
+
+const APPLICATION_STATUS_LABELS: Record<JobApplicationStatus, string> = {
+  SUBMITTED: "Submitted",
+  UNDER_REVIEW: "Under review",
+  INTERVIEWING: "Interviewing",
+  OFFERED: "Offer extended",
+  HIRED: "Hired",
+  REJECTED: "Rejected",
 };
 
 const messageForNotification = (item: NotificationItem) => {
@@ -71,6 +84,11 @@ const messageForNotification = (item: NotificationItem) => {
       return `${title} just received its first applicant.`;
     }
     return `${title} has reached ${item.milestoneCount ?? "a new milestone of"} applicants.`;
+  }
+  if (item.type === "APPLICATION_STATUS_CHANGED") {
+    const title = item.jobTitle ?? "your application";
+    const stage = item.applicationStatus ? APPLICATION_STATUS_LABELS[item.applicationStatus] : "updated";
+    return `${company} updated your application for ${title} to ${stage}.`;
   }
   return "You have a new notification.";
 };

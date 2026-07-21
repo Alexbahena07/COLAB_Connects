@@ -19,6 +19,10 @@ const STATUS_TONE: Record<string, keyof typeof TONE_CLASSES> = {
   ACCEPTED: "positive",
   WAITLISTED: "warning",
   FLAGGED: "negative",
+  UNDER_REVIEW: "warning",
+  INTERVIEWING: "warning",
+  OFFERED: "positive",
+  HIRED: "positive",
 };
 
 export default function StatusBadge({ status }: { status: string }) {
