@@ -187,7 +187,7 @@ export default async function Home() {
 
       {/* How it works */}
       <section className="home-section scroll-mt-[var(--home-header-h,96px)]" id="how-it-works">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-6xl px-6 py-8 md:py-20">
           <h2 className="text-center text-4xl font-bold text-foreground md:text-5xl">
             How COLAB works
           </h2>
