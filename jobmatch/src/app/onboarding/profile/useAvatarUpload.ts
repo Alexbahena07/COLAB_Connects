@@ -2,6 +2,7 @@
 
 import { useState, useRef, type ChangeEvent } from "react";
 import { fileToDataUrl } from "./utils";
+import { normalizeImageFile } from "@/lib/normalizeImageFile";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 
@@ -29,16 +30,28 @@ export function useAvatarUpload() {
     setAvatarError(null);
     const files = event.target.files;
     if (!files || files.length === 0) return;
-    const file = files.item(0);
-    if (!file) return;
+    const rawFile = files.item(0);
+    if (!rawFile) return;
 
-    if (!file.type.startsWith("image/")) {
+    const looksLikeImage =
+      rawFile.type.startsWith("image/") || /\.(heic|heif)$/i.test(rawFile.name);
+    if (!looksLikeImage) {
       setAvatarError("Upload a JPG or PNG image.");
       clearAvatarInput();
       return;
     }
-    if (file.size > MAX_AVATAR_BYTES) {
+    if (rawFile.size > MAX_AVATAR_BYTES) {
       setAvatarError("Profile photo must be 2MB or smaller.");
+      clearAvatarInput();
+      return;
+    }
+
+    let file: File;
+    try {
+      file = await normalizeImageFile(rawFile);
+    } catch (err) {
+      console.error("Failed to process avatar image", err);
+      setAvatarError("We couldn't process that photo. Please try a different image.");
       clearAvatarInput();
       return;
     }

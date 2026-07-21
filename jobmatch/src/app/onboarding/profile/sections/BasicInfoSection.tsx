@@ -77,7 +77,7 @@ export function BasicInfoSection({
               <input
                 id="avatar-upload"
                 type="file"
-                accept="image/*"
+                accept="image/*,.heic,.heif"
                 className="hidden"
                 ref={avatarInputRef}
                 onChange={onAvatarChange}

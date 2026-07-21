@@ -4,7 +4,6 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      linkedinConnected?: boolean;
       accountType?: "COMPANY" | "STUDENT";
       isAdmin?: boolean;
       status?: "ACTIVE" | "DEACTIVATED" | "BANNED";
@@ -22,8 +21,5 @@ declare module "next-auth/jwt" {
     accountType?: "COMPANY" | "STUDENT" | null;
     isAdmin?: boolean;
     status?: "ACTIVE" | "DEACTIVATED" | "BANNED";
-    linkedinAccessToken?: string;
-    linkedinRefreshToken?: string;
-    linkedinAccessTokenExpires?: number;
   }
 }

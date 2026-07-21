@@ -11,6 +11,7 @@ import { signIn } from "next-auth/react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
+import { normalizeImageFile } from "@/lib/normalizeImageFile";
 
 const RegisterSchema = z
   .object({
@@ -96,12 +97,15 @@ export default function RegisterClient() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isConvertingPhoto, setIsConvertingPhoto] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(RegisterSchema),
@@ -135,6 +139,34 @@ export default function RegisterClient() {
     setPhotoPreview(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedPhoto]);
+
+  const handlePhotoInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.item(0) ?? null;
+    if (!file) {
+      setValue("profilePhoto", undefined, { shouldValidate: true });
+      return;
+    }
+
+    setIsConvertingPhoto(true);
+    clearErrors("profilePhoto");
+    try {
+      // iPhones default to HEIC, which no mainstream browser can preview or
+      // crop — convert it to a JPEG here so the rest of the form only ever
+      // has to deal with a normal image format.
+      const normalized = await normalizeImageFile(file);
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(normalized);
+      setValue("profilePhoto", dataTransfer.files, { shouldValidate: true });
+    } catch (err) {
+      console.error("Failed to process profile photo", err);
+      setError("profilePhoto", {
+        type: "manual",
+        message: "We couldn't process that photo. Please try a different image.",
+      });
+    } finally {
+      setIsConvertingPhoto(false);
+    }
+  };
 
   const onSubmit = async (data: RegisterFormData) => {
     setServerError(null);
@@ -456,12 +488,15 @@ export default function RegisterClient() {
                   <input
                     id="profile-photo-input"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.heic,.heif"
                     className="hidden"
                     {...register("profilePhoto")}
+                    onChange={handlePhotoInputChange}
                   />
 
-                  {photoPreview ? (
+                  {isConvertingPhoto ? (
+                    <p className="text-xs text-muted">Processing photo…</p>
+                  ) : photoPreview ? (
                     <div className="flex items-center gap-3">
                       <Image
                         src={photoPreview}

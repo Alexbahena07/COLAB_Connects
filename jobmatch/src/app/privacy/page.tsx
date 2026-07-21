@@ -34,11 +34,6 @@ export default function PrivacyPage() {
                 <li>Resume and profile information</li>
                 <li>Employer or company profile information (for employer accounts)</li>
               </ul>
-              <p>
-                If you choose to import data from third-party services (such as LinkedIn via
-                approved APIs), only the information you explicitly authorize will be
-                imported.
-              </p>
             </div>
 
             <div className="space-y-3">

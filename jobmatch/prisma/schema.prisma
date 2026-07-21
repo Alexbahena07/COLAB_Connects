@@ -92,7 +92,6 @@ model User {
   accountType           AccountType           @default(STUDENT)
   notificationFrequency NotificationFrequency @default(WEEKLY)
   linkedinUrl           String?
-  linkedinId            String?               @unique
   createdAt             DateTime              @default(now())
   isAdmin               Boolean               @default(false)
   status                UserStatus            @default(ACTIVE)

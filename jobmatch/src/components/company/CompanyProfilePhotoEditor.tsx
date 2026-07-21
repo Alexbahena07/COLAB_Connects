@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import AvatarCropperDialog from "@/components/ui/AvatarCropperDialog";
 import Button from "@/components/ui/Button";
+import { normalizeImageFile } from "@/lib/normalizeImageFile";
 
 type CompanyProfilePhotoEditorProps = {
   initialImage: string | null;
@@ -37,7 +38,8 @@ export default function CompanyProfilePhotoEditor({
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      const normalized = await normalizeImageFile(file);
+      const dataUrl = await readFileAsDataUrl(normalized);
       setEditorImage(dataUrl);
       setIsOpen(true);
       setError(null);
@@ -129,7 +131,7 @@ export default function CompanyProfilePhotoEditor({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/png, image/jpeg, image/webp"
+        accept="image/png, image/jpeg, image/webp, image/heic, image/heif, .heic, .heif"
         className="hidden"
         onChange={handleSelectFile}
       />
