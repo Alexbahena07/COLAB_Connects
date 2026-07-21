@@ -69,7 +69,9 @@ const candidateSelect = {
   },
   degrees: true,
   certificates: true,
-  experiences: true,
+  experiences: {
+    orderBy: { startDate: "desc" },
+  },
   userSkills: {
     include: { skill: true },
   },
