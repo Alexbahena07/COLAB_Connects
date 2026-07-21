@@ -217,7 +217,7 @@ export default function CandidatesPageClient() {
       }
     } catch (err) {
       console.error("Failed to save candidate", err);
-      setSaveError("We couldn't update saved candidates. Please try again.");
+      setSaveError("We couldn't update starred candidates. Please try again.");
       setSavedCandidateIds((prev) => {
         const next = new Set(prev);
         if (currentlySaved) {
@@ -254,7 +254,7 @@ export default function CandidatesPageClient() {
               <div className="space-y-1">
                 <h1 className="text-2xl font-semibold text-brand">Search early-career talent</h1>
                 <p className="text-sm text-muted">
-                  Browse the full candidate pool and save profiles that match your hiring needs.
+                  Browse the full candidate pool and star profiles that match your hiring needs.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -263,7 +263,7 @@ export default function CandidatesPageClient() {
                   onClick={() => setShowSavedOnly((prev) => !prev)}
                   disabled={candidates.length === 0}
                 >
-                  {showSavedOnly ? "Show all" : "Show saved"}
+                  {showSavedOnly ? "Show all" : "Show starred"}
                 </Button>
                 <Button
                   className="btn-outline-brand h-10"
@@ -417,7 +417,7 @@ export default function CandidatesPageClient() {
                   <li className="p-4 text-sm text-white/70">Loading candidates...</li>
                 ) : visibleCandidates.length === 0 ? (
                   <li className="p-4 text-sm text-white/70">
-                    {showSavedOnly ? "No saved candidates match these filters." : "No candidates match these filters."}
+                    {showSavedOnly ? "No starred candidates match these filters." : "No candidates match these filters."}
                   </li>
                 ) : (
                   visibleCandidates.map((candidate) => {
@@ -463,7 +463,7 @@ export default function CandidatesPageClient() {
                             <div className="flex shrink-0 flex-col items-end gap-1">
                               {saved ? (
                                 <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
-                                  Saved
+                                  Starred
                                 </span>
                               ) : null}
                               {candidate.openToWork ? (
@@ -654,33 +654,38 @@ export default function CandidatesPageClient() {
                 <div className="w-full shrink-0 p-6 lg:w-72 lg:overflow-y-auto">
                   <div className="space-y-4 lg:sticky lg:top-6">
                     <Button
+                      className="w-full h-11 btn-brand"
+                      onClick={() => selectedCandidate.resumeUrl && window.open(selectedCandidate.resumeUrl, "_blank")}
+                      disabled={!selectedCandidate.resumeUrl}
+                    >
+                      {selectedCandidate.resumeUrl ? "View resume" : "No resume uploaded"}
+                    </Button>
+
+                    <Button
                       type="button"
                       className="btn-brand w-full h-11"
                       onClick={() => toggleSave(selectedCandidate.id)}
                     >
-                      {savedCandidateIds.has(selectedCandidate.id) ? "Unsave" : "Save candidate"}
+                      {savedCandidateIds.has(selectedCandidate.id) ? "Unstar" : "Star candidate"}
                     </Button>
 
                     <div className="rounded-xl border border-border bg-surface p-4">
                       <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Contact</h3>
-                      <p className="mt-2 break-all text-sm text-foreground">
-                        {selectedCandidate.email ?? "Email unavailable"}
-                      </p>
-                      {selectedCandidate.desiredLocation ? (
-                        <p className="mt-1 text-sm text-muted">{selectedCandidate.desiredLocation}</p>
-                      ) : null}
-                      {selectedCandidate.resumeUrl ? (
+                      {selectedCandidate.email ? (
                         <a
-                          href={selectedCandidate.resumeUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn-outline-brand mt-3 inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs"
+                          href={`mailto:${selectedCandidate.email}?subject=${encodeURIComponent(
+                            "Reaching out about an opportunity"
+                          )}`}
+                          className="mt-2 block break-all text-sm font-medium text-brandBlue underline underline-offset-4"
                         >
-                          View resume
+                          {selectedCandidate.email}
                         </a>
                       ) : (
-                        <p className="mt-3 text-xs text-muted">No resume uploaded</p>
+                        <p className="mt-2 break-all text-sm text-foreground">Email unavailable</p>
                       )}
+                      {selectedCandidate.desiredLocation ? (
+                        <p className="mt-1 text-sm text-muted">State: {selectedCandidate.desiredLocation}</p>
+                      ) : null}
                     </div>
 
                     <div className="rounded-xl border border-border bg-surface p-4">

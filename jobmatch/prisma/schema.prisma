@@ -58,12 +58,22 @@ enum EventApplicationStatus {
   REJECTED
 }
 
+enum JobApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  INTERVIEWING
+  OFFERED
+  HIRED
+  REJECTED
+}
+
 enum NotificationType {
   NEW_JOB
   NEW_EVENT
   SPONSOR_TIER_UPGRADED
   COMPANY_APPROVED
   APPLICANT_MILESTONE
+  APPLICATION_STATUS_CHANGED
 }
 
 enum NotificationFrequency {
@@ -345,13 +355,13 @@ model JobSkill {
 }
 
 model JobApplication {
-  id          String   @id @default(cuid())
+  id          String               @id @default(cuid())
   jobId       String
   applicantId String
   companyId   String?
-  status      String   @default("SUBMITTED")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      JobApplicationStatus @default(SUBMITTED)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
 
   job       Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
   applicant User  @relation("ApplicantApplications", fields: [applicantId], references: [id], onDelete: Cascade)
@@ -409,18 +419,19 @@ model JobPostEvent {
 }
 
 model Notification {
-  id             String           @id @default(cuid())
-  userId         String
-  type           NotificationType
-  jobId          String?
-  companyId      String?
-  jobTitle       String?
-  eventPostId    String?
-  eventTitle     String?
-  sponsorTier    SponsorTier?
-  milestoneCount Int?
-  readAt         DateTime?
-  createdAt      DateTime         @default(now())
+  id                String                @id @default(cuid())
+  userId            String
+  type              NotificationType
+  jobId             String?
+  companyId         String?
+  jobTitle          String?
+  eventPostId       String?
+  eventTitle        String?
+  sponsorTier       SponsorTier?
+  milestoneCount    Int?
+  applicationStatus JobApplicationStatus?
+  readAt            DateTime?
+  createdAt         DateTime              @default(now())
 
   user      User              @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
   job       Job?              @relation(fields: [jobId], references: [id], onDelete: Cascade)

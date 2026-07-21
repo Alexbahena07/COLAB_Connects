@@ -52,6 +52,7 @@ export async function GET(request: Request) {
     eventTitle: notification.eventTitle ?? notification.eventPost?.title ?? null,
     sponsorTier: notification.sponsorTier,
     milestoneCount: notification.milestoneCount,
+    applicationStatus: notification.applicationStatus,
     companyName:
       notification.company?.companyProfile?.companyName ??
       notification.company?.name ??
