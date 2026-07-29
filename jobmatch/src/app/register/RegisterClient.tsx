@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
@@ -98,6 +97,8 @@ export default function RegisterClient() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isConvertingPhoto, setIsConvertingPhoto] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
 
   const {
     register,
@@ -161,7 +162,8 @@ export default function RegisterClient() {
       console.error("Failed to process profile photo", err);
       setError("profilePhoto", {
         type: "manual",
-        message: "We couldn't process that photo. Please try a different image.",
+        message:
+          "We couldn't process that photo. Try a JPG or PNG, or re-save it from your Photos app first.",
       });
     } finally {
       setIsConvertingPhoto(false);
@@ -218,24 +220,20 @@ export default function RegisterClient() {
       return;
     }
 
-    const signin = await signIn("credentials", {
-      email: normalizedEmail,
-      password: data.password,
-      redirect: false,
-    });
+    // The account starts unverified, so no auto sign-in: the user has to
+    // click the link we just emailed before they can log in.
+    setRegisteredEmail(normalizedEmail);
+  };
 
-    if (signin && !signin.error) {
-      const nextRoute =
-        data.accountType === "company"
-          ? "/dashboard/company/profile"
-          : "/onboarding/profile";
-      // Hard navigation: avoids Next.js replaying a Server Component payload
-      // cached under a different account's session earlier in this tab.
-      window.location.href = nextRoute;
-    } else {
-      setServerError("Account created, but sign-in failed. Please log in.");
-      window.location.href = "/login";
-    }
+  const handleResend = async () => {
+    if (!registeredEmail || resendStatus === "sending") return;
+    setResendStatus("sending");
+    await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: registeredEmail }),
+    }).catch(() => null);
+    setResendStatus("sent");
   };
 
 
@@ -318,6 +316,41 @@ export default function RegisterClient() {
 
           {/* Right: form card */}
           <section className="rounded-3xl border border-border bg-background p-7 shadow-xl md:p-8">
+            {registeredEmail ? (
+              <div>
+                <h2 className="font-serif text-xl font-bold text-brand">Check your email</h2>
+                <p className="mt-3 text-sm text-muted">
+                  We sent a verification link to{" "}
+                  <span className="font-semibold text-foreground">{registeredEmail}</span>.
+                  Click it to activate your account, then log in. The link expires in 24 hours.
+                </p>
+                <p className="mt-3 text-sm text-muted">
+                  Don&apos;t see it? Check your spam folder
+                  {resendStatus === "sent" ? "." : ", or resend it below."}
+                </p>
+                {resendStatus === "sent" ? (
+                  <p className="mt-4 text-sm font-semibold text-foreground">
+                    Verification email sent again.
+                  </p>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleResend}
+                    isLoading={resendStatus === "sending"}
+                    className="btn-brand mt-4 w-full"
+                  >
+                    Resend verification email
+                  </Button>
+                )}
+                <p className="mt-4 text-center text-xs text-muted">
+                  Already verified?{" "}
+                  <Link href="/login" className="font-semibold text-foreground underline underline-offset-4">
+                    Log in
+                  </Link>
+                </p>
+              </div>
+            ) : (
+            <>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-serif text-xl font-bold text-brand">Register</h2>
@@ -538,6 +571,8 @@ export default function RegisterClient() {
                 .
               </p>
             </form>
+            </>
+            )}
           </section>
         </div>
       </main>

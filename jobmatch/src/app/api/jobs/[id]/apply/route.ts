@@ -223,6 +223,11 @@ export async function POST(
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            // Shared secret so the downstream service can reject calls that
+            // didn't come from this app.
+            ...(process.env.MESSAGING_API_SECRET
+              ? { Authorization: `Bearer ${process.env.MESSAGING_API_SECRET}` }
+              : {}),
           },
           body: JSON.stringify(applicationPayload),
         });

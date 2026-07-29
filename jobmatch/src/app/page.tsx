@@ -287,7 +287,7 @@ export default async function Home() {
               The Forum in Action
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-base text-muted">
-              Where next-generation finance talent meets industry leaders face to face.
+              The Career Forum provides a platform for young women and all first-generation college students/graduates an opportunity to learn, engage, and network with industry veterans while efficiently helping employers solve the continued issue of finding qualified talent.
             </p>
           </div>
 

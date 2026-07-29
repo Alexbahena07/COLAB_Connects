@@ -45,7 +45,7 @@ export default function CompanyProfilePhotoEditor({
       setError(null);
     } catch (err) {
       console.error(err);
-      setError("We couldn't load that image. Please try another file.");
+      setError("We couldn't load that image. Try a JPG or PNG, or re-save it from your Photos app first.");
     } finally {
       event.target.value = "";
     }
@@ -55,12 +55,23 @@ export default function CompanyProfilePhotoEditor({
     setIsUploading(true);
     setError(null);
     try {
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", result.blob, "avatar.jpg");
+      const uploadRes = await fetch("/api/profile/avatar/upload", {
+        method: "POST",
+        body: uploadFormData,
+      });
+      const uploadPayload = await uploadRes.json().catch(() => null);
+      if (!uploadRes.ok) {
+        throw new Error(typeof uploadPayload?.error === "string" ? uploadPayload.error : "Upload failed");
+      }
+
       const response = await fetch("/api/profile/upsert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           avatar: {
-            dataUrl: result.dataUrl,
+            url: uploadPayload.url,
           },
         }),
       });
@@ -68,7 +79,7 @@ export default function CompanyProfilePhotoEditor({
       if (!response.ok) {
         throw new Error(typeof payload?.error === "string" ? payload.error : "Upload failed");
       }
-      setCurrentImage(result.dataUrl);
+      setCurrentImage(uploadPayload.url);
       setIsOpen(false);
       setEditorImage(null);
     } catch (err) {

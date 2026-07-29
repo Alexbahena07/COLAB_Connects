@@ -7,6 +7,7 @@ declare module "next-auth" {
       accountType?: "COMPANY" | "STUDENT";
       isAdmin?: boolean;
       status?: "ACTIVE" | "DEACTIVATED" | "BANNED";
+      mustChangePassword?: boolean;
     } & DefaultSession["user"];
   }
 
@@ -21,5 +22,6 @@ declare module "next-auth/jwt" {
     accountType?: "COMPANY" | "STUDENT" | null;
     isAdmin?: boolean;
     status?: "ACTIVE" | "DEACTIVATED" | "BANNED";
+    mustChangePassword?: boolean;
   }
 }

@@ -21,6 +21,8 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
 
   const {
     register,
@@ -33,6 +35,7 @@ function LoginForm() {
 
   const onSubmit = async (data: FormData) => {
     setServerError(null);
+    setUnverifiedEmail(null);
 
     const res = await signIn("credentials", {
       email: data.email,
@@ -51,9 +54,25 @@ function LoginForm() {
       // of the session cookie. A soft navigation right after sign-in can
       // replay a page cached under a previous account's session in this tab.
       window.location.href = callbackUrl ?? defaultRoute;
+    } else if (res?.error === "EMAIL_NOT_VERIFIED") {
+      setUnverifiedEmail(data.email.toLowerCase().trim());
+      setResendStatus("idle");
+    } else if (res?.error === "RATE_LIMITED") {
+      setServerError("Too many login attempts. Please wait a few minutes and try again.");
     } else {
       setServerError("Invalid email or password");
     }
+  };
+
+  const handleResend = async () => {
+    if (!unverifiedEmail || resendStatus === "sending") return;
+    setResendStatus("sending");
+    await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: unverifiedEmail }),
+    }).catch(() => null);
+    setResendStatus("sent");
   };
 
   return (
@@ -90,8 +109,32 @@ function LoginForm() {
           }
         />
 
+        <div className="text-right">
+          <Link href="/forgot-password" className="text-sm font-medium underline opacity-90">
+            Forgot password?
+          </Link>
+        </div>
+
         {serverError ? (
           <p className="text-sm text-red-500">{serverError}</p>
+        ) : null}
+
+        {unverifiedEmail ? (
+          <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+            <p>Please verify your email before logging in. Check your inbox for the link we sent.</p>
+            {resendStatus === "sent" ? (
+              <p className="mt-2 font-medium">Verification email sent again.</p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendStatus === "sending"}
+                className="mt-2 font-medium underline disabled:opacity-60"
+              >
+                {resendStatus === "sending" ? "Sending..." : "Resend verification email"}
+              </button>
+            )}
+          </div>
         ) : null}
 
         <Button type="submit" isLoading={isSubmitting} className="btn-brand w-full">

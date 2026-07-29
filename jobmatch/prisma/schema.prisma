@@ -7,6 +7,9 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Migrations need a direct connection: Neon's pooler (pgbouncer) can't hold
+  // the advisory lock `prisma migrate` takes, so deploys would hang or fail.
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 enum AccountType {
@@ -38,6 +41,7 @@ enum SponsorPaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+  DISPUTED
 }
 
 enum JobStatus {
@@ -94,13 +98,16 @@ model User {
   linkedinUrl           String?
   createdAt             DateTime              @default(now())
   isAdmin               Boolean               @default(false)
+  // Set when an admin issues a temp password; forces a change at next login.
+  mustChangePassword    Boolean               @default(false)
   status                UserStatus            @default(ACTIVE)
   flagged               Boolean               @default(false)
   flagNote              String?
 
   // Existing NextAuth relations
-  accounts Account[]
-  sessions Session[]
+  accounts            Account[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
 
   // 🔽 Add these back-relations for your profile data
   profile              Profile?
@@ -169,6 +176,19 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Profile {
@@ -490,6 +510,9 @@ model Sponsor {
   companyName     String
   tier            SponsorTier
   stripeSessionId String               @unique
+  // Refund and dispute webhooks reference the payment intent, not the session.
+  // Nullable: rows created before this column exist and sessions aren't paid yet.
+  stripePaymentIntentId String?        @unique
   amountPaid      Int
   currency        String
   status          SponsorPaymentStatus @default(PENDING)

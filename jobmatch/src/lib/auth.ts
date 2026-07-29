@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited } from "@/lib/rateLimit";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -15,10 +16,18 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      authorize: async (credentials) => {
+      authorize: async (credentials, req) => {
         const email = credentials?.email ? credentials.email.toLowerCase().trim() : undefined;
         const password = credentials?.password;
         if (!email || !password) return null;
+
+        const forwardedFor = req?.headers?.["x-forwarded-for"];
+        const ip =
+          (typeof forwardedFor === "string" ? forwardedFor.split(",")[0]?.trim() : null) ??
+          "unknown";
+        if (isRateLimited(`login:email:${email}`, 10) || isRateLimited(`login:ip:${ip}`, 30)) {
+          throw new Error("RATE_LIMITED");
+        }
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user || !user.password) return null;
@@ -27,6 +36,10 @@ export const authOptions: NextAuthOptions = {
         if (!match) return null;
 
         if (user.status !== "ACTIVE") return null;
+
+        // Only surfaced after the password check passes, so it can't be used
+        // to probe whether an email is registered.
+        if (!user.emailVerified) throw new Error("EMAIL_NOT_VERIFIED");
 
         return {
           id: user.id,
@@ -57,11 +70,12 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { accountType: true, isAdmin: true, status: true },
+          select: { accountType: true, isAdmin: true, status: true, mustChangePassword: true },
         });
         token.accountType = dbUser?.accountType ?? null;
         token.isAdmin = dbUser?.isAdmin ?? false;
         token.status = dbUser?.status ?? "ACTIVE";
+        token.mustChangePassword = dbUser?.mustChangePassword ?? false;
       }
       return token;
     },
@@ -74,6 +88,7 @@ export const authOptions: NextAuthOptions = {
           accountType: token.accountType,
           isAdmin: Boolean(token.isAdmin),
           status: (token.status as string | undefined) ?? "ACTIVE",
+          mustChangePassword: Boolean(token.mustChangePassword),
         },
       };
     },

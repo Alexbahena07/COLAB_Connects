@@ -157,14 +157,10 @@ function ChangeEmailSection() {
     return (
       <SectionCard title="Change email">
         <p className="text-sm text-foreground/85">
-          Your email has been updated. Please sign in again with your new email.
+          Check the inbox of your new address — we sent a confirmation link.
+          Your login email only changes after you click it (the link expires in
+          1 hour).
         </p>
-        <Button
-          className="btn-brand mt-4 h-10 w-full"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-        >
-          Sign in again
-        </Button>
       </SectionCard>
     );
   }

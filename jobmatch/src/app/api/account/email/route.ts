@@ -4,6 +4,8 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { issueEmailChangeVerification } from "@/lib/emailChange";
+import { isRateLimited } from "@/lib/rateLimit";
 
 const EmailSchema = z.object({
   newEmail: z.string().email("Enter a valid email address").max(255),
@@ -54,10 +56,25 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "That email is already in use" }, { status: 409 });
   }
 
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { email: normalizedEmail, emailVerified: null },
-  });
+  if (isRateLimited(`email-change:${session.user.id}`, 3)) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
 
-  return NextResponse.json({ success: true });
+  // The address only changes once the new inbox clicks the confirmation
+  // link — a typo'd email can't lock the user out, and the old address gets
+  // warned so a hijacked session can't silently take over the account.
+  try {
+    await issueEmailChangeVerification(session.user.id, user.email, normalizedEmail);
+  } catch (error) {
+    console.error("Failed to send email change verification", error);
+    return NextResponse.json(
+      { error: "We couldn't send the confirmation email. Try again later." },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ success: true, pendingVerification: true });
 }

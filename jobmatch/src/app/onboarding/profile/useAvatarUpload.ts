@@ -11,7 +11,7 @@ export function useAvatarUpload() {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [editorImageSrc, setEditorImageSrc] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [croppedAvatarDataUrl, setCroppedAvatarDataUrl] = useState<string | null>(null);
+  const [croppedAvatarBlob, setCroppedAvatarBlob] = useState<Blob | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   const clearAvatarInput = () => {
@@ -23,7 +23,7 @@ export function useAvatarUpload() {
     setAvatarError(null);
     setEditorImageSrc(null);
     setIsEditorOpen(false);
-    setCroppedAvatarDataUrl(null);
+    setCroppedAvatarBlob(null);
   };
 
   const handleAvatarChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +51,9 @@ export function useAvatarUpload() {
       file = await normalizeImageFile(rawFile);
     } catch (err) {
       console.error("Failed to process avatar image", err);
-      setAvatarError("We couldn't process that photo. Please try a different image.");
+      setAvatarError(
+        "We couldn't process that photo. Try a JPG or PNG, or re-save it from your Photos app first."
+      );
       clearAvatarInput();
       return;
     }
@@ -62,8 +64,8 @@ export function useAvatarUpload() {
     clearAvatarInput();
   };
 
-  const handleAvatarSave = ({ dataUrl }: { blob: Blob; dataUrl: string }) => {
-    setCroppedAvatarDataUrl(dataUrl);
+  const handleAvatarSave = ({ blob, dataUrl }: { blob: Blob; dataUrl: string }) => {
+    setCroppedAvatarBlob(blob);
     setAvatarUrl(dataUrl);
     setIsEditorOpen(false);
     setEditorImageSrc(null);
@@ -71,7 +73,7 @@ export function useAvatarUpload() {
 
   const removeAvatar = () => {
     setAvatarUrl(null);
-    setCroppedAvatarDataUrl(null);
+    setCroppedAvatarBlob(null);
   };
 
   const closeEditor = () => {
@@ -82,9 +84,10 @@ export function useAvatarUpload() {
   return {
     avatarUrl,
     avatarError,
+    setAvatarError,
     editorImageSrc,
     isEditorOpen,
-    croppedAvatarDataUrl,
+    croppedAvatarBlob,
     avatarInputRef,
     handleAvatarChange,
     handleAvatarSave,

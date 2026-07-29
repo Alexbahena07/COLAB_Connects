@@ -4,6 +4,20 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { issueVerificationEmail } from "@/lib/emailVerification";
+import { MAX_AVATAR_BYTES, isAllowedAvatarType, uploadAvatarBlob } from "@/lib/avatarBlob";
+import { isRateLimited, requestIp } from "@/lib/rateLimit";
+
+// profilePhoto arrives as a data URL, e.g. "data:image/jpeg;base64,/9j/4AAQ..."
+function parseImageDataUrl(dataUrl: string): { buffer: Buffer; contentType: string } | null {
+  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (!match) return null;
+  const [, contentType, base64] = match;
+  if (!isAllowedAvatarType(contentType)) return null;
+  const buffer = Buffer.from(base64, "base64");
+  if (buffer.length === 0 || buffer.length > MAX_AVATAR_BYTES) return null;
+  return { buffer, contentType };
+}
 
 const RegisterSchema = z
   .object({
@@ -25,6 +39,14 @@ const RegisterSchema = z
 
 export async function POST(req: Request) {
   try {
+    const ip = requestIp(req);
+    if (isRateLimited(`register:ip:${ip}`, 5)) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const parsed = RegisterSchema.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) {
       const message = parsed.error.errors[0]?.message ?? "Invalid registration data";
@@ -55,7 +77,6 @@ export async function POST(req: Request) {
         name: normalizedName,
         email: normalizedEmail,
         password: hashed,
-        image: typeof profilePhoto === "string" ? profilePhoto : null,
         accountType: normalizedType,
         ...(isCompany
           ? {}
@@ -71,7 +92,30 @@ export async function POST(req: Request) {
       select: { id: true, email: true },
     });
 
-    return NextResponse.json({ user }, { status: 201 });
+    // Store the photo in blob storage rather than as base64 in Postgres. A
+    // failed upload shouldn't block account creation — the user can add a
+    // photo from their profile afterward.
+    if (typeof profilePhoto === "string") {
+      const parsed = parseImageDataUrl(profilePhoto);
+      if (parsed) {
+        try {
+          const url = await uploadAvatarBlob(user.id, parsed.buffer, parsed.contentType);
+          await prisma.user.update({ where: { id: user.id }, data: { image: url } });
+        } catch (err) {
+          console.error("Failed to upload profile photo:", err);
+        }
+      }
+    }
+
+    try {
+      await issueVerificationEmail(normalizedEmail);
+    } catch (err) {
+      // Don't fail the registration — the user can request a new link from
+      // the login screen via /api/auth/resend-verification.
+      console.error("Failed to send verification email:", err);
+    }
+
+    return NextResponse.json({ user, requiresVerification: true }, { status: 201 });
   } catch (err) {
     console.error("Register error:", err);
     return NextResponse.json({ error: "Failed to register" }, { status: 500 });

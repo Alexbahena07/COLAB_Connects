@@ -34,7 +34,9 @@ export async function POST(
 
   await prisma.user.update({
     where: { id },
-    data: { password: hashed },
+    // The temp password is single-use in practice: the user is forced to
+    // pick a new one at their next sign-in before reaching anything else.
+    data: { password: hashed, mustChangePassword: true },
   });
 
   return NextResponse.json({ tempPassword });

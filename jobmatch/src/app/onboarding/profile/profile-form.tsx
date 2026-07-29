@@ -124,6 +124,25 @@ export default function ProfileForm({ redirectTo = "/dashboard", isEmbedded = fa
       }
     }
 
+    let avatarPayload: { url: string } | null = null;
+    if (avatar.croppedAvatarBlob) {
+      try {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", avatar.croppedAvatarBlob, "avatar.jpg");
+        const uploadRes = await fetch("/api/profile/avatar/upload", {
+          method: "POST",
+          body: uploadFormData,
+        });
+        if (!uploadRes.ok) throw new Error("Upload failed");
+        const { url } = await uploadRes.json();
+        avatarPayload = { url };
+      } catch (error) {
+        console.error(error);
+        avatar.setAvatarError("We couldn't upload your photo. Try again.");
+        return;
+      }
+    }
+
     const stripEmpty = <T extends Record<string, unknown>>(rows: T[] | undefined) =>
       (rows ?? []).filter((r) => Object.values(r).some((v) => v !== "" && v !== undefined && v !== null));
 
@@ -135,7 +154,7 @@ export default function ProfileForm({ redirectTo = "/dashboard", isEmbedded = fa
       skills: stripEmpty(data.skills),
     };
 
-    if (avatar.croppedAvatarDataUrl) payload.avatar = { dataUrl: avatar.croppedAvatarDataUrl };
+    if (avatarPayload) payload.avatar = avatarPayload;
     if (resumePayload) payload.resume = resumePayload;
 
     const res = await fetch("/api/profile/upsert", {

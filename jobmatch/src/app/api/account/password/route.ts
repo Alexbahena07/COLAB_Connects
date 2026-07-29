@@ -4,6 +4,7 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited } from "@/lib/rateLimit";
 
 const PasswordSchema = z.object({
   currentPassword: z.string().optional(),
@@ -14,6 +15,14 @@ export async function PATCH(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Limits guessing the current password from a hijacked session.
+  if (isRateLimited(`password-change:${session.user.id}`, 5)) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
   }
 
   const parsed = PasswordSchema.safeParse(await request.json().catch(() => ({})));
@@ -49,7 +58,7 @@ export async function PATCH(request: Request) {
   const hashed = await bcrypt.hash(newPassword, 10);
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { password: hashed },
+    data: { password: hashed, mustChangePassword: false },
   });
 
   return NextResponse.json({ success: true });
