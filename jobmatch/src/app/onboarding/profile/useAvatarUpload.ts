@@ -4,7 +4,14 @@ import { useState, useRef, type ChangeEvent } from "react";
 import { fileToDataUrl } from "./utils";
 import { normalizeImageFile } from "@/lib/normalizeImageFile";
 
+// Applied to the normalized file (after HEIC conversion + downscaling), not
+// the raw upload — an iPhone photo is routinely 2-6MB straight off the
+// camera, but normalizeImageFile shrinks it well below this before we ever
+// need to reject anything.
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+// Sanity ceiling on the raw file, just to avoid asking the browser to decode
+// something pathological (e.g. a 200MB scan) before normalization runs.
+const MAX_RAW_BYTES = 25 * 1024 * 1024;
 
 export function useAvatarUpload() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -40,8 +47,8 @@ export function useAvatarUpload() {
       clearAvatarInput();
       return;
     }
-    if (rawFile.size > MAX_AVATAR_BYTES) {
-      setAvatarError("Profile photo must be 2MB or smaller.");
+    if (rawFile.size > MAX_RAW_BYTES) {
+      setAvatarError("That image is too large. Try a smaller photo.");
       clearAvatarInput();
       return;
     }
@@ -54,6 +61,12 @@ export function useAvatarUpload() {
       setAvatarError(
         "We couldn't process that photo. Try a JPG or PNG, or re-save it from your Photos app first."
       );
+      clearAvatarInput();
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatarError("We couldn't shrink that photo enough. Try a different one.");
       clearAvatarInput();
       return;
     }
