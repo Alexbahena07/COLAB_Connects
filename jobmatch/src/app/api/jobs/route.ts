@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getRankedJobIdsForFeed } from "@/lib/jobRanking";
 
 const createJobSchema = z.object({
   title: z.string().min(1).max(200),
@@ -16,59 +18,101 @@ const createJobSchema = z.object({
 const normalizeSkills = (skills: string[]) =>
   Array.from(new Set(skills.map((skill) => skill.trim()).filter((skill) => skill.length > 0)));
 
+const parseNumberParam = (value: string | null) => {
+  if (!value) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+const jobInclude = {
+  company: {
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      companyProfile: {
+        select: {
+          companyName: true,
+        },
+      },
+    },
+  },
+  skills: {
+    include: {
+      skill: true,
+    },
+  },
+} satisfies Prisma.JobInclude;
+
+type JobWithRelations = Prisma.JobGetPayload<{ include: typeof jobInclude }>;
+
+const toJobPayload = (job: JobWithRelations) => ({
+  id: job.id,
+  title: job.title,
+  companyId: job.company.id,
+  company: job.company.companyProfile?.companyName ?? job.company.name ?? "Unknown company",
+  companyImage: job.company.image ?? null,
+  location: job.location,
+  type: job.type,
+  remote: job.remote,
+  description: job.description,
+  postedAt: job.postedAt.toISOString(),
+  status: job.status,
+  skills: job.skills.map((jobSkill) => jobSkill.skill.name),
+});
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const scope = searchParams.get("scope");
 
-  let companyIdFilter: string | null = null;
+  const session = await getServerSession(authOptions);
+
   if (scope === "mine") {
-    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    companyIdFilter = session.user.id;
+
+    const jobs = await prisma.job.findMany({
+      where: { companyId: session.user.id },
+      orderBy: { postedAt: "desc" },
+      include: jobInclude,
+    });
+
+    return NextResponse.json({ jobs: jobs.map((job) => toJobPayload(job)) });
   }
 
-  // The public/student feed only shows jobs an admin hasn't rejected. Companies
-  // viewing their own listings (scope=mine) see everything, including rejected.
+  // Public/student feed: a small featured strip from GOLD/PLATINUM sponsors,
+  // then the rest ordered by relevance (skill/location match for the signed-in
+  // student, blended with recency and a smaller across-the-board tier boost)
+  // — all computed and sorted in Postgres, not fetched-then-sorted in memory,
+  // so it stays fast regardless of how many jobs are posted. Only rejected
+  // jobs are excluded; an admin hasn't blocked anything else from the feed.
+  const page = parseNumberParam(searchParams.get("page"));
+  const pageSize = parseNumberParam(searchParams.get("pageSize"));
+  const pagination =
+    page !== null || pageSize !== null
+      ? {
+          skip: (Math.max(page ?? 1, 1) - 1) * Math.min(Math.max(pageSize ?? 50, 1), 200),
+          take: Math.min(Math.max(pageSize ?? 50, 1), 200),
+        }
+      : null;
+
+  const { orderedIds, featuredIds } = await getRankedJobIdsForFeed(session?.user?.id, pagination);
+
+  if (orderedIds.length === 0) {
+    return NextResponse.json({ jobs: [] });
+  }
+
   const jobs = await prisma.job.findMany({
-    where: companyIdFilter ? { companyId: companyIdFilter } : { status: "APPROVED" },
-    orderBy: { postedAt: "desc" },
-    include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          companyProfile: {
-            select: {
-              companyName: true,
-            },
-          },
-        },
-      },
-      skills: {
-        include: {
-          skill: true,
-        },
-      },
-    },
+    where: { id: { in: orderedIds } },
+    include: jobInclude,
   });
 
-  const payload = jobs.map((job) => ({
-    id: job.id,
-    title: job.title,
-    companyId: job.company.id,
-    company: job.company.companyProfile?.companyName ?? job.company.name ?? "Unknown company",
-    companyImage: job.company.image ?? null,
-    location: job.location,
-    type: job.type,
-    remote: job.remote,
-    description: job.description,
-    postedAt: job.postedAt.toISOString(),
-    status: job.status,
-    skills: job.skills.map((jobSkill) => jobSkill.skill.name),
-  }));
+  const jobsById = new Map(jobs.map((job) => [job.id, job]));
+  const payload = orderedIds
+    .map((id) => jobsById.get(id))
+    .filter((job): job is NonNullable<typeof job> => Boolean(job))
+    .map((job) => ({ ...toJobPayload(job), sponsored: featuredIds.has(job.id) }));
 
   return NextResponse.json({ jobs: payload });
 }
