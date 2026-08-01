@@ -4,6 +4,13 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveSponsorTier } from "@/lib/sponsorTier";
+import { getRankedEventIds } from "@/lib/eventRanking";
+
+const parseNumberParam = (value: string | null) => {
+  if (!value) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+};
 
 const CreateEventPostSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
@@ -49,10 +56,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ posts });
   }
 
-  // Public feed for the student job listings page.
+  // Public feed for the student job listings page: ranked by recency, a
+  // boost for companies the student already follows, and a smaller boost for
+  // PLATINUM over GOLD (every event here is already GOLD/PLATINUM-only, per
+  // the sponsor gate in POST below) — computed in Postgres, see
+  // src/lib/eventRanking.ts.
+  const session = await getServerSession(authOptions);
+  const page = parseNumberParam(searchParams.get("page"));
+  const pageSize = parseNumberParam(searchParams.get("pageSize"));
+  const take = Math.min(Math.max(pageSize ?? 50, 1), 200);
+  const skip = (Math.max(page ?? 1, 1) - 1) * take;
+
+  const rankedIds = await getRankedEventIds(session?.user?.id, { skip, take });
+
+  if (rankedIds.length === 0) {
+    return NextResponse.json({ posts: [] });
+  }
+
   const posts = await prisma.companyEventPost.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
+    where: { id: { in: rankedIds } },
     include: {
       company: {
         select: {
@@ -65,7 +87,12 @@ export async function GET(request: Request) {
     },
   });
 
-  const payload = posts.map((post) => ({
+  const postsById = new Map(posts.map((post) => [post.id, post]));
+  const orderedPosts = rankedIds
+    .map((id) => postsById.get(id))
+    .filter((post): post is NonNullable<typeof post> => Boolean(post));
+
+  const payload = orderedPosts.map((post) => ({
     id: post.id,
     title: post.title,
     about: post.about,
