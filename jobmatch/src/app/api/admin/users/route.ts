@@ -53,6 +53,8 @@ export async function GET(request: Request) {
       flagged: true,
       flagNote: true,
       createdAt: true,
+      password: true,
+      lastLoginAt: true,
     },
   });
 
@@ -60,7 +62,12 @@ export async function GET(request: Request) {
   const page = hasMore ? users.slice(0, take) : users;
 
   return NextResponse.json({
-    users: page.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })),
+    users: page.map(({ password, ...u }) => ({
+      ...u,
+      createdAt: u.createdAt.toISOString(),
+      lastLoginAt: u.lastLoginAt ? u.lastLoginAt.toISOString() : null,
+      hasPassword: password !== null,
+    })),
     nextCursor: hasMore ? page[page.length - 1].id : null,
   });
 }

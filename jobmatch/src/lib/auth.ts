@@ -68,8 +68,9 @@ export const authOptions: NextAuthOptions = {
       // token here so the session() callback never needs to hit the DB.
       if (user?.id) {
         token.id = user.id;
-        const dbUser = await prisma.user.findUnique({
+        const dbUser = await prisma.user.update({
           where: { id: user.id },
+          data: { lastLoginAt: new Date() },
           select: { accountType: true, isAdmin: true, status: true, mustChangePassword: true },
         });
         token.accountType = dbUser?.accountType ?? null;

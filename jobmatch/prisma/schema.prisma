@@ -93,6 +93,7 @@ model User {
   emailVerified         DateTime?
   image                 String?
   password              String?
+  lastLoginAt           DateTime?
   accountType           AccountType           @default(STUDENT)
   notificationFrequency NotificationFrequency @default(WEEKLY)
   linkedinUrl           String?

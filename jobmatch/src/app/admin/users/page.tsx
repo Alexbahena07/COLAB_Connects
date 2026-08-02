@@ -16,6 +16,8 @@ type AdminUser = {
   flagged: boolean;
   flagNote: string | null;
   createdAt: string;
+  hasPassword: boolean;
+  lastLoginAt: string | null;
 };
 
 const STATUS_OPTIONS = ["ACTIVE", "DEACTIVATED", "BANNED"] as const;
@@ -238,6 +240,8 @@ export default function AdminUsersPage() {
             <Th>Type</Th>
             <Th>Status</Th>
             <Th>Signed up</Th>
+            <Th>Activated</Th>
+            <Th>Last login</Th>
             <Th>Flag</Th>
             <Th>Actions</Th>
           </TableHead>
@@ -258,6 +262,20 @@ export default function AdminUsersPage() {
                   <StatusBadge status={user.status} />
                 </Td>
                 <Td>{new Date(user.createdAt).toLocaleDateString()}</Td>
+                <Td>
+                  {user.hasPassword ? (
+                    <span className="text-xs font-medium text-green-700">Yes</span>
+                  ) : (
+                    <span className="text-xs text-muted">Not yet</span>
+                  )}
+                </Td>
+                <Td>
+                  {user.lastLoginAt ? (
+                    new Date(user.lastLoginAt).toLocaleString()
+                  ) : (
+                    <span className="text-xs text-muted">Never</span>
+                  )}
+                </Td>
                 <Td>
                   {user.flagged ? (
                     <span title={user.flagNote ?? undefined}>
