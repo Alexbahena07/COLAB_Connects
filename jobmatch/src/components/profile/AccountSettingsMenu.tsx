@@ -181,7 +181,7 @@ function ChangeEmailSection() {
           label="Current password"
           type="password"
           autoComplete="current-password"
-          placeholder="Leave blank if you don't have one yet"
+          placeholder="••••••••"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
         />
