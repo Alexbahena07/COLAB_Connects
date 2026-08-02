@@ -220,6 +220,12 @@ async function main() {
         name: `${c.firstName} ${c.lastName}`.trim(),
         accountType: "STUDENT",
         status: "ACTIVE",
+        // These addresses were collected directly at the Career Forum
+        // check-in, not self-submitted through signup, so we treat them as
+        // already verified — otherwise the "Forgot Password" activation flow
+        // in the launch email dead-ends at an unadvertised second
+        // verify-your-email step.
+        emailVerified: new Date(),
         linkedinUrl: c.linkedinUrl,
         profile: {
           create: {
