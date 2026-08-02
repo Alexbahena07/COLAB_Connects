@@ -110,11 +110,6 @@ export default function NotificationsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [frequency, setFrequency] = useState<"NONE" | "DAILY" | "WEEKLY">("WEEKLY");
-  const [prefLoading, setPrefLoading] = useState(false);
-  const [prefSaving, setPrefSaving] = useState(false);
-  const [prefError, setPrefError] = useState<string | null>(null);
-  const [prefSuccess, setPrefSuccess] = useState<string | null>(null);
 
   const [following, setFollowing] = useState<FollowedCompany[]>([]);
   const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
@@ -196,76 +191,6 @@ export default function NotificationsPage() {
     }
   };
 
-  useEffect(() => {
-    let active = true;
-    const loadPreference = async () => {
-      setPrefLoading(true);
-      setPrefError(null);
-      try {
-        const response = await fetch("/api/notifications/preference", { cache: "no-store" });
-        const payload = await response.json().catch(() => null);
-        if (!active) return;
-
-        if (!response.ok) {
-          const message =
-            typeof payload?.error === "string"
-              ? payload.error
-              : "We couldn't load your notification settings.";
-          setPrefError(message);
-          return;
-        }
-
-        const value = payload?.frequency;
-        if (value === "NONE" || value === "DAILY" || value === "WEEKLY") {
-          setFrequency(value);
-        }
-      } catch (err) {
-        console.error("Failed to load notification preference", err);
-        if (!active) return;
-        setPrefError("We couldn't load your notification settings.");
-      } finally {
-        if (active) {
-          setPrefLoading(false);
-        }
-      }
-    };
-
-    loadPreference();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const savePreference = async (nextFrequency: "NONE" | "DAILY" | "WEEKLY") => {
-    setPrefSaving(true);
-    setPrefError(null);
-    setPrefSuccess(null);
-    try {
-      const response = await fetch("/api/notifications/preference", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ frequency: nextFrequency }),
-      });
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message =
-          typeof payload?.error === "string"
-            ? payload.error
-            : "We couldn't update your notification settings.";
-        setPrefError(message);
-        return;
-      }
-
-      setPrefSuccess("Notification settings saved.");
-    } catch (err) {
-      console.error("Failed to save notification preference", err);
-      setPrefError("We couldn't update your notification settings.");
-    } finally {
-      setPrefSaving(false);
-    }
-  };
-
   const markAllRead = async () => {
     if (!hasUnread) return;
     try {
@@ -343,44 +268,6 @@ export default function NotificationsPage() {
               Mark all read
             </button>
           </div>
-
-          <section className="mt-6 rounded-2xl border border-border bg-surface px-4 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
-                  Email frequency
-                </h2>
-                <p className="mt-1 text-xs text-muted">
-                  Choose how often you want to receive notification emails.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="text-xs font-semibold text-foreground" htmlFor="notification-frequency">
-                  Frequency
-                </label>
-                <select
-                  id="notification-frequency"
-                  value={frequency}
-                  onChange={(event) => {
-                    const nextValue = event.target.value as "NONE" | "DAILY" | "WEEKLY";
-                    setFrequency(nextValue);
-                    savePreference(nextValue);
-                  }}
-                  className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brandBlue"
-                  disabled={prefLoading || prefSaving}
-                >
-                  <option value="NONE">None</option>
-                  <option value="DAILY">Daily</option>
-                  <option value="WEEKLY">Weekly</option>
-                </select>
-                {prefSaving ? (
-                  <span className="text-xs text-muted">Saving...</span>
-                ) : null}
-              </div>
-            </div>
-            {prefError ? <p className="mt-3 text-sm text-red-500">{prefError}</p> : null}
-            {prefSuccess ? <p className="mt-3 text-sm text-green-600">{prefSuccess}</p> : null}
-          </section>
 
           {!isCompany ? (
           <section className="mt-6 rounded-2xl border border-border bg-surface px-4 py-4">

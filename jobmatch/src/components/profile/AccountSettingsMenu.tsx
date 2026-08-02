@@ -194,6 +194,123 @@ function ChangeEmailSection() {
   );
 }
 
+function NotificationPreferencesSection() {
+  const [frequency, setFrequency] = useState<"NONE" | "DAILY" | "WEEKLY">("WEEKLY");
+  const [newsletterOptIn, setNewsletterOptIn] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [savingField, setSavingField] = useState<"frequency" | "newsletter" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/notifications/preference", { cache: "no-store" });
+        const body = await res.json().catch(() => null);
+        if (!active || !res.ok) return;
+        if (body?.frequency === "NONE" || body?.frequency === "DAILY" || body?.frequency === "WEEKLY") {
+          setFrequency(body.frequency);
+        }
+        if (typeof body?.newsletterOptIn === "boolean") {
+          setNewsletterOptIn(body.newsletterOptIn);
+        }
+      } catch (err) {
+        console.error("Failed to load notification preferences", err);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const savePreference = async (
+    field: "frequency" | "newsletter",
+    body: { frequency?: "NONE" | "DAILY" | "WEEKLY"; newsletterOptIn?: boolean }
+  ) => {
+    setSavingField(field);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch("/api/notifications/preference", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(payload?.error ?? "Couldn't save your preference.");
+        return;
+      }
+      setSuccess("Saved.");
+    } catch (err) {
+      console.error("Failed to save notification preference", err);
+      setError("Couldn't save your preference.");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  return (
+    <SectionCard title="Notification preferences">
+      <div className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">Job alert frequency</p>
+            <p className="mt-1 text-xs text-muted">
+              How often you get emailed about new job postings from companies you follow.
+            </p>
+          </div>
+          <select
+            id="job-alert-frequency"
+            value={frequency}
+            onChange={(e) => {
+              const next = e.target.value as "NONE" | "DAILY" | "WEEKLY";
+              setFrequency(next);
+              savePreference("frequency", { frequency: next });
+            }}
+            disabled={isLoading || savingField === "frequency"}
+            className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+          >
+            <option value="NONE">None</option>
+            <option value="DAILY">Daily</option>
+            <option value="WEEKLY">Weekly</option>
+          </select>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">Website newsletter</p>
+            <p className="mt-1 text-xs text-muted">
+              Occasional emails about new features, product updates, and announcements.
+            </p>
+          </div>
+          <label className="inline-flex h-10 items-center gap-2">
+            <input
+              type="checkbox"
+              checked={newsletterOptIn}
+              disabled={isLoading || savingField === "newsletter"}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setNewsletterOptIn(next);
+                savePreference("newsletter", { newsletterOptIn: next });
+              }}
+              className="h-4 w-4 rounded border-border"
+            />
+            <span className="text-sm text-foreground">{newsletterOptIn ? "Subscribed" : "Unsubscribed"}</span>
+          </label>
+        </div>
+
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {success ? <p className="text-sm text-emerald-600">{success}</p> : null}
+      </div>
+    </SectionCard>
+  );
+}
+
 export default function AccountSettingsMenu() {
   const [open, setOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -290,6 +407,7 @@ export default function AccountSettingsMenu() {
           <div className="space-y-6 px-6 py-6">
             <ChangePasswordSection />
             <ChangeEmailSection />
+            <NotificationPreferencesSection />
             <SectionCard title="Sign out">
               <p className="text-sm text-foreground/70">
                 You'll need to sign in again the next time you visit.

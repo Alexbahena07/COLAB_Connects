@@ -96,6 +96,7 @@ model User {
   lastLoginAt           DateTime?
   accountType           AccountType           @default(STUDENT)
   notificationFrequency NotificationFrequency @default(WEEKLY)
+  newsletterOptIn       Boolean               @default(true)
   linkedinUrl           String?
   createdAt             DateTime              @default(now())
   isAdmin               Boolean               @default(false)

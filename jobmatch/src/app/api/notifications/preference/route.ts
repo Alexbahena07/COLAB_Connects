@@ -17,14 +17,17 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { notificationFrequency: true },
+    select: { notificationFrequency: true, newsletterOptIn: true },
   });
 
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ frequency: user.notificationFrequency });
+  return NextResponse.json({
+    frequency: user.notificationFrequency,
+    newsletterOptIn: user.newsletterOptIn,
+  });
 }
 
 export async function PATCH(request: Request) {
@@ -36,16 +39,31 @@ export async function PATCH(request: Request) {
   const statusError = await requireActiveStatus(session.user.id);
   if (statusError) return statusError;
 
-  const body = (await request.json().catch(() => null)) as { frequency?: unknown } | null;
-  if (!body || !isValidFrequency(body.frequency)) {
+  const body = (await request.json().catch(() => null)) as
+    | { frequency?: unknown; newsletterOptIn?: unknown }
+    | null;
+
+  if (!body || (body.frequency === undefined && body.newsletterOptIn === undefined)) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+  if (body.frequency !== undefined && !isValidFrequency(body.frequency)) {
     return NextResponse.json({ error: "Invalid frequency" }, { status: 400 });
+  }
+  if (body.newsletterOptIn !== undefined && typeof body.newsletterOptIn !== "boolean") {
+    return NextResponse.json({ error: "Invalid newsletterOptIn" }, { status: 400 });
   }
 
   const user = await prisma.user.update({
     where: { id: session.user.id },
-    data: { notificationFrequency: body.frequency },
-    select: { notificationFrequency: true },
+    data: {
+      ...(body.frequency !== undefined ? { notificationFrequency: body.frequency } : {}),
+      ...(body.newsletterOptIn !== undefined ? { newsletterOptIn: body.newsletterOptIn } : {}),
+    },
+    select: { notificationFrequency: true, newsletterOptIn: true },
   });
 
-  return NextResponse.json({ frequency: user.notificationFrequency });
+  return NextResponse.json({
+    frequency: user.notificationFrequency,
+    newsletterOptIn: user.newsletterOptIn,
+  });
 }
