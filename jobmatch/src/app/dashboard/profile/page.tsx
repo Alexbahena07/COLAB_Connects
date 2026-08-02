@@ -42,6 +42,12 @@ type SkillItem = {
   years: number | null;
 };
 
+type CareerForumItem = {
+  id: string;
+  title: string;
+  eventDate: Date;
+};
+
 type SectionCardProps = {
   title: string;
   icon?: ReactNode;
@@ -158,6 +164,23 @@ export default async function StudentProfilePage() {
           },
         },
       },
+      // Using ACCEPTED as a stand-in for "attended" for now — there's no
+      // check-in/attendance tracking yet, so an accepted application is the
+      // closest signal available that someone actually took part.
+      eventApplications: {
+        where: { status: "ACCEPTED" },
+        orderBy: { event: { eventDate: "desc" } },
+        select: {
+          id: true,
+          event: {
+            select: {
+              id: true,
+              title: true,
+              eventDate: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -181,6 +204,12 @@ export default async function StudentProfilePage() {
       name: userSkill.skill.name,
       years: userSkill.years,
     })) ?? [];
+  const careerForums: CareerForumItem[] =
+    user?.eventApplications.map((application) => ({
+      id: application.id,
+      title: application.event.title,
+      eventDate: application.event.eventDate,
+    })) ?? [];
 
   const aboutText = profile?.about?.trim() ?? "";
 
@@ -189,208 +218,207 @@ export default async function StudentProfilePage() {
       <Header />
       <main className="min-h-screen bg-background px-4 pb-16 pt-10 text-foreground">
         <div className="mx-auto w-full max-w-6xl space-y-8">
-          {/* Hero band */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-brandBlue px-4 pb-5 pt-8 shadow-lg sm:px-6 sm:pb-6 sm:pt-10">
-            <div className="pointer-events-none absolute inset-0 opacity-30 mix-blend-soft-light">
-              <div className="absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
-              <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-[#f5f1ff]/20 blur-3xl" />
-            </div>
+          {/* Profile layout: hero + main content on the left, quick-info cards on the right */}
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
+            <div className="space-y-6">
+            {/* Hero band */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-brandBlue px-4 py-6 shadow-lg sm:px-6 sm:py-7">
+              <div className="pointer-events-none absolute inset-0 opacity-30 mix-blend-soft-light">
+                <div className="absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
+                <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-[#f5f1ff]/20 blur-3xl" />
+              </div>
 
-            <div className="relative space-y-4 sm:space-y-5">
-              {/* Photo + name row */}
-              <div className="flex items-start gap-4 sm:gap-6">
+              {/* Photo + everything else, side by side */}
+              <div className="relative flex items-center gap-4 sm:gap-6">
                 {/* Avatar */}
                 {userImage ? (
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-3xl border-4 border-white/60 bg-surface shadow-xl ring-2 ring-(--brandBlue)/50 sm:h-28 sm:w-28">
+                  <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-3xl border-4 border-white/60 bg-surface shadow-xl ring-2 ring-(--brandBlue)/50 sm:h-40 sm:w-40">
                     <Image
                       src={userImage}
                       alt={`${fullName} profile photo`}
                       fill
-                      sizes="112px"
+                      sizes="160px"
                       className="object-cover"
                     />
                   </div>
                 ) : (
-                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-surface text-2xl font-semibold text-brand shadow-xl ring-2 ring-(--brandBlue)/40 sm:h-28 sm:w-28 sm:text-3xl">
+                  <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl bg-surface text-3xl font-semibold text-brand shadow-xl ring-2 ring-(--brandBlue)/40 sm:h-40 sm:w-40 sm:text-4xl">
                     {fullName.charAt(0).toUpperCase()}
                   </div>
                 )}
 
-                <div className="min-w-0 flex-1 pt-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f4e7ff]/80">
-                    Student profile
-                  </p>
-                  <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#fdfbff] sm:text-4xl">
-                    {fullName}
-                  </h1>
-                  {headline ? (
-                    <p className="mt-2 max-w-2xl text-sm text-[#fdfbff]/90">
-                      {headline}
+                <div className="min-w-0 flex-1 space-y-3 sm:space-y-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f4e7ff]/80">
+                      Student profile
                     </p>
-                  ) : (
-                    <p className="mt-2 max-w-2xl text-sm text-[#fdfbff]/80">
-                      Add a short headline to quickly tell recruiters who you are and what you're looking for.
-                    </p>
-                  )}
+                    <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#fdfbff] sm:text-4xl">
+                      {fullName}
+                    </h1>
+                    {headline ? (
+                      <p className="mt-2 max-w-2xl text-sm text-[#fdfbff]/90">
+                        {headline}
+                      </p>
+                    ) : (
+                      <p className="mt-2 max-w-2xl text-sm text-[#fdfbff]/80">
+                        Add a short headline to quickly tell recruiters who you are and what you're looking for.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Badges */}
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-white">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 backdrop-blur-sm">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                      {location ? `Based in ${location}` : "Location not specified"}
+                    </span>
+                    <OpenToWorkToggle initialValue={openToWork} />
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <ProfileEditDrawer />
+                    <ProfileHeroActions />
+                  </div>
                 </div>
               </div>
-
-              {/* Badges */}
-              <div className="flex flex-wrap items-center gap-3 text-xs text-[#fdfbff]/90">
-                <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-                  {location ? `Based in ${location}` : "Location not specified"}
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-full bg-black/15 px-3 py-1 backdrop-blur-sm">
-                  <OpenToWorkToggle initialValue={openToWork} />
-                </span>
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-wrap items-center gap-3">
-                <ProfileEditDrawer />
-                <ProfileHeroActions />
-              </div>
             </div>
-          </div>
 
-          {/* Content grid */}
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
-            {/* Left column */}
+            {/* About / Resume / Experience / Certifications */}
             <section className="space-y-6">
-              <SectionCard title="About" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}>
-                {aboutText ? (
-                  <div className="space-y-1.5 text-sm leading-relaxed text-foreground/90">
-                    {aboutText.split("\n").map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
+            <SectionCard title="About" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}>
+              {aboutText ? (
+                <div className="space-y-1.5 text-sm leading-relaxed text-foreground/90">
+                  {aboutText.split("\n").map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-foreground/70">
+                  Share a short introduction that highlights your goals, strengths, and what you are looking for
+                  next. Use Edit Profile to add an About summary.
+                </p>
+              )}
+            </SectionCard>
+
+            <SectionCard
+              title="Resume"
+              icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>}
+              action={
+                resumeAvailable ? (
+                  <a
+                    href="/api/profile/resume"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-brand whitespace-nowrap text-xs"
+                  >
+                    View resume
+                  </a>
+                ) : undefined
+              }
+            >
+              {resumeAvailable ? (
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">{resumeFileName}</p>
+                    <p className="text-xs text-foreground/70">Uploaded during onboarding</p>
+                    <p className="text-[11px] uppercase tracking-wide text-foreground/60">
+                      Opens in a new tab so you can verify what employers will see.
+                    </p>
                   </div>
-                ) : (
-                  <p className="text-sm text-foreground/70">
-                    Share a short introduction that highlights your goals, strengths, and what you are looking for
-                    next. Use Edit Profile to add an About summary.
-                  </p>
-                )}
-              </SectionCard>
-
-              <SectionCard
-                title="Resume"
-                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>}
-                action={
-                  resumeAvailable ? (
-                    <a
-                      href="/api/profile/resume"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-brand whitespace-nowrap text-xs"
-                    >
-                      View resume
-                    </a>
-                  ) : undefined
-                }
-              >
-                {resumeAvailable ? (
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold">{resumeFileName}</p>
-                      <p className="text-xs text-foreground/70">Uploaded during onboarding</p>
-                      <p className="text-[11px] uppercase tracking-wide text-foreground/60">
-                        Opens in a new tab so you can verify what employers will see.
-                      </p>
-                    </div>
-                    <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-brandBlue/10 text-brandBlue sm:flex">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true"><path d="M12 5v14"/><path d="m7 15 5 5 5-5"/><path d="M5 20h14"/></svg>
-                    </div>
+                  <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-brandBlue/10 text-brandBlue sm:flex">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true"><path d="M12 5v14"/><path d="m7 15 5 5 5-5"/><path d="M5 20h14"/></svg>
                   </div>
-                ) : (
-                  <p className="text-sm text-foreground/70">
-                    Upload your resume during onboarding to help companies understand your experience at a glance.
-                  </p>
-                )}
-              </SectionCard>
+                </div>
+              ) : (
+                <p className="text-sm text-foreground/70">
+                  Upload your resume during onboarding to help companies understand your experience at a glance.
+                </p>
+              )}
+            </SectionCard>
 
-              <SectionCard title="Experience" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>}>
-                {experiences.length ? (
-                  <ol className="relative space-y-5 border-l border-dashed border-border/80 pl-5">
-                    {experiences.map((experience) => {
-                      const period = rangeLabel(experience.startDate, experience.endDate);
-                      const metadata = [experience.company, period].filter(Boolean).join(" · ");
-                      const description = experience.description?.trim();
-                      return (
-                        <li key={experience.id} className="relative">
-                          <span className="absolute -left-6.5 top-2 h-3 w-3 rounded-full border border-brandBlue bg-surface" />
-                          <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-                            <h3 className="text-sm font-semibold text-brand">
-                              {experience.title || "Role"}
-                            </h3>
-                            {metadata ? (
-                              <p className="mt-1 text-xs text-foreground/70">{metadata}</p>
-                            ) : null}
-                            {description ? (
-                              <div className="mt-3 space-y-1.5 text-sm leading-relaxed text-foreground/90">
-                                {description.split("\n").map((paragraph, index) => (
-                                  <p key={index}>{paragraph}</p>
-                                ))}
-                              </div>
-                            ) : null}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                ) : (
-                  <p className="text-sm text-foreground/70">
-                    Add internships, part-time roles, or meaningful projects to show how you apply your skills in practice.
-                  </p>
-                )}
-              </SectionCard>
-
-              <SectionCard title="Licenses & Certifications" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>}>
-                {certificates.length ? (
-                  <div className="space-y-4">
-                    {certificates.map((certificate) => {
-                      const issued = formatMonthYear(certificate.issuedAt);
-                      const credentialMeta = [issued, certificate.issuer].filter(Boolean).join(" · ");
-                      return (
-                        <div
-                          key={certificate.id}
-                          className="rounded-2xl border border-border bg-surface p-4 shadow-sm"
-                        >
+            <SectionCard title="Experience" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>}>
+              {experiences.length ? (
+                <ol className="relative space-y-5 border-l border-dashed border-border/80 pl-5">
+                  {experiences.map((experience) => {
+                    const period = rangeLabel(experience.startDate, experience.endDate);
+                    const metadata = [experience.company, period].filter(Boolean).join(" · ");
+                    const description = experience.description?.trim();
+                    return (
+                      <li key={experience.id} className="relative">
+                        <span className="absolute -left-6.5 top-2 h-3 w-3 rounded-full border border-brandBlue bg-surface" />
+                        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
                           <h3 className="text-sm font-semibold text-brand">
-                            {certificate.name || "Certification"}
+                            {experience.title || "Role"}
                           </h3>
-                          {credentialMeta ? (
-                            <p className="mt-1 text-xs text-foreground/80">{credentialMeta}</p>
+                          {metadata ? (
+                            <p className="mt-1 text-xs text-foreground/70">{metadata}</p>
                           ) : null}
-                          {certificate.credentialId ? (
-                            <p className="mt-1 text-[11px] uppercase tracking-wide text-foreground/60">
-                              Credential ID: {certificate.credentialId}
-                            </p>
-                          ) : null}
-                          {certificate.credentialUrl ? (
-                            <a
-                              href={certificate.credentialUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="mt-3 inline-flex text-xs font-semibold text-brandBlue"
-                            >
-                              View credential
-                            </a>
+                          {description ? (
+                            <div className="mt-3 space-y-1.5 text-sm leading-relaxed text-foreground/90">
+                              {description.split("\n").map((paragraph, index) => (
+                                <p key={index}>{paragraph}</p>
+                              ))}
+                            </div>
                           ) : null}
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-foreground/70">
-                    Highlight certifications or licenses that demonstrate your specialization.
-                  </p>
-                )}
-              </SectionCard>
+                      </li>
+                    );
+                  })}
+                </ol>
+              ) : (
+                <p className="text-sm text-foreground/70">
+                  Add internships, part-time roles, or meaningful projects to show how you apply your skills in practice.
+                </p>
+              )}
+            </SectionCard>
 
+            <SectionCard title="Licenses & Certifications" icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>}>
+              {certificates.length ? (
+                <div className="space-y-4">
+                  {certificates.map((certificate) => {
+                    const issued = formatMonthYear(certificate.issuedAt);
+                    const credentialMeta = [issued, certificate.issuer].filter(Boolean).join(" · ");
+                    return (
+                      <div
+                        key={certificate.id}
+                        className="rounded-2xl border border-border bg-surface p-4 shadow-sm"
+                      >
+                        <h3 className="text-sm font-semibold text-brand">
+                          {certificate.name || "Certification"}
+                        </h3>
+                        {credentialMeta ? (
+                          <p className="mt-1 text-xs text-foreground/80">{credentialMeta}</p>
+                        ) : null}
+                        {certificate.credentialId ? (
+                          <p className="mt-1 text-[11px] uppercase tracking-wide text-foreground/60">
+                            Credential ID: {certificate.credentialId}
+                          </p>
+                        ) : null}
+                        {certificate.credentialUrl ? (
+                          <a
+                            href={certificate.credentialUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-3 inline-flex text-xs font-semibold text-brandBlue"
+                          >
+                            View credential
+                          </a>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-foreground/70">
+                  Highlight certifications or licenses that demonstrate your specialization.
+                </p>
+              )}
+            </SectionCard>
             </section>
+            </div>
 
-            {/* Right column */}
+            {/* Contact / Education / Skills */}
             <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
               <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
                 <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
@@ -453,6 +481,33 @@ export default async function StudentProfilePage() {
                 ) : (
                   <p className="mt-2 text-sm text-foreground/70 lg:text-white/80">
                     Add skills so companies can quickly see where you excel.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                  Career Forums Attended
+                </h3>
+                {careerForums.length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {careerForums.map((forum) => (
+                      <span
+                        key={forum.id}
+                        className="flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-foreground shadow-sm lg:border-white/30 lg:bg-white/10 lg:text-white"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0 text-emerald-500 lg:text-emerald-300" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                        {forum.title}
+                        <span className="text-[10px] font-normal text-foreground/60 lg:text-white/70">
+                          {formatMonthYear(forum.eventDate)}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-foreground/70 lg:text-white/80">
+                    Attend a Career Forum to start building your history here.
                   </p>
                 )}
               </div>

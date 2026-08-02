@@ -59,6 +59,18 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
           skills: { select: { skill: { select: { name: true } } } },
         },
       },
+      companyEventPosts: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          about: true,
+          link: true,
+          linkLabel: true,
+          imageUrl: true,
+          createdAt: true,
+        },
+      },
     },
   });
 
@@ -80,11 +92,21 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
   const profile = company.companyProfile;
   const companyName = profile?.companyName ?? company.name ?? "Company";
   const website = profile?.website ?? null;
+  const websiteHost = website
+    ? (() => {
+        try {
+          return new URL(website).hostname.replace(/^www\./, "");
+        } catch {
+          return website;
+        }
+      })()
+    : null;
   const headquarters = profile?.headquarters ?? null;
   const industry = profile?.hiringFocus ?? null;
   const bio = profile?.about ?? null;
   const profilePhoto = company.image ?? null;
   const jobs = company.jobs ?? [];
+  const events = company.companyEventPosts ?? [];
 
   const JOB_TYPE_LABELS: Record<string, string> = {
     FULL_TIME: "Full-time",
@@ -149,6 +171,25 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
             </div>
           </div>
 
+          {/* About section */}
+          <section className="mt-6 rounded-3xl border border-white/20 bg-brandBlue p-6 text-white shadow-lg">
+            <header className="mb-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 text-white">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <circle cx="12" cy="8" r="3.5" />
+                    <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
+                  </svg>
+                </span>
+                <h2 className="text-lg font-semibold uppercase tracking-tight text-white">About</h2>
+              </div>
+              <div className="mt-1 h-0.5 w-10 rounded-full bg-white/40" />
+            </header>
+            <p className="text-sm leading-relaxed text-white/90">
+              {bio || "This company has not added a bio yet."}
+            </p>
+          </section>
+
           {/* Info cards */}
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <InfoCard
@@ -165,10 +206,10 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
                     href={website}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
+                    className="inline-flex items-center gap-1 text-brandBlue transition hover:underline"
                   >
-                    Visit
-                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+                    {websiteHost}
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5 shrink-0">
                       <path d="M7 17 17 7M7 7h10v10" />
                     </svg>
                   </a>
@@ -210,25 +251,6 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
               value={profile?.teamSize || <span className="text-muted">Not provided</span>}
             />
           </div>
-
-          {/* About section */}
-          <section className="mt-6 rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
-            <header className="mb-4">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                    <circle cx="12" cy="8" r="3.5" />
-                    <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
-                  </svg>
-                </span>
-                <h2 className="text-lg font-semibold uppercase tracking-tight text-brand">About</h2>
-              </div>
-              <div className="mt-1 h-0.5 w-10 rounded-full bg-brandBlue" />
-            </header>
-            <p className="text-sm leading-relaxed text-foreground/80">
-              {bio || "This company has not added a bio yet."}
-            </p>
-          </section>
 
           {/* Open positions */}
           <section className="mt-6 rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
@@ -291,6 +313,71 @@ export default async function CompanyProfilePage({ params }: CompanyProfilePageP
                         </div>
                       )}
                     </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Events */}
+          <section className="mt-6 rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
+            <header className="mb-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <rect x="3" y="5" width="18" height="16" rx="2" />
+                    <path d="M8 3v4M16 3v4M3 10h18" />
+                  </svg>
+                </span>
+                <h2 className="text-lg font-semibold uppercase tracking-tight text-brand">Events</h2>
+              </div>
+              <div className="mt-1 h-0.5 w-10 rounded-full bg-brandBlue" />
+            </header>
+
+            {events.length === 0 ? (
+              <p className="text-sm text-muted">This company isn&apos;t hosting any events right now.</p>
+            ) : (
+              <ul className="space-y-3">
+                {events.map((event) => (
+                  <li
+                    key={event.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-border bg-background p-4 sm:flex-row sm:items-start"
+                  >
+                    {event.imageUrl ? (
+                      // Event post images are stored as base64 data URLs, not remote
+                      // URLs, so this uses a plain <img> like the other renderers of
+                      // this same field (CompanyEventPostsManager, the opportunities
+                      // feed) rather than next/image.
+                      <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="h-16 w-16 shrink-0 rounded-xl border border-border object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-border bg-brand/10 text-brand">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
+                          <rect x="3" y="5" width="18" height="16" rx="2" />
+                          <path d="M8 3v4M16 3v4M3 10h18" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-foreground">{event.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-foreground/80">{event.about}</p>
+                      {event.link ? (
+                        <a
+                          href={event.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-3 inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand"
+                        >
+                          {event.linkLabel || "Learn more"}
+                          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                          </svg>
+                        </a>
+                      ) : null}
+                    </div>
                   </li>
                 ))}
               </ul>

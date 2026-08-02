@@ -6,6 +6,10 @@ const isDev = process.env.NODE_ENV === "development";
 // redirect (no js.stripe.com embed), fonts are self-hosted by next/font, and
 // Vercel Analytics loads from /_vercel/insights on our own origin. Dev needs
 // extra allowances for React Refresh (eval) and the HMR websocket.
+//
+// frame-src is scoped to the two third-party iframes the Career Forum pages
+// actually embed (Vimeo video, Google Maps snapshot) — without it, iframes
+// fall back to default-src 'self' and both get silently blocked.
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
@@ -13,6 +17,7 @@ const contentSecurityPolicy = [
   "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com",
   "font-src 'self'",
   `connect-src 'self'${isDev ? " ws: https://va.vercel-scripts.com" : ""}`,
+  "frame-src 'self' https://player.vimeo.com https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

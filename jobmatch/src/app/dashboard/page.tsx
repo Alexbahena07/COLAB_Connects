@@ -4,9 +4,11 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
+import Autocomplete from "@/components/ui/Autocomplete";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/HeaderWithIcons";
 import Footer from "@/components/ui/Footer";
+import { CITY_OPTIONS } from "@/app/onboarding/profile/options";
 
 type EventPost = {
   id: string;
@@ -525,7 +527,7 @@ function DashboardContent() {
             >
               <Input
                 label="Search"
-                placeholder="Title, company, or skill"
+                placeholder="Title, company"
                 value={q}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
                 className="h-11 border-border bg-background text-foreground placeholder:text-muted"
@@ -535,26 +537,44 @@ function DashboardContent() {
                 <label htmlFor="job-type-filter" className="text-sm font-medium text-foreground">
                   Job type
                 </label>
-                <select
-                  id="job-type-filter"
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
-                >
-                  <option value="">All types</option>
-                  <option value="FULL_TIME">Full-time</option>
-                  <option value="PART_TIME">Part-time</option>
-                  <option value="CONTRACT">Contract</option>
-                  <option value="INTERNSHIP">Internship</option>
-                </select>
+                <div className="relative">
+                  <select
+                    id="job-type-filter"
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="h-11 w-full appearance-none rounded-xl border border-border bg-background px-3 pr-9 text-sm text-foreground outline-none focus:border-brand"
+                  >
+                    <option value="">All types</option>
+                    <option value="FULL_TIME">Full-time</option>
+                    <option value="PART_TIME">Part-time</option>
+                    <option value="CONTRACT">Contract</option>
+                    <option value="INTERNSHIP">Internship</option>
+                  </select>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
               </div>
 
-              <Input
+              <Autocomplete
                 label="Location"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, state, or remote"
-                className="h-11 border-border bg-background text-foreground placeholder:text-muted"
+                onChange={(value) => setLocation(value)}
+                options={CITY_OPTIONS}
+                placeholder="City, state"
+                inputClassName="h-11 border-border bg-background text-foreground placeholder:text-muted"
+                labelClassName="text-foreground"
+                panelClassName="border-border bg-surface"
+                optionClassName="text-foreground hover:bg-border/30"
               />
 
               <div className="flex flex-col gap-2">
@@ -650,9 +670,9 @@ function DashboardContent() {
                               : "border-l-4 border-l-transparent hover:border-l-white hover:bg-brand"
                           }`}
                         >
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border text-xs font-semibold transition ${
+                          <div className="flex items-start gap-3">
+                            <div className="flex shrink-0 flex-col items-center gap-1.5">
+                              <div className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border text-sm font-semibold transition ${
                                 active
                                   ? "border-white/60 bg-white/25 text-white"
                                   : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -667,18 +687,18 @@ function DashboardContent() {
                                   getCompanyInitials(job.company)
                                 )}
                               </div>
-                              <div>
-                                <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{job.title}</h3>
-                                <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
-                                  {job.company} · {job.location}
-                                </p>
-                              </div>
+                              <span className="whitespace-nowrap rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                                {JOB_TYPE_LABEL[job.type]}
+                              </span>
                             </div>
-                            <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
-                              {JOB_TYPE_LABEL[job.type]}
-                            </span>
+                            <div className="min-w-0 flex-1">
+                              <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{job.title}</h3>
+                              <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
+                                {job.company} · {job.location}
+                              </p>
+                            </div>
                           </div>
-                          <p className="mt-2 text-xs text-white/55 transition group-hover:text-white/70">
+                          <p className="mt-2 text-right text-xs text-white/55 transition group-hover:text-white/70">
                             {new Date(job.postedAt).toLocaleDateString()}
                           </p>
                         </button>
@@ -698,9 +718,9 @@ function DashboardContent() {
                             : "border-l-4 border-l-transparent hover:border-l-white hover:bg-brand"
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border text-xs font-semibold transition ${
+                        <div className="flex items-start gap-3">
+                          <div className="flex shrink-0 flex-col items-center gap-1.5">
+                            <div className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border text-sm font-semibold transition ${
                               active
                                 ? "border-white/60 bg-white/25 text-white"
                                 : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -715,18 +735,18 @@ function DashboardContent() {
                                 getCompanyInitials(event.companyName)
                               )}
                             </div>
-                            <div>
-                              <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{event.title}</h3>
-                              <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
-                                {event.companyName}
-                              </p>
-                            </div>
+                            <span className="whitespace-nowrap rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                              Event
+                            </span>
                           </div>
-                          <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
-                            Event
-                          </span>
+                          <div className="min-w-0 flex-1">
+                            <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{event.title}</h3>
+                            <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
+                              {event.companyName}
+                            </p>
+                          </div>
                         </div>
-                        <p className="mt-2 text-xs text-white/55 transition group-hover:text-white/70">
+                        <p className="mt-2 text-right text-xs text-white/55 transition group-hover:text-white/70">
                           {new Date(event.createdAt).toLocaleDateString()}
                         </p>
                       </button>

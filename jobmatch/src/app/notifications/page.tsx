@@ -109,6 +109,7 @@ export default function NotificationsPage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [frequency, setFrequency] = useState<"NONE" | "DAILY" | "WEEKLY">("WEEKLY");
   const [prefLoading, setPrefLoading] = useState(false);
   const [prefSaving, setPrefSaving] = useState(false);
@@ -300,6 +301,27 @@ export default function NotificationsPage() {
     }
   };
 
+  const deleteNotification = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const response = await fetch("/api/notifications", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [id] }),
+      });
+      if (!response.ok) return;
+      const target = notifications.find((item) => item.id === id);
+      setNotifications((prev) => prev.filter((item) => item.id !== id));
+      if (target && !target.readAt) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (err) {
+      console.error("Failed to delete notification", err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -484,6 +506,26 @@ export default function NotificationsPage() {
                             {ctaLabel}
                           </Link>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => deleteNotification(item.id)}
+                          disabled={deletingId === item.id}
+                          aria-label="Delete notification"
+                          className="shrink-0 rounded-full p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                          >
+                            <path d="M18 6 6 18M6 6l12 12" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   </div>

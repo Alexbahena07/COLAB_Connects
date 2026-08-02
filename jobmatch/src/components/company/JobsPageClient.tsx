@@ -3,7 +3,9 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
+import Autocomplete from "@/components/ui/Autocomplete";
 import Button from "@/components/ui/Button";
+import { CITY_OPTIONS } from "@/app/onboarding/profile/options";
 import {
   PostsFilterBar,
   PostListPanel,
@@ -535,13 +537,16 @@ export default function JobsPageClient({
                     labelClassName={brandLabelClass}
                     error={jobFormErrors.title}
                   />
-                  <Input
+                  <Autocomplete
                     label="Location"
                     value={jobForm.location}
-                    onChange={(event) => handleJobFieldChange("location", event.target.value)}
+                    onChange={(value) => handleJobFieldChange("location", value)}
+                    options={CITY_OPTIONS}
                     placeholder="City, State"
-                    className={brandInputClass}
+                    inputClassName={brandInputClass}
                     labelClassName={brandLabelClass}
+                    panelClassName="border-white/15 bg-brand"
+                    optionClassName="text-white hover:bg-white/10"
                     error={jobFormErrors.location}
                   />
                 </div>

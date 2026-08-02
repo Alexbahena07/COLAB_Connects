@@ -102,3 +102,30 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ updated: result.count });
 }
+
+type DeletePayload = { ids?: unknown };
+
+export async function DELETE(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const statusError = await requireActiveStatus(session.user.id);
+  if (statusError) return statusError;
+
+  const body = (await request.json().catch(() => null)) as DeletePayload | null;
+  const ids = parseIds(body?.ids);
+
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "No notifications specified" }, { status: 400 });
+  }
+
+  // Scoped to the caller's own userId so an id can't be used to delete
+  // another user's notification.
+  const result = await prisma.notification.deleteMany({
+    where: { userId: session.user.id, id: { in: ids } },
+  });
+
+  return NextResponse.json({ deleted: result.count });
+}

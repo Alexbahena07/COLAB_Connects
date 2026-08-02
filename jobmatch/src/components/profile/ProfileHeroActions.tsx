@@ -113,16 +113,14 @@ export function OpenToWorkToggle({ initialValue = true }: { initialValue?: boole
         disabled={saving}
         onClick={handleToggle}
         className={clsx(
-          "flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-semibold transition disabled:opacity-60",
-          enabled
-            ? "bg-brandBlue text-white shadow-sm"
-            : "bg-surface text-foreground opacity-80 hover:opacity-100"
+          "flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm transition disabled:opacity-60",
+          enabled ? "bg-emerald-400/20 hover:bg-emerald-400/30" : "bg-white/15 hover:bg-white/25"
         )}
       >
         <span
           className={clsx(
             "inline-block h-2.5 w-2.5 rounded-full transition",
-            enabled ? "bg-white" : "bg-border"
+            enabled ? "bg-emerald-300" : "bg-white/50"
           )}
         />
         {enabled ? "Open to work" : "Not openly looking"}

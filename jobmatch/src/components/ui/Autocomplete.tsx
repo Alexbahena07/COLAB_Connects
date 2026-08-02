@@ -9,6 +9,7 @@ type Props = {
   placeholder?: string;
   options: string[];        // source list
   minChars?: number;        // start suggesting after N chars
+  error?: string;
   labelClassName?: string;
   inputClassName?: string;
   panelClassName?: string;
@@ -22,6 +23,7 @@ export default function Autocomplete({
   placeholder,
   options,
   minChars = 2,
+  error,
   labelClassName = "text-gray-700",
   inputClassName = "border-gray-300",
   panelClassName = "border-gray-200 bg-white",
@@ -30,6 +32,13 @@ export default function Autocomplete({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState(value);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Re-sync when the parent swaps the value out from under us (e.g. switching
+  // from "new job" to editing an existing one reuses this same mounted
+  // instance rather than remounting it).
+  useEffect(() => {
+    setQ(value);
+  }, [value]);
 
   // close on outside click
   useEffect(() => {
@@ -90,6 +99,7 @@ export default function Autocomplete({
           </ul>
         )}
       </div>
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }
