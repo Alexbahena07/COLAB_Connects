@@ -2,6 +2,9 @@
 
 A full-stack talent-matching platform that connects job seekers with recruiters through intelligent candidate discovery and recruiter dashboards.
 
+[![CI](https://github.com/Alexbahena07/COLAB_Connects/actions/workflows/ci.yml/badge.svg)](https://github.com/Alexbahena07/COLAB_Connects/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 🔗 **[Live Site](https://www.colabconnects.app/)**
 
 ---
@@ -81,3 +84,9 @@ The app is deployed on Vercel with automatic deployments on every push to `main`
 - Portfolio: [alexbahena07.github.io/Portfolio](https://alexbahena07.github.io/Portfolio/)
 - LinkedIn: [linkedin.com/in/alexbahena](https://linkedin.com/in/alexbahena)
 - GitHub: [github.com/Alexbahena07](https://github.com/Alexbahena07)
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
