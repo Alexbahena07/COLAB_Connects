@@ -174,6 +174,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
   const location = searchParams.get("location")?.trim() ?? "";
+  const school = searchParams.get("school")?.trim() ?? "";
+  const major = searchParams.get("major")?.trim() ?? "";
   const skills = (searchParams.get("skills") ?? "")
     .split(",")
     .map((skill) => skill.trim())
@@ -182,6 +184,8 @@ export async function GET(request: Request) {
     .split(",")
     .map((type) => type.trim())
     .filter(Boolean);
+  const openToWorkOnly = searchParams.get("openToWorkOnly") === "true";
+  const savedOnly = searchParams.get("savedOnly") === "true";
 
   const ugYearsOutMin = parseNumberParam(searchParams.get("ugYearsOutMin"));
   const ugYearsOutMax = parseNumberParam(searchParams.get("ugYearsOutMax"));
@@ -194,6 +198,8 @@ export async function GET(request: Request) {
 
   const where: Prisma.UserWhereInput = {
     accountType: "STUDENT",
+    // Excludes deactivated/banned accounts from the candidate pool.
+    status: "ACTIVE",
   };
 
   const andFilters: Prisma.UserWhereInput[] = [];
@@ -214,10 +220,43 @@ export async function GET(request: Request) {
     });
   }
 
-  if (location) {
+  if (location === "all") {
+    // "all" is the sentinel LocationMultiSelect stores when a candidate marked
+    // themselves open to any location — an exact match, not a substring one.
     andFilters.push({
-      profile: { is: { desiredLocation: { contains: location, mode: "insensitive" } } },
+      profile: { is: { desiredLocation: { equals: "all", mode: "insensitive" } } },
     });
+  } else if (location) {
+    const states = location.split(",").map((s) => s.trim()).filter(Boolean);
+    andFilters.push({
+      profile: {
+        is: {
+          OR: states.map((state) => ({
+            desiredLocation: { contains: state, mode: "insensitive" },
+          })),
+        },
+      },
+    });
+  }
+
+  if (school) {
+    andFilters.push({
+      degrees: { some: { school: { contains: school, mode: "insensitive" } } },
+    });
+  }
+
+  if (major) {
+    andFilters.push({
+      degrees: { some: { field: { contains: major, mode: "insensitive" } } },
+    });
+  }
+
+  if (openToWorkOnly) {
+    andFilters.push({ profile: { is: { openToWork: true } } });
+  }
+
+  if (savedOnly) {
+    andFilters.push({ savedByCompanies: { some: { companyId: companyUser.id } } });
   }
 
   if (skills.length > 0) {

@@ -3,9 +3,9 @@
 const WINDOW_MS = 15 * 60 * 1000;
 const attempts = new Map<string, number[]>();
 
-export const isRateLimited = (key: string, max: number) => {
+export const isRateLimited = (key: string, max: number, windowMs: number = WINDOW_MS) => {
   const now = Date.now();
-  const recent = (attempts.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
+  const recent = (attempts.get(key) ?? []).filter((t) => now - t < windowMs);
   if (recent.length >= max) {
     attempts.set(key, recent);
     return true;
@@ -15,7 +15,7 @@ export const isRateLimited = (key: string, max: number) => {
   // Opportunistic pruning so the map doesn't grow unbounded.
   if (attempts.size > 10_000) {
     for (const [k, v] of attempts) {
-      if (v.every((t) => now - t >= WINDOW_MS)) attempts.delete(k);
+      if (v.every((t) => now - t >= windowMs)) attempts.delete(k);
     }
   }
   return false;

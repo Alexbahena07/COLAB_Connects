@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { SUPPORT_CATEGORIES, type SupportCategory } from "@/lib/support";
 
 function GearIcon() {
   return (
@@ -23,16 +24,51 @@ function GearIcon() {
   );
 }
 
+function WarningIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3.5 w-3.5 shrink-0"
+      aria-hidden="true"
+    >
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+      <path d="M12 9v4" />
+      <path d="M12 17h.01" />
+    </svg>
+  );
+}
+
 function SectionCard({
   title,
+  variant = "default",
   children,
 }: {
   title: string;
+  variant?: "default" | "danger";
   children: React.ReactNode;
 }) {
+  const isDanger = variant === "danger";
   return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm ring-1 ring-black/5">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-brand">{title}</h2>
+    <section
+      className={[
+        "rounded-3xl border p-6 shadow-sm ring-1",
+        isDanger ? "border-red-200 bg-red-50/40 ring-red-100" : "border-border bg-surface ring-black/5",
+      ].join(" ")}
+    >
+      <h2
+        className={[
+          "flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide",
+          isDanger ? "text-red-700" : "text-brand",
+        ].join(" ")}
+      >
+        {isDanger ? <WarningIcon /> : null}
+        {title}
+      </h2>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -256,11 +292,11 @@ function NotificationPreferencesSection() {
 
   return (
     <SectionCard title="Notification preferences">
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+      <div className="divide-y divide-border">
+        <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0 sm:max-w-xs">
             <p className="text-sm font-medium text-foreground">Job alert frequency</p>
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-0.5 text-xs leading-relaxed text-muted">
               How often you get emailed about new job postings from companies you follow.
             </p>
           </div>
@@ -273,7 +309,7 @@ function NotificationPreferencesSection() {
               savePreference("frequency", { frequency: next });
             }}
             disabled={isLoading || savingField === "frequency"}
-            className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+            className="h-10 w-full shrink-0 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand disabled:opacity-60 sm:w-36"
           >
             <option value="NONE">None</option>
             <option value="DAILY">Daily</option>
@@ -281,32 +317,273 @@ function NotificationPreferencesSection() {
           </select>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0 sm:max-w-xs">
             <p className="text-sm font-medium text-foreground">Website newsletter</p>
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-0.5 text-xs leading-relaxed text-muted">
               Occasional emails about new features, product updates, and announcements.
             </p>
           </div>
-          <label className="inline-flex h-10 items-center gap-2">
-            <input
-              type="checkbox"
-              checked={newsletterOptIn}
-              disabled={isLoading || savingField === "newsletter"}
-              onChange={(e) => {
-                const next = e.target.checked;
-                setNewsletterOptIn(next);
-                savePreference("newsletter", { newsletterOptIn: next });
-              }}
-              className="h-4 w-4 rounded border-border"
-            />
-            <span className="text-sm text-foreground">{newsletterOptIn ? "Subscribed" : "Unsubscribed"}</span>
-          </label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={newsletterOptIn}
+            disabled={isLoading || savingField === "newsletter"}
+            onClick={() => {
+              const next = !newsletterOptIn;
+              setNewsletterOptIn(next);
+              savePreference("newsletter", { newsletterOptIn: next });
+            }}
+            className="flex shrink-0 items-center gap-2 disabled:opacity-60"
+          >
+            <span
+              className={[
+                "inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
+                newsletterOptIn ? "bg-brand" : "bg-border",
+              ].join(" ")}
+            >
+              <span
+                className={[
+                  "inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform",
+                  newsletterOptIn ? "translate-x-6" : "translate-x-1",
+                ].join(" ")}
+              />
+            </span>
+            <span className="w-20 text-left text-sm text-foreground">
+              {newsletterOptIn ? "Subscribed" : "Unsubscribed"}
+            </span>
+          </button>
         </div>
-
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        {success ? <p className="text-sm text-emerald-600">{success}</p> : null}
       </div>
+
+      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      {success ? <p className="mt-4 text-sm text-emerald-600">{success}</p> : null}
+    </SectionCard>
+  );
+}
+
+function ContactSupportSection() {
+  const [category, setCategory] = useState<SupportCategory>(SUPPORT_CATEGORIES[0]);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (message.trim().length < 10) {
+      setError("Tell us a bit more (at least 10 characters).");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/support/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, message: message.trim() }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(body?.error ?? "Couldn't send your request. Try again.");
+        return;
+      }
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Failed to send support request", err);
+      setError("Couldn't send your request. Try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <SectionCard title="Contact support">
+        <p className="text-sm text-foreground/85">
+          Thanks — we've received your request and sent it to support@colabconnects.app.
+          Our team typically responds within 5–7 business days.
+        </p>
+        <Button
+          type="button"
+          className="btn-outline-brand mt-4 h-10 w-full"
+          onClick={() => {
+            setSubmitted(false);
+            setMessage("");
+            setCategory(SUPPORT_CATEGORIES[0]);
+          }}
+        >
+          Send another request
+        </Button>
+      </SectionCard>
+    );
+  }
+
+  return (
+    <SectionCard title="Contact support">
+      <p className="text-sm text-foreground/70">
+        Reach out to support@colabconnects.app and we'll follow up by email — typically
+        within 5–7 business days.
+      </p>
+      <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-1">
+          <label htmlFor="support-category" className="block text-sm font-medium text-foreground">
+            What's this about?
+          </label>
+          <select
+            id="support-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as SupportCategory)}
+            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+          >
+            {SUPPORT_CATEGORIES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="support-message" className="block text-sm font-medium text-foreground">
+            Message
+          </label>
+          <textarea
+            id="support-message"
+            rows={5}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Describe the issue you're running into..."
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-foreground/50 focus:border-brand"
+            required
+          />
+        </div>
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        <Button type="submit" className="btn-brand h-10 w-full" isLoading={isSubmitting}>
+          Send request
+        </Button>
+      </form>
+    </SectionCard>
+  );
+}
+
+function DeleteAccountSection() {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmationText, setConfirmationText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const closeConfirm = () => {
+    setShowConfirm(false);
+    setPassword("");
+    setConfirmationText("");
+    setError(null);
+  };
+
+  const handleDelete = async () => {
+    setError(null);
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: password || undefined, confirmation: confirmationText }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(body?.error ?? "Couldn't delete your account. Try again.");
+        return;
+      }
+      await signOut({ callbackUrl: "/login" });
+    } catch (err) {
+      console.error("Failed to delete account", err);
+      setError("Couldn't delete your account. Try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <SectionCard title="Delete account" variant="danger">
+      <p className="text-sm text-red-950/70">
+        Permanently delete your account and all associated data — profile, applications, saved
+        jobs, and messages.{" "}
+        <span className="font-semibold text-red-700">This can't be undone.</span>
+      </p>
+      <Button
+        type="button"
+        onClick={() => setShowConfirm(true)}
+        className="mt-4 h-10 w-full bg-red-600 text-white hover:bg-red-700"
+      >
+        Delete account
+      </Button>
+
+      {showConfirm ? (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm account deletion"
+            className="w-full max-w-md rounded-3xl border border-border bg-background p-6 shadow-2xl"
+          >
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5 text-red-500"
+                aria-hidden="true"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Delete your account?</h3>
+            <p className="mt-2 text-sm text-muted">
+              This permanently deletes your account and all associated data. This action cannot
+              be undone.
+            </p>
+            <div className="mt-4 space-y-4">
+              <Input
+                label="Current password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Leave blank if you don't have one"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Input
+                label={'Type "DELETE" to confirm'}
+                type="text"
+                autoComplete="off"
+                value={confirmationText}
+                onChange={(e) => setConfirmationText(e.target.value)}
+              />
+            </div>
+            {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <Button type="button" className="btn-outline-brand h-10" onClick={closeConfirm}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={isDeleting || confirmationText !== "DELETE"}
+                onClick={handleDelete}
+                className="h-10 rounded-xl bg-red-500 px-4 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDeleting ? "Deleting…" : "Delete my account"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </SectionCard>
   );
 }
@@ -408,6 +685,7 @@ export default function AccountSettingsMenu() {
             <ChangePasswordSection />
             <ChangeEmailSection />
             <NotificationPreferencesSection />
+            <ContactSupportSection />
             <SectionCard title="Sign out">
               <p className="text-sm text-foreground/70">
                 You'll need to sign in again the next time you visit.
@@ -416,11 +694,12 @@ export default function AccountSettingsMenu() {
                 type="button"
                 disabled={isSigningOut}
                 onClick={handleSignOut}
-                className="mt-4 h-10 w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-outline-brand mt-4 h-10 w-full disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSigningOut ? "Signing out…" : "Sign out"}
               </Button>
             </SectionCard>
+            <DeleteAccountSection />
           </div>
         </div>
       </div>

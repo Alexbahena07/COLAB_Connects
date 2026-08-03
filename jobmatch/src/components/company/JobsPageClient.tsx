@@ -599,7 +599,7 @@ export default function JobsPageClient({
                     Key skills
                   </label>
                   <div
-                    className="flex min-h-[42px] flex-wrap gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3 py-2 transition focus-within:border-white/60 focus-within:ring-2 focus-within:ring-white/20"
+                    className="flex min-h-10.5 flex-wrap gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3 py-2 transition focus-within:border-white/60 focus-within:ring-2 focus-within:ring-white/20"
                     onClick={(e) => {
                       const input = (e.currentTarget as HTMLElement).querySelector("input");
                       input?.focus();
@@ -652,7 +652,7 @@ export default function JobsPageClient({
                         setSkillInput("");
                       }}
                       placeholder={jobForm.skills.length === 0 ? "e.g. Excel, Financial Modeling, Python" : "Add a skill…"}
-                      className="min-w-[140px] flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
+                      className="min-w-35 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
                     />
                   </div>
                   <p className="text-xs text-white/50">

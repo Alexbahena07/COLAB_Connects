@@ -149,6 +149,23 @@ const formatDate = (value: string | null | undefined) => {
   return Number.isNaN(parsed.valueOf()) ? "" : parsed.toLocaleDateString();
 };
 
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 export default function CompanyDashboardPage() {
   const [q, setQ] = useState("");
   const [skill, setSkill] = useState("");
@@ -429,13 +446,13 @@ export default function CompanyDashboardPage() {
               </div>
             </div>
 
-            {/* Filters toggle — mobile only. Keeps the filter fields out of the
-                way by default so the applicant list gets more vertical space. */}
+            {/* Filters toggle. Keeps the filter fields collapsed by default so
+                the applicant list gets more vertical space. */}
             <button
               type="button"
               onClick={() => setFiltersOpen((prev) => !prev)}
               aria-expanded={filtersOpen}
-              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground md:hidden"
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground"
             >
               <span className="flex items-center gap-2">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -467,7 +484,7 @@ export default function CompanyDashboardPage() {
               </svg>
             </button>
 
-            <div className={`mt-4 gap-4 md:mt-6 md:grid md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
+            <div className={`mt-4 gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
               <Input
                 label="Search"
                 placeholder="Name, email, or skill..."
@@ -615,11 +632,6 @@ export default function CompanyDashboardPage() {
                                   Starred
                                 </span>
                               ) : null}
-                              {candidate.applicant.openToWork ? (
-                                <span className="rounded-md bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50">
-                                  Open to work
-                                </span>
-                              ) : null}
                             </div>
                           </div>
                           <p className="mt-2 text-xs text-white/55 group-hover:text-white/70">
@@ -668,12 +680,24 @@ export default function CompanyDashboardPage() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-2xl font-bold text-foreground">{selectedApplicant.applicant.name}</h2>
+                        <button
+                          type="button"
+                          onClick={() => toggleSave(selectedApplicant.applicant.id)}
+                          aria-pressed={isSaved(selectedApplicant.applicant.id)}
+                          aria-label={
+                            isSaved(selectedApplicant.applicant.id) ? "Unstar applicant" : "Star applicant"
+                          }
+                          title={isSaved(selectedApplicant.applicant.id) ? "Unstar applicant" : "Star applicant"}
+                          className={[
+                            "inline-flex h-8 w-8 items-center justify-center rounded-full transition focus:outline-none focus:ring-2 focus:ring-brandBlue",
+                            isSaved(selectedApplicant.applicant.id)
+                              ? "text-amber-400 hover:text-amber-500"
+                              : "text-muted hover:bg-border/40 hover:text-amber-400",
+                          ].join(" ")}
+                        >
+                          <StarIcon filled={isSaved(selectedApplicant.applicant.id)} />
+                        </button>
                         <StatusBadge status={selectedApplicant.status} />
-                        {selectedApplicant.applicant.openToWork ? (
-                          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                            Open to work
-                          </span>
-                        ) : null}
                       </div>
                       <p className="mt-1 text-sm text-muted">{selectedApplicant.applicant.headline ?? "No headline yet"}</p>
                     </div>
@@ -776,13 +800,6 @@ export default function CompanyDashboardPage() {
                       {selectedApplicant.applicant.resumeUrl ? "View resume" : "No resume uploaded"}
                     </Button>
 
-                    <Button
-                      type="button"
-                      className="w-full h-11 btn-brand"
-                      onClick={() => toggleSave(selectedApplicant.applicant.id)}
-                    >
-                      {isSaved(selectedApplicant.applicant.id) ? "Unstar" : "Star applicant"}
-                    </Button>
                     {saveError ? <p className="text-xs text-red-600">{saveError}</p> : null}
 
                     <select

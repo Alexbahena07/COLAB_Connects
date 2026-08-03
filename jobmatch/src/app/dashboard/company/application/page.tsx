@@ -193,7 +193,7 @@ export default function CompanyEventApplicationPage() {
             </div>
 
             {/* Video */}
-            <div className="w-full md:w-[580px] md:shrink-0">
+            <div className="w-full md:w-145 md:shrink-0">
               <div className="relative overflow-hidden rounded-2xl shadow-lg" style={{ paddingBottom: "56.25%" }}>
                 <iframe
                   src="https://player.vimeo.com/video/1161539348?autoplay=1&muted=1&loop=0&title=0&byline=0&portrait=0"

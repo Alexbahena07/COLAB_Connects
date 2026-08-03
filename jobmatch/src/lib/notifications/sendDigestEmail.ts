@@ -3,6 +3,7 @@ type DigestEmailInput = {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
 };
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
@@ -19,7 +20,7 @@ const isValidFrom = (value: string) => {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const sendDigestEmail = async ({ to, subject, html, text }: DigestEmailInput) => {
+export const sendDigestEmail = async ({ to, subject, html, text, replyTo }: DigestEmailInput) => {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.DIGEST_FROM_EMAIL;
 
@@ -44,6 +45,7 @@ export const sendDigestEmail = async ({ to, subject, html, text }: DigestEmailIn
         subject,
         html,
         text,
+        ...(replyTo ? { reply_to: replyTo } : {}),
       }),
     });
 

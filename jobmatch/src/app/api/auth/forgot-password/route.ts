@@ -15,6 +15,9 @@ const ForgotPasswordSchema = z.object({
 
 const MAX_PER_IP = 5;
 const MAX_PER_EMAIL = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_PER_EMAIL_PER_DAY = 5;
+const MAX_PER_IP_PER_DAY = 10;
 
 export async function POST(request: Request) {
   const parsed = ForgotPasswordSchema.safeParse(await request.json().catch(() => ({})));
@@ -25,7 +28,12 @@ export async function POST(request: Request) {
   const email = parsed.data.email.toLowerCase().trim();
   const ip = requestIp(request);
 
-  if (isRateLimited(`reset:ip:${ip}`, MAX_PER_IP) || isRateLimited(`reset:email:${email}`, MAX_PER_EMAIL)) {
+  if (
+    isRateLimited(`reset:ip:${ip}`, MAX_PER_IP) ||
+    isRateLimited(`reset:email:${email}`, MAX_PER_EMAIL) ||
+    isRateLimited(`reset:day:ip:${ip}`, MAX_PER_IP_PER_DAY, DAY_MS) ||
+    isRateLimited(`reset:day:email:${email}`, MAX_PER_EMAIL_PER_DAY, DAY_MS)
+  ) {
     return NextResponse.json(
       { error: "Too many requests. Please try again later." },
       { status: 429 }

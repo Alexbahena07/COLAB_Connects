@@ -119,10 +119,14 @@ export default function Header() {
             <Link
               key={item.href + item.label}
               href={item.href}
+              title={item.label}
               className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               {item.icon}
-              <span className="text-xs font-semibold">{item.label}</span>
+              {/* Between md and lg the row doesn't have room for icon + label
+                  without labels wrapping onto two lines, so labels drop out
+                  and only the icons show until there's space for both again. */}
+              <span className="hidden text-xs font-semibold lg:inline">{item.label}</span>
             </Link>
           ))}
         </div>

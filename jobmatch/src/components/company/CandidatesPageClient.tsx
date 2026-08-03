@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import LocationMultiSelect from "@/components/ui/LocationMultiSelect";
+import { US_STATE_OPTIONS } from "@/app/onboarding/profile/options";
 
 type CandidateSkill = { name: string; years: number | null };
 type CandidateExperience = {
@@ -55,8 +57,11 @@ type Candidate = {
 type Filters = {
   q: string;
   location: string;
+  school: string;
+  major: string;
   skills: string;
   employmentType: string;
+  openToWorkOnly: boolean;
   ugYearsOutMin: string;
   ugYearsOutMax: string;
   gradYearsOutMin: string;
@@ -68,8 +73,11 @@ const EMPLOYMENT_TYPE_OPTIONS = ["Full-time", "Part-time", "Internship"];
 const defaultFilters: Filters = {
   q: "",
   location: "",
+  school: "",
+  major: "",
   skills: "",
   employmentType: "",
+  openToWorkOnly: false,
   ugYearsOutMin: "",
   ugYearsOutMax: "",
   gradYearsOutMin: "",
@@ -88,6 +96,23 @@ const formatDate = (value: string | null) => {
   return Number.isNaN(parsed.valueOf()) ? "" : parsed.toLocaleDateString();
 };
 
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 export default function CandidatesPageClient() {
   const [draftFilters, setDraftFilters] = useState<Filters>(defaultFilters);
   const [filters, setFilters] = useState<Filters>(defaultFilters);
@@ -103,19 +128,23 @@ export default function CandidatesPageClient() {
   const [totalResults, setTotalResults] = useState(0);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const buildQuery = (current: Filters, nextPage: number) => {
+  const buildQuery = (current: Filters, nextPage: number, savedOnly: boolean) => {
     const params = new URLSearchParams();
     if (current.q) params.set("q", current.q);
     if (current.location) params.set("location", current.location);
+    if (current.school) params.set("school", current.school);
+    if (current.major) params.set("major", current.major);
     const skills = parseSkills(current.skills);
     if (skills.length > 0) params.set("skills", skills.join(","));
     if (current.employmentType) {
       params.set("employmentTypes", current.employmentType);
     }
+    if (current.openToWorkOnly) params.set("openToWorkOnly", "true");
     if (current.ugYearsOutMin) params.set("ugYearsOutMin", current.ugYearsOutMin);
     if (current.ugYearsOutMax) params.set("ugYearsOutMax", current.ugYearsOutMax);
     if (current.gradYearsOutMin) params.set("gradYearsOutMin", current.gradYearsOutMin);
     if (current.gradYearsOutMax) params.set("gradYearsOutMax", current.gradYearsOutMax);
+    if (savedOnly) params.set("savedOnly", "true");
     params.set("page", `${nextPage}`);
     params.set("pageSize", `${pageSize}`);
     return params.toString();
@@ -128,7 +157,7 @@ export default function CandidatesPageClient() {
       setError(null);
       setSaveError(null);
       try {
-        const response = await fetch(`/api/candidates?${buildQuery(filters, page)}`, {
+        const response = await fetch(`/api/candidates?${buildQuery(filters, page, showSavedOnly)}`, {
           cache: "no-store",
         });
         const payload = await response.json().catch(() => null);
@@ -169,29 +198,24 @@ export default function CandidatesPageClient() {
     return () => {
       active = false;
     };
-  }, [filters, page]);
-
-  const visibleCandidates = useMemo(() => {
-    if (!showSavedOnly) return candidates;
-    return candidates.filter((candidate) => savedCandidateIds.has(candidate.id));
-  }, [candidates, savedCandidateIds, showSavedOnly]);
+  }, [filters, page, showSavedOnly]);
 
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
 
   useEffect(() => {
-    if (visibleCandidates.length === 0) {
+    if (candidates.length === 0) {
       setSelectedCandidateId(null);
       return;
     }
-    if (!selectedCandidateId || !visibleCandidates.some((c) => c.id === selectedCandidateId)) {
-      setSelectedCandidateId(visibleCandidates[0].id);
+    if (!selectedCandidateId || !candidates.some((c) => c.id === selectedCandidateId)) {
+      setSelectedCandidateId(candidates[0].id);
     }
-  }, [visibleCandidates, selectedCandidateId]);
+  }, [candidates, selectedCandidateId]);
 
   const selectedCandidate =
     (selectedCandidateId
-      ? visibleCandidates.find((candidate) => candidate.id === selectedCandidateId)
-      : visibleCandidates[0]) ?? null;
+      ? candidates.find((candidate) => candidate.id === selectedCandidateId)
+      : candidates[0]) ?? null;
 
   const toggleSave = async (candidateId: string) => {
     const currentlySaved = savedCandidateIds.has(candidateId);
@@ -233,8 +257,11 @@ export default function CandidatesPageClient() {
   const activeFieldFilterCount = [
     draftFilters.q.trim() !== "",
     draftFilters.location.trim() !== "",
+    draftFilters.school.trim() !== "",
+    draftFilters.major.trim() !== "",
     draftFilters.skills.trim() !== "",
     draftFilters.employmentType !== "",
+    draftFilters.openToWorkOnly,
     draftFilters.ugYearsOutMin.trim() !== "",
     draftFilters.ugYearsOutMax.trim() !== "",
     draftFilters.gradYearsOutMin.trim() !== "",
@@ -260,8 +287,7 @@ export default function CandidatesPageClient() {
               <div className="flex flex-wrap items-center gap-2">
                 <Button
                   className="btn-outline-brand h-10"
-                  onClick={() => setShowSavedOnly((prev) => !prev)}
-                  disabled={candidates.length === 0}
+                  onClick={() => { setShowSavedOnly((prev) => !prev); setPage(1); }}
                 >
                   {showSavedOnly ? "Show all" : "Show starred"}
                 </Button>
@@ -274,13 +300,13 @@ export default function CandidatesPageClient() {
               </div>
             </div>
 
-            {/* Filters toggle — mobile only. Keeps the filter fields out of the
-                way by default so the candidate list gets more vertical space. */}
+            {/* Filters toggle. Keeps the filter fields collapsed by default so
+                the candidate list gets more vertical space. */}
             <button
               type="button"
               onClick={() => setFiltersOpen((prev) => !prev)}
               aria-expanded={filtersOpen}
-              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground md:hidden"
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground"
             >
               <span className="flex items-center gap-2">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -312,7 +338,7 @@ export default function CandidatesPageClient() {
               </svg>
             </button>
 
-            <div className={`mt-4 gap-4 md:mt-6 md:grid md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
+            <div className={`mt-4 gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
               <Input
                 label="Search"
                 value={draftFilters.q}
@@ -320,12 +346,15 @@ export default function CandidatesPageClient() {
                 placeholder="Name, email, headline, skill"
                 className="h-11 border-border bg-background text-foreground placeholder:text-muted"
               />
-              <Input
+              <LocationMultiSelect
                 label="Location"
                 value={draftFilters.location}
-                onChange={(event) => setDraftFilters((prev) => ({ ...prev, location: event.target.value }))}
-                placeholder="City, state, or remote"
-                className="h-11 border-border bg-background text-foreground placeholder:text-muted"
+                onChange={(value) => setDraftFilters((prev) => ({ ...prev, location: value }))}
+                options={US_STATE_OPTIONS}
+                labelClassName="text-foreground"
+                inputClassName="border-border bg-background text-foreground"
+                panelClassName="border-border bg-surface"
+                optionClassName="text-foreground hover:bg-border/30"
               />
               <Input
                 label="Skills (comma separated)"
@@ -352,7 +381,51 @@ export default function CandidatesPageClient() {
               </div>
             </div>
 
-            <div className={`mt-4 gap-4 md:grid md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
+            <div className={`mt-4 gap-4 md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
+              <Input
+                label="School"
+                value={draftFilters.school}
+                onChange={(event) => setDraftFilters((prev) => ({ ...prev, school: event.target.value }))}
+                placeholder="University or college"
+                className="h-11 border-border bg-background text-foreground placeholder:text-muted"
+              />
+              <Input
+                label="Major"
+                value={draftFilters.major}
+                onChange={(event) => setDraftFilters((prev) => ({ ...prev, major: event.target.value }))}
+                placeholder="Field of study"
+                className="h-11 border-border bg-background text-foreground placeholder:text-muted"
+              />
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-foreground">Open to work</label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={draftFilters.openToWorkOnly}
+                  onClick={() =>
+                    setDraftFilters((prev) => ({ ...prev, openToWorkOnly: !prev.openToWorkOnly }))
+                  }
+                  className="flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+                >
+                  <span
+                    className={[
+                      "inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
+                      draftFilters.openToWorkOnly ? "bg-brand" : "bg-border",
+                    ].join(" ")}
+                  >
+                    <span
+                      className={[
+                        "inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform",
+                        draftFilters.openToWorkOnly ? "translate-x-6" : "translate-x-1",
+                      ].join(" ")}
+                    />
+                  </span>
+                  {draftFilters.openToWorkOnly ? "Open to work only" : "Any availability"}
+                </button>
+              </div>
+            </div>
+
+            <div className={`mt-4 gap-4 md:grid-cols-2 lg:grid-cols-4 ${filtersOpen ? "grid" : "hidden"}`}>
               <Input
                 label="Undergrad yrs out (min)"
                 type="number" min="0"
@@ -415,12 +488,12 @@ export default function CandidatesPageClient() {
               <ul className="divide-y divide-white/10">
                 {isLoading ? (
                   <li className="p-4 text-sm text-white/70">Loading candidates...</li>
-                ) : visibleCandidates.length === 0 ? (
+                ) : candidates.length === 0 ? (
                   <li className="p-4 text-sm text-white/70">
                     {showSavedOnly ? "No starred candidates match these filters." : "No candidates match these filters."}
                   </li>
                 ) : (
-                  visibleCandidates.map((candidate) => {
+                  candidates.map((candidate) => {
                     const active = candidate.id === selectedCandidate?.id;
                     const saved = savedCandidateIds.has(candidate.id);
                     return (
@@ -536,6 +609,29 @@ export default function CandidatesPageClient() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-2xl font-bold text-foreground">{selectedCandidate.name}</h2>
+                        <button
+                          type="button"
+                          onClick={() => toggleSave(selectedCandidate.id)}
+                          aria-pressed={savedCandidateIds.has(selectedCandidate.id)}
+                          aria-label={
+                            savedCandidateIds.has(selectedCandidate.id)
+                              ? "Unstar candidate"
+                              : "Star candidate"
+                          }
+                          title={
+                            savedCandidateIds.has(selectedCandidate.id)
+                              ? "Unstar candidate"
+                              : "Star candidate"
+                          }
+                          className={[
+                            "inline-flex h-8 w-8 items-center justify-center rounded-full transition focus:outline-none focus:ring-2 focus:ring-brandBlue",
+                            savedCandidateIds.has(selectedCandidate.id)
+                              ? "text-amber-400 hover:text-amber-500"
+                              : "text-muted hover:bg-border/40 hover:text-amber-400",
+                          ].join(" ")}
+                        >
+                          <StarIcon filled={savedCandidateIds.has(selectedCandidate.id)} />
+                        </button>
                         {selectedCandidate.openToWork ? (
                           <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                             Open to work
@@ -659,14 +755,6 @@ export default function CandidatesPageClient() {
                       disabled={!selectedCandidate.resumeUrl}
                     >
                       {selectedCandidate.resumeUrl ? "View resume" : "No resume uploaded"}
-                    </Button>
-
-                    <Button
-                      type="button"
-                      className="btn-brand w-full h-11"
-                      onClick={() => toggleSave(selectedCandidate.id)}
-                    >
-                      {savedCandidateIds.has(selectedCandidate.id) ? "Unstar" : "Star candidate"}
                     </Button>
 
                     <div className="rounded-xl border border-border bg-surface p-4">

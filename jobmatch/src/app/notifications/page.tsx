@@ -115,6 +115,7 @@ export default function NotificationsPage() {
   const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
   const [followingError, setFollowingError] = useState<string | null>(null);
   const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
+  const [followingOpen, setFollowingOpen] = useState(false);
 
   const hasUnread = unreadCount > 0;
 
@@ -270,59 +271,90 @@ export default function NotificationsPage() {
           </div>
 
           {!isCompany ? (
-          <section className="mt-6 rounded-2xl border border-border bg-surface px-4 py-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
-              Following
-            </h2>
-            <p className="mt-1 text-xs text-muted">
-              Companies you follow show up here. You'll get notified when they post new jobs or
-              events.
-            </p>
-            <div className="mt-4 space-y-2">
-              {isLoadingFollowing ? (
-                <p className="text-sm text-muted">Loading...</p>
-              ) : followingError ? (
-                <p className="text-sm text-red-500">{followingError}</p>
-              ) : following.length === 0 ? (
-                <p className="text-sm text-foreground/70">
-                  You aren't following any companies yet. Follow a company from its profile page
-                  to see their updates here.
+          <section className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface">
+            <button
+              type="button"
+              onClick={() => setFollowingOpen((prev) => !prev)}
+              aria-expanded={followingOpen}
+              className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition hover:bg-background/60"
+            >
+              <div>
+                <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-foreground">
+                  Following
+                  {following.length > 0 ? (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-semibold text-white">
+                      {following.length}
+                    </span>
+                  ) : null}
+                </h2>
+                <p className="mt-1 text-xs text-muted">
+                  Companies you follow show up here. You&apos;ll get notified when they post new
+                  jobs or events.
                 </p>
-              ) : (
-                following.map((company) => (
-                  <div
-                    key={company.companyId}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-background p-3"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-brand/10 text-xs font-bold text-brand">
-                      {company.companyImage ? (
-                        <img
-                          src={company.companyImage}
-                          alt={`${company.companyName} logo`}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        getCompanyInitials(company.companyName)
-                      )}
-                    </div>
-                    <Link
-                      href={`/companies/${company.companyId}`}
-                      className="min-w-0 flex-1 font-semibold text-foreground hover:underline"
-                    >
-                      {company.companyName}
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => unfollow(company.companyId)}
-                      disabled={unfollowingId === company.companyId}
-                      className="shrink-0 rounded-full border border-border px-3 py-1 text-xs font-semibold text-foreground/70 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
-                    >
-                      {unfollowingId === company.companyId ? "Removing..." : "Unfollow"}
-                    </button>
+              </div>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`h-4 w-4 shrink-0 text-muted transition-transform ${followingOpen ? "rotate-180" : ""}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            {followingOpen ? (
+              <div className="border-t border-border px-4 pb-4 pt-3">
+                {isLoadingFollowing ? (
+                  <p className="text-sm text-muted">Loading...</p>
+                ) : followingError ? (
+                  <p className="text-sm text-red-500">{followingError}</p>
+                ) : following.length === 0 ? (
+                  <p className="text-sm text-foreground/70">
+                    You aren&apos;t following any companies yet. Follow a company from its profile
+                    page to see their updates here.
+                  </p>
+                ) : (
+                  <div className="max-h-88 space-y-2 overflow-y-auto pr-1">
+                    {following.map((company) => (
+                      <div
+                        key={company.companyId}
+                        className="flex items-center gap-3 rounded-xl border border-border bg-background p-3 transition hover:border-brandBlue/40 hover:shadow-sm"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-brand/10 text-xs font-bold text-brand">
+                          {company.companyImage ? (
+                            <img
+                              src={company.companyImage}
+                              alt={`${company.companyName} logo`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            getCompanyInitials(company.companyName)
+                          )}
+                        </div>
+                        <Link
+                          href={`/companies/${company.companyId}`}
+                          className="min-w-0 flex-1 font-semibold text-foreground hover:underline"
+                        >
+                          {company.companyName}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => unfollow(company.companyId)}
+                          disabled={unfollowingId === company.companyId}
+                          className="shrink-0 rounded-full border border-border px-3 py-1 text-xs font-semibold text-foreground/70 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                        >
+                          {unfollowingId === company.companyId ? "Removing..." : "Unfollow"}
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))
-              )}
-            </div>
+                )}
+              </div>
+            ) : null}
           </section>
           ) : null}
 
