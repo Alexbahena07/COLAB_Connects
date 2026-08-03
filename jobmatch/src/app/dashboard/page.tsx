@@ -89,6 +89,12 @@ const JOB_TYPE_LABEL: Record<Job["type"], string> = {
 
 const JOB_TYPE_VALUES: Job["type"][] = ["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP"];
 
+const parseSkills = (value: string) =>
+  value
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
+
 function DashboardContent() {
   const searchParams = useSearchParams();
   const urlKey = useMemo(() => {
@@ -107,6 +113,9 @@ function DashboardContent() {
   const [type, setType] = useState<string>("");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [location, setLocation] = useState("");
+  const [skills, setSkills] = useState("");
+  const [followingOnly, setFollowingOnly] = useState(false);
+  const [followedCompanyIds, setFollowedCompanyIds] = useState<Set<string>>(new Set());
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
@@ -118,6 +127,27 @@ function DashboardContent() {
   const [shareError, setShareError] = useState<string | null>(null);
 
   const [events, setEvents] = useState<EventPost[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadFollowing = async () => {
+      try {
+        const response = await fetch("/api/companies/follows", { cache: "no-store" });
+        const payload = await response.json().catch(() => null);
+        if (!active || !response.ok) return;
+        const ids = Array.isArray(payload?.companies)
+          ? payload.companies.map((company: { companyId: string }) => company.companyId)
+          : [];
+        setFollowedCompanyIds(new Set(ids));
+      } catch (error) {
+        console.error("Unable to load followed companies", error);
+      }
+    };
+    loadFollowing();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -250,6 +280,7 @@ function DashboardContent() {
 
   const filteredJobs = useMemo(() => {
     const source = showSavedOnly ? jobs.filter((job) => savedJobIds.has(job.id)) : jobs;
+    const skillTerms = parseSkills(skills);
     return source.filter((job) => {
       const query = q.toLowerCase().trim();
       const matchesQuery =
@@ -261,21 +292,43 @@ function DashboardContent() {
       const matchesRemote = !remoteOnly || job.remote;
       const matchesLocation =
         !location || job.location.toLowerCase().includes(location.toLowerCase());
-      return matchesQuery && matchesType && matchesRemote && matchesLocation;
+      const matchesSkills =
+        skillTerms.length === 0 ||
+        skillTerms.some((term) =>
+          job.skills.some((skill) => skill.toLowerCase().includes(term.toLowerCase()))
+        );
+      const matchesFollowing =
+        !followingOnly || (!!job.companyId && followedCompanyIds.has(job.companyId));
+      return (
+        matchesQuery && matchesType && matchesRemote && matchesLocation && matchesSkills && matchesFollowing
+      );
     });
-  }, [jobs, q, type, remoteOnly, location, showSavedOnly, savedJobIds]);
+  }, [
+    jobs,
+    q,
+    type,
+    remoteOnly,
+    location,
+    skills,
+    followingOnly,
+    followedCompanyIds,
+    showSavedOnly,
+    savedJobIds,
+  ]);
 
   const filteredEvents = useMemo(() => {
     if (showSavedOnly) return [];
     const query = q.toLowerCase().trim();
-    if (!query) return events;
-    return events.filter(
-      (event) =>
+    return events.filter((event) => {
+      const matchesQuery =
+        !query ||
         event.title.toLowerCase().includes(query) ||
         event.companyName.toLowerCase().includes(query) ||
-        event.about.toLowerCase().includes(query)
-    );
-  }, [events, q, showSavedOnly]);
+        event.about.toLowerCase().includes(query);
+      const matchesFollowing = !followingOnly || followedCompanyIds.has(event.companyId);
+      return matchesQuery && matchesFollowing;
+    });
+  }, [events, q, showSavedOnly, followingOnly, followedCompanyIds]);
 
   const listItems: ListItem[] = useMemo(() => {
     const jobItems: ListItem[] =
@@ -330,7 +383,9 @@ function DashboardContent() {
     q.trim() === "" &&
     type === "" &&
     !remoteOnly &&
-    location.trim() === "";
+    location.trim() === "" &&
+    skills.trim() === "" &&
+    !followingOnly;
 
   const toggleSaveJob = (jobId: string) => {
     setSavedJobIds((previous) => {
@@ -431,9 +486,15 @@ function DashboardContent() {
     }
   };
 
-  const activeFieldFilterCount = [q.trim() !== "", type !== "", location.trim() !== "", remoteOnly].filter(
-    Boolean
-  ).length;
+  const jobOnlyFiltersRelevant = viewFilter !== "events";
+  const activeFieldFilterCount = [
+    q.trim() !== "",
+    jobOnlyFiltersRelevant && type !== "",
+    jobOnlyFiltersRelevant && location.trim() !== "",
+    jobOnlyFiltersRelevant && skills.trim() !== "",
+    jobOnlyFiltersRelevant && remoteOnly,
+    followingOnly,
+  ].filter(Boolean).length;
 
   return (
     <div className="flex min-h-screen flex-col md:h-screen md:overflow-hidden">
@@ -480,15 +541,15 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* Filters toggle — mobile only. Keeps the search/type/location/remote
-                fields out of the way by default so the list gets more vertical
-                space; the view tabs and saved/reset buttons above stay visible
-                since they're compact and used more often. */}
+            {/* Filters toggle. Keeps the search/type/location/remote fields
+                collapsed by default so the list gets more vertical space; the
+                view tabs and saved/reset buttons above stay visible since
+                they're compact and used more often. */}
             <button
               type="button"
               onClick={() => setFiltersOpen((prev) => !prev)}
               aria-expanded={filtersOpen}
-              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground md:hidden"
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground"
             >
               <span className="flex items-center gap-2">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -521,7 +582,7 @@ function DashboardContent() {
             </button>
 
             <div
-              className={`mt-4 gap-4 md:mt-6 md:grid md:grid-cols-2 lg:grid-cols-4 ${
+              className={`mt-4 gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-4 ${
                 filtersOpen ? "grid" : "hidden"
               }`}
             >
@@ -533,64 +594,93 @@ function DashboardContent() {
                 className="h-11 border-border bg-background text-foreground placeholder:text-muted"
               />
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="job-type-filter" className="text-sm font-medium text-foreground">
-                  Job type
-                </label>
-                <div className="relative">
-                  <select
-                    id="job-type-filter"
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    className="h-11 w-full appearance-none rounded-xl border border-border bg-background px-3 pr-9 text-sm text-foreground outline-none focus:border-brand"
-                  >
-                    <option value="">All types</option>
-                    <option value="FULL_TIME">Full-time</option>
-                    <option value="PART_TIME">Part-time</option>
-                    <option value="CONTRACT">Contract</option>
-                    <option value="INTERNSHIP">Internship</option>
-                  </select>
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </div>
-              </div>
+              {jobOnlyFiltersRelevant ? (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="job-type-filter" className="text-sm font-medium text-foreground">
+                      Job type
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="job-type-filter"
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                        className="h-11 w-full appearance-none rounded-xl border border-border bg-background px-3 pr-9 text-sm text-foreground outline-none focus:border-brand"
+                      >
+                        <option value="">All types</option>
+                        <option value="FULL_TIME">Full-time</option>
+                        <option value="PART_TIME">Part-time</option>
+                        <option value="CONTRACT">Contract</option>
+                        <option value="INTERNSHIP">Internship</option>
+                      </select>
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
 
-              <Autocomplete
-                label="Location"
-                value={location}
-                onChange={(value) => setLocation(value)}
-                options={CITY_OPTIONS}
-                placeholder="City, state"
-                inputClassName="h-11 border-border bg-background text-foreground placeholder:text-muted"
-                labelClassName="text-foreground"
-                panelClassName="border-border bg-surface"
-                optionClassName="text-foreground hover:bg-border/30"
-              />
+                  <Autocomplete
+                    label="Location"
+                    value={location}
+                    onChange={(value) => setLocation(value)}
+                    options={CITY_OPTIONS}
+                    placeholder="City, state"
+                    inputClassName="h-11 border-border bg-background text-foreground placeholder:text-muted"
+                    labelClassName="text-foreground"
+                    panelClassName="border-border bg-surface"
+                    optionClassName="text-foreground hover:bg-border/30"
+                  />
+
+                  <Input
+                    label="Skills (comma separated)"
+                    placeholder="Excel, Modeling, Python"
+                    value={skills}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSkills(e.target.value)}
+                    className="h-11 border-border bg-background text-foreground placeholder:text-muted"
+                  />
+
+                  <div className="flex flex-col gap-2">
+                    <span className="text-sm font-medium text-foreground">Remote</span>
+                    <label
+                      htmlFor="remote-only-toggle"
+                      className="flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+                    >
+                      <input
+                        id="remote-only-toggle"
+                        type="checkbox"
+                        checked={remoteOnly}
+                        onChange={(e) => setRemoteOnly(e.target.checked)}
+                        className="h-4 w-4"
+                      />
+                      Remote only
+                    </label>
+                  </div>
+                </>
+              ) : null}
 
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-foreground">Remote</span>
+                <span className="text-sm font-medium text-foreground">Following</span>
                 <label
-                  htmlFor="remote-only-toggle"
+                  htmlFor="following-only-toggle"
                   className="flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3 text-sm text-foreground"
                 >
                   <input
-                    id="remote-only-toggle"
+                    id="following-only-toggle"
                     type="checkbox"
-                    checked={remoteOnly}
-                    onChange={(e) => setRemoteOnly(e.target.checked)}
+                    checked={followingOnly}
+                    onChange={(e) => setFollowingOnly(e.target.checked)}
                     className="h-4 w-4"
                   />
-                  Remote only
+                  From companies I follow
                 </label>
               </div>
 
@@ -602,6 +692,8 @@ function DashboardContent() {
                     setType("");
                     setRemoteOnly(false);
                     setLocation("");
+                    setSkills("");
+                    setFollowingOnly(false);
                     setShowSavedOnly(false);
                     setViewFilter("all");
                   }}
