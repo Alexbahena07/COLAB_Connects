@@ -29,6 +29,38 @@ enum CompanyApprovalStatus {
   REJECTED
 }
 
+enum AccountDeletionReason {
+  FOUND_A_JOB
+  NOT_USEFUL
+  TOO_MANY_EMAILS
+  PRIVACY_CONCERNS
+  DIFFICULT_TO_USE
+  CREATING_ANOTHER_ACCOUNT
+  OTHER
+}
+
+// Snapshot of why an account was deleted. Deliberately not linked to User via
+// a foreign key — the User row is gone by the time this is useful, and this
+// table is the only remaining record that the deletion happened at all.
+model AccountDeletionFeedback {
+  id          String                @id @default(cuid())
+  reason      AccountDeletionReason
+  otherReason String?
+  accountType AccountType?
+  createdAt   DateTime              @default(now())
+
+  @@index([reason])
+}
+
+// Single-row table for counters that must survive row deletions elsewhere
+// (e.g. total users ever created, which prisma.user.count() can't answer
+// once accounts start being deleted).
+model AppStats {
+  id                String   @id @default("singleton")
+  totalUsersCreated Int      @default(0)
+  updatedAt         DateTime @updatedAt
+}
+
 enum SponsorTier {
   FREE
   SILVER
@@ -132,6 +164,10 @@ model User {
 
   savedCandidates  SavedCandidate[] @relation("CompanySavedCandidates")
   savedByCompanies SavedCandidate[] @relation("CandidateSavedCandidates")
+
+  companyConversations   Conversation[] @relation("CompanyConversations")
+  candidateConversations Conversation[] @relation("CandidateConversations")
+  sentMessages           Message[]      @relation("SentMessages")
 
   companyEventPosts CompanyEventPost[] @relation("CompanyEventPosts")
 
@@ -419,6 +455,40 @@ model SavedCandidate {
   @@unique([companyId, candidateId])
   @@index([companyId])
   @@index([candidateId])
+}
+
+// One thread per company↔candidate pair. Companies open conversations (only
+// with candidates who applied to one of their jobs); either side can reply.
+model Conversation {
+  id            String   @id @default(cuid())
+  companyId     String
+  candidateId   String
+  createdAt     DateTime @default(now())
+  // Denormalized so the inbox can sort threads without joining messages.
+  lastMessageAt DateTime @default(now())
+
+  company   User      @relation("CompanyConversations", fields: [companyId], references: [id], onDelete: Cascade)
+  candidate User      @relation("CandidateConversations", fields: [candidateId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@unique([companyId, candidateId])
+  @@index([companyId, lastMessageAt])
+  @@index([candidateId, lastMessageAt])
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  createdAt      DateTime  @default(now())
+  readAt         DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
 }
 
 model JobPostEvent {

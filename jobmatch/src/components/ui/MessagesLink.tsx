@@ -2,31 +2,28 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getPusherClient } from "@/lib/pusherClient";
 
-type NotificationBellProps = {
+type MessagesLinkProps = {
   // "icon" is the compact top-bar button; "row" matches the full-width,
   // label-visible style used in the mobile menu list.
   variant?: "icon" | "row";
   onNavigate?: () => void;
 };
 
-export default function NotificationBell({ variant = "icon", onNavigate }: NotificationBellProps) {
+export default function MessagesLink({ variant = "icon", onNavigate }: MessagesLinkProps) {
   const [unreadCount, setUnreadCount] = useState(0);
-
-  const hasUnread = unreadCount > 0;
+  const [me, setMe] = useState<string | null>(null);
 
   const loadUnreadCount = async () => {
     try {
-      const response = await fetch("/api/notifications?limit=1", { cache: "no-store" });
+      const response = await fetch("/api/conversations", { cache: "no-store" });
       const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        return;
-      }
-
-      setUnreadCount(typeof payload?.unreadCount === "number" ? payload.unreadCount : 0);
+      if (!response.ok) return;
+      setUnreadCount(typeof payload?.totalUnread === "number" ? payload.totalUnread : 0);
+      setMe(typeof payload?.me === "string" ? payload.me : null);
     } catch (err) {
-      console.error("Failed to load notifications", err);
+      console.error("Failed to load unread messages", err);
     }
   };
 
@@ -37,12 +34,28 @@ export default function NotificationBell({ variant = "icon", onNavigate }: Notif
       await loadUnreadCount();
     };
     refresh();
-    const interval = setInterval(refresh, 30000);
+    // Polling fallback for when Pusher isn't configured or disconnects.
+    const interval = setInterval(refresh, 60000);
     return () => {
       active = false;
       clearInterval(interval);
     };
   }, []);
+
+  useEffect(() => {
+    if (!me) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channelName = `private-user-${me}`;
+    const channel = pusher.subscribe(channelName);
+    const onNewMessage = () => loadUnreadCount();
+    channel.bind("message:new", onNewMessage);
+    return () => {
+      channel.unbind("message:new", onNewMessage);
+      // The messages page shares this channel; leave the subscription alive.
+    };
+  }, [me]);
 
   const icon = (
     <svg
@@ -54,41 +67,39 @@ export default function NotificationBell({ variant = "icon", onNavigate }: Notif
       strokeWidth="1.6"
       className="h-8 w-8"
     >
-      <path d="M6 17h12" />
-      <path d="M9.5 17a2.5 2.5 0 0 0 5 0" />
-      <path d="M8 9a4 4 0 1 1 8 0c0 4 2 4 2 6H6c0-2 2-2 2-6Z" />
+      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H9l-4 4v-4H6.5A2.5 2.5 0 0 1 4 13.5Z" />
     </svg>
   );
 
   if (variant === "row") {
     return (
       <Link
-        href="/notifications"
+        href="/messages"
         onClick={onNavigate}
         className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
       >
         <span className="relative [&_svg]:h-6 [&_svg]:w-6">
           {icon}
-          {hasUnread ? (
+          {unreadCount > 0 ? (
             <span className="absolute -right-1.5 -top-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
               {unreadCount}
             </span>
           ) : null}
         </span>
-        Notifications
+        Messages
       </Link>
     );
   }
 
   return (
     <Link
-      href="/notifications"
+      href="/messages"
       className="relative inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-      aria-label="Notifications"
+      aria-label="Messages"
     >
       {icon}
-      <span className="hidden text-xs font-semibold lg:inline">Notifications</span>
-      {hasUnread ? (
+      <span className="hidden text-xs font-semibold lg:inline">Messages</span>
+      {unreadCount > 0 ? (
         <span className="absolute right-3 top-3 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
           {unreadCount}
         </span>

@@ -13,6 +13,8 @@ async function getCounts() {
     totalEvents,
     publishedEvents,
     totalApplications,
+    accountsDeleted,
+    appStats,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { accountType: "STUDENT" } }),
@@ -24,6 +26,8 @@ async function getCounts() {
     prisma.event.count(),
     prisma.event.count({ where: { status: "PUBLISHED" } }),
     prisma.eventApplication.count(),
+    prisma.accountDeletionFeedback.count(),
+    prisma.appStats.findUnique({ where: { id: "singleton" } }),
   ]);
 
   return {
@@ -37,6 +41,9 @@ async function getCounts() {
     totalEvents,
     publishedEvents,
     totalApplications,
+    accountsDeleted,
+    // Falls back to the live count if the counter row hasn't been seeded yet.
+    totalUsersCreated: appStats?.totalUsersCreated ?? totalUsers,
   };
 }
 
@@ -69,6 +76,16 @@ export default async function AdminOverviewPage() {
           <StatCard label="Students" value={counts.students} href="/admin/users?accountType=STUDENT" />
           <StatCard label="Companies" value={counts.companies} href="/admin/users?accountType=COMPANY" />
           <StatCard label="Flagged" value={counts.flaggedUsers} href="/admin/users?flagged=true" />
+          <StatCard
+            label="Total users created (all-time)"
+            value={counts.totalUsersCreated}
+            href="/admin/users"
+          />
+          <StatCard
+            label="Accounts deleted"
+            value={counts.accountsDeleted}
+            href="/admin/account-deletions"
+          />
         </div>
       </section>
 

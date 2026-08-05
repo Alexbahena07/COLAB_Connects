@@ -255,6 +255,16 @@ async function main() {
     created++;
   }
 
+  if (created > 0) {
+    // Lifetime signup counter — never decremented, so it survives account
+    // deletions. Keep it in sync for real bulk-imported users too.
+    await prisma.appStats.upsert({
+      where: { id: "singleton" },
+      create: { id: "singleton", totalUsersCreated: created },
+      update: { totalUsersCreated: { increment: created } },
+    });
+  }
+
   console.log(`\nDone. Created ${created} new student accounts.`);
   console.log(`Skipped: ${issues.length} flagged rows, ${alreadyPresent.length} already-existing emails.`);
 }

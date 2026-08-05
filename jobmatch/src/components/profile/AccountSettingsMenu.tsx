@@ -5,6 +5,11 @@ import { signOut } from "next-auth/react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { SUPPORT_CATEGORIES, type SupportCategory } from "@/lib/support";
+import {
+  ACCOUNT_DELETION_REASONS,
+  ACCOUNT_DELETION_REASON_LABELS,
+  type AccountDeletionReason,
+} from "@/lib/accountDeletion";
 
 function GearIcon() {
   return (
@@ -472,6 +477,8 @@ function DeleteAccountSection() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmationText, setConfirmationText] = useState("");
+  const [reason, setReason] = useState<AccountDeletionReason | "">("");
+  const [otherReason, setOtherReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -479,8 +486,13 @@ function DeleteAccountSection() {
     setShowConfirm(false);
     setPassword("");
     setConfirmationText("");
+    setReason("");
+    setOtherReason("");
     setError(null);
   };
+
+  const canSubmit =
+    confirmationText === "DELETE" && Boolean(reason) && (reason !== "OTHER" || otherReason.trim().length > 0);
 
   const handleDelete = async () => {
     setError(null);
@@ -489,7 +501,12 @@ function DeleteAccountSection() {
       const res = await fetch("/api/account", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: password || undefined, confirmation: confirmationText }),
+        body: JSON.stringify({
+          password: password || undefined,
+          confirmation: confirmationText,
+          reason: reason || undefined,
+          otherReason: reason === "OTHER" ? otherReason.trim() : undefined,
+        }),
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) {
@@ -515,7 +532,7 @@ function DeleteAccountSection() {
       <Button
         type="button"
         onClick={() => setShowConfirm(true)}
-        className="mt-4 h-10 w-full bg-red-600 text-white hover:bg-red-700"
+        className="btn-brand mt-4 h-8 w-auto px-4 text-xs"
       >
         Delete account
       </Button>
@@ -551,6 +568,36 @@ function DeleteAccountSection() {
               be undone.
             </p>
             <div className="mt-4 space-y-4">
+              <div className="space-y-1">
+                <label htmlFor="delete-reason" className="block text-sm font-medium text-foreground">
+                  Why are you leaving?
+                </label>
+                <select
+                  id="delete-reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value as AccountDeletionReason)}
+                  className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+                >
+                  <option value="" disabled>
+                    Select a reason…
+                  </option>
+                  {ACCOUNT_DELETION_REASONS.map((option) => (
+                    <option key={option} value={option}>
+                      {ACCOUNT_DELETION_REASON_LABELS[option]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {reason === "OTHER" ? (
+                <Input
+                  label="Tell us more"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="What's the main reason?"
+                  value={otherReason}
+                  onChange={(e) => setOtherReason(e.target.value)}
+                />
+              ) : null}
               <Input
                 label="Current password"
                 type="password"
@@ -574,7 +621,7 @@ function DeleteAccountSection() {
               </Button>
               <Button
                 type="button"
-                disabled={isDeleting || confirmationText !== "DELETE"}
+                disabled={isDeleting || !canSubmit}
                 onClick={handleDelete}
                 className="h-10 rounded-xl bg-red-500 px-4 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
               >

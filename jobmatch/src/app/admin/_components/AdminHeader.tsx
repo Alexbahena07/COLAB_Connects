@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/analytics", label: "Analytics" },
+  { href: "/admin/account-deletions", label: "Deletions" },
 ];
 
 export default function AdminHeader() {

@@ -513,21 +513,43 @@ function DashboardContent() {
                 <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1">
                   {(
                     [
-                      { value: "all", label: "All" },
-                      { value: "jobs", label: "Jobs only" },
-                      { value: "events", label: "Events only" },
+                      { value: "all", label: "All", icon: null },
+                      {
+                        value: "jobs",
+                        label: "Jobs",
+                        icon: (
+                          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                            <path d="M10 7V5.5a2.5 2.5 0 0 1 5 0V7" />
+                            <path d="M5 9.5A2.5 2.5 0 0 1 7.5 7h9A2.5 2.5 0 0 1 19 9.5v7A2.5 2.5 0 0 1 16.5 19h-9A2.5 2.5 0 0 1 5 16.5Z" />
+                            <path d="M5 12h14" />
+                          </svg>
+                        ),
+                      },
+                      {
+                        value: "events",
+                        label: "Events",
+                        icon: (
+                          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                            <rect x="4" y="5" width="16" height="16" rx="2" />
+                            <line x1="4" y1="10" x2="20" y2="10" />
+                            <line x1="8" y1="3" x2="8" y2="7" />
+                            <line x1="16" y1="3" x2="16" y2="7" />
+                          </svg>
+                        ),
+                      },
                     ] as const
                   ).map((option) => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => setViewFilter(option.value)}
-                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                         viewFilter === option.value
                           ? "bg-brand text-white"
                           : "text-foreground/70 hover:bg-brand/10"
                       }`}
                     >
+                      {option.icon}
                       {option.label}
                     </button>
                   ))}

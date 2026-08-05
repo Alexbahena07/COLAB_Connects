@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -799,6 +800,15 @@ export default function CompanyDashboardPage() {
                     >
                       {selectedApplicant.applicant.resumeUrl ? "View resume" : "No resume uploaded"}
                     </Button>
+
+                    <Link
+                      href={`/messages?candidate=${selectedApplicant.applicant.id}&name=${encodeURIComponent(
+                        selectedApplicant.applicant.name
+                      )}`}
+                      className="btn-brand inline-flex h-11 w-full items-center justify-center text-sm font-semibold"
+                    >
+                      Message
+                    </Link>
 
                     {saveError ? <p className="text-xs text-red-600">{saveError}</p> : null}
 

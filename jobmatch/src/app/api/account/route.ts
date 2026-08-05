@@ -7,13 +7,23 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteAvatarBlobIfManaged } from "@/lib/avatarBlob";
 import { isRateLimited } from "@/lib/rateLimit";
+import { ACCOUNT_DELETION_REASONS } from "@/lib/accountDeletion";
 
-const DeleteAccountSchema = z.object({
-  password: z.string().optional(),
-  confirmation: z.string().refine((value) => value === "DELETE", {
-    message: 'Type "DELETE" to confirm.',
-  }),
-});
+const DeleteAccountSchema = z
+  .object({
+    password: z.string().optional(),
+    confirmation: z.string().refine((value) => value === "DELETE", {
+      message: 'Type "DELETE" to confirm.',
+    }),
+    reason: z.enum(ACCOUNT_DELETION_REASONS, {
+      errorMap: () => ({ message: "Please select a reason for leaving." }),
+    }),
+    otherReason: z.string().trim().max(500).optional(),
+  })
+  .refine((data) => data.reason !== "OTHER" || Boolean(data.otherReason?.trim()), {
+    message: "Please tell us a bit more.",
+    path: ["otherReason"],
+  });
 
 export async function DELETE(request: Request) {
   const session = await getServerSession(authOptions);
@@ -38,7 +48,13 @@ export async function DELETE(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, password: true, image: true, profile: { select: { resumeUrl: true } } },
+    select: {
+      id: true,
+      password: true,
+      image: true,
+      accountType: true,
+      profile: { select: { resumeUrl: true } },
+    },
   });
   if (!user) {
     return NextResponse.json({ error: "Account not found" }, { status: 404 });
@@ -67,8 +83,19 @@ export async function DELETE(request: Request) {
   }
 
   // Every other relation (profile, applications, jobs, notifications, etc.)
-  // cascades from User at the DB level — see prisma/schema.prisma.
-  await prisma.user.delete({ where: { id: user.id } });
+  // cascades from User at the DB level — see prisma/schema.prisma. The
+  // feedback row has no FK to User so it survives the delete below, giving
+  // admins a durable record of why + how many people have left.
+  await prisma.$transaction([
+    prisma.accountDeletionFeedback.create({
+      data: {
+        reason: parsed.data.reason,
+        otherReason: parsed.data.reason === "OTHER" ? parsed.data.otherReason?.trim() : null,
+        accountType: user.accountType,
+      },
+    }),
+    prisma.user.delete({ where: { id: user.id } }),
+  ]);
 
   return NextResponse.json({ success: true });
 }

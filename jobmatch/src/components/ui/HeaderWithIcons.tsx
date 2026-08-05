@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import NotificationBell from "@/components/ui/NotificationBell";
+import MessagesLink from "@/components/ui/MessagesLink";
 
 type NavItem = {
   href: string;
@@ -68,19 +69,26 @@ export default function Header() {
   const logoHref = "/dashboard/company";
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Primary destinations lead; Messages/Notifications are secondary utilities
+  // that sit between them and Profile (matching the LinkedIn-style convention
+  // of core content first, messaging/notifications/account last).
   const navItems: NavItem[] = isCompany
     ? [
         { href: applicationHref, label: "Career Forum", icon: CareerForumIcon },
         { href: "/dashboard/company", label: "Applicants", icon: ApplicantsIcon },
         { href: "/dashboard/company/candidates", label: "Candidates", icon: CandidatesIcon },
         { href: "/dashboard/company/jobs", label: "Manage Posts", icon: ManageJobsIcon },
-        { href: "/dashboard/company/profile", label: "Profile", icon: ProfileIcon },
       ]
     : [
         { href: applicationHref, label: "Career Forum", icon: CareerForumIcon },
         { href: jobListingsHref, label: "Opportunities", icon: OpportunitiesIcon },
-        { href: "/dashboard/profile", label: "Profile", icon: ProfileIcon },
       ];
+
+  const profileItem: NavItem = {
+    href: isCompany ? "/dashboard/company/profile" : "/dashboard/profile",
+    label: "Profile",
+    icon: ProfileIcon,
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-brand text-brand">
@@ -114,7 +122,6 @@ export default function Header() {
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-3 md:flex">
-          <NotificationBell />
           {navItems.map((item) => (
             <Link
               key={item.href + item.label}
@@ -129,11 +136,22 @@ export default function Header() {
               <span className="hidden text-xs font-semibold lg:inline">{item.label}</span>
             </Link>
           ))}
+          <MessagesLink />
+          <NotificationBell />
+          <Link
+            key={profileItem.href + profileItem.label}
+            href={profileItem.href}
+            title={profileItem.label}
+            className="inline-flex h-14 flex-col items-center justify-center gap-1 rounded-xl px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            {profileItem.icon}
+            <span className="hidden text-xs font-semibold lg:inline">{profileItem.label}</span>
+          </Link>
         </div>
 
-        {/* Mobile controls */}
+        {/* Mobile controls — the full page order lives in the menu below, so
+            there's a single list instead of icons duplicated in both places. */}
         <div className="flex items-center gap-2 md:hidden">
-          <NotificationBell />
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
@@ -163,6 +181,17 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
+            <MessagesLink variant="row" onNavigate={() => setMenuOpen(false)} />
+            <NotificationBell variant="row" onNavigate={() => setMenuOpen(false)} />
+            <Link
+              key={profileItem.href + profileItem.label}
+              href={profileItem.href}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              <span className="[&_svg]:h-6 [&_svg]:w-6">{profileItem.icon}</span>
+              {profileItem.label}
+            </Link>
           </div>
         </div>
       ) : null}
