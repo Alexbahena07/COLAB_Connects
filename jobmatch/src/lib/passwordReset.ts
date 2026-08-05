@@ -5,8 +5,16 @@ export const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 const DEFAULT_APP_URL = "http://localhost:3000";
 
-export const getAppUrl = () =>
-  process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || DEFAULT_APP_URL;
+// Falls back to Vercel's auto-populated deployment URL when NEXT_PUBLIC_APP_URL/
+// APP_URL aren't configured, so a missing env var can't silently emit
+// localhost links from a production deployment.
+export const getAppUrl = () => {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.APP_URL) return process.env.APP_URL;
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercelUrl) return `https://${vercelUrl}`;
+  return DEFAULT_APP_URL;
+};
 
 export const generateResetToken = () => randomBytes(32).toString("hex");
 

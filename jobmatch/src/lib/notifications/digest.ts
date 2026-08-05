@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getAppUrl } from "@/lib/passwordReset";
 
 export type DigestFrequency = "DAILY" | "WEEKLY";
 
@@ -32,16 +33,11 @@ type CompanyGroup = {
   jobs: DigestJob[];
 };
 
-const DEFAULT_APP_URL = "http://localhost:3000";
-
 const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
   }).format(date);
-
-const getAppUrl = () =>
-  process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || DEFAULT_APP_URL;
 
 const buildSubject = (frequency: DigestFrequency, count: number) => {
   const prefix = frequency === "DAILY" ? "Daily" : "Weekly";
