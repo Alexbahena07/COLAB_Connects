@@ -16,7 +16,7 @@ const { PrismaClient } = require("@prisma/client");
 
 const DEMO_EMAIL = "demo-events@colabconnects.internal";
 const DEMO_COMPANY_NAME = "[TEST DATA] Demo Events Company — not a real company";
-const DEMO_COMPANY_IMAGE = "/photos/test/testIcon.JPEG";
+const DEMO_COMPANY_IMAGE = "/photos/workInProgress.jpg";
 const TITLE_PREFIX = "[TEST] ";
 const DEMO_NOTICE =
   "⚠️ THIS IS TEST DATA — not a real event. It exists only to preview event card layouts during beta testing and can be removed at any time. ⚠️\n\n";

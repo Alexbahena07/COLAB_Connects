@@ -763,8 +763,8 @@ function DashboardContent() {
                           }`}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="flex shrink-0 flex-col items-center gap-1.5">
-                              <div className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border text-sm font-semibold transition ${
+                            <div className="flex w-20 shrink-0 flex-col items-center gap-1.5">
+                              <div className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border text-sm font-semibold transition ${
                                 active
                                   ? "border-white/60 bg-white/25 text-white"
                                   : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -779,20 +779,20 @@ function DashboardContent() {
                                   getCompanyInitials(job.company)
                                 )}
                               </div>
-                              <span className="whitespace-nowrap rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                              <span className="block w-full truncate rounded-md bg-white/20 px-1.5 py-0.5 text-center text-[10px] font-medium text-white">
                                 {JOB_TYPE_LABEL[job.type]}
                               </span>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{job.title}</h3>
-                              <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
+                              <h3 className={`line-clamp-2 font-semibold leading-snug text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{job.title}</h3>
+                              <p className="mt-1 truncate text-sm text-white/65 transition group-hover:text-white/80">
                                 {job.company} · {job.location}
+                              </p>
+                              <p className="mt-1.5 text-xs text-white/55 transition group-hover:text-white/70">
+                                {new Date(job.postedAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
-                          <p className="mt-2 text-right text-xs text-white/55 transition group-hover:text-white/70">
-                            {new Date(job.postedAt).toLocaleDateString()}
-                          </p>
                         </button>
                       </li>
                     );
@@ -811,8 +811,8 @@ function DashboardContent() {
                         }`}
                       >
                         <div className="flex items-start gap-3">
-                          <div className="flex shrink-0 flex-col items-center gap-1.5">
-                            <div className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border text-sm font-semibold transition ${
+                          <div className="flex w-20 shrink-0 flex-col items-center gap-1.5">
+                            <div className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border text-sm font-semibold transition ${
                               active
                                 ? "border-white/60 bg-white/25 text-white"
                                 : "border-white/30 bg-white/15 text-white group-hover:border-white/60 group-hover:bg-white/25"
@@ -827,20 +827,20 @@ function DashboardContent() {
                                 getCompanyInitials(event.companyName)
                               )}
                             </div>
-                            <span className="whitespace-nowrap rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+                            <span className="block w-full truncate rounded-md bg-white/20 px-1.5 py-0.5 text-center text-[10px] font-medium text-white">
                               Event
                             </span>
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className={`font-semibold text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{event.title}</h3>
-                            <p className="mt-1 text-sm text-white/65 transition group-hover:text-white/80">
+                            <h3 className={`line-clamp-2 font-semibold leading-snug text-white transition ${active ? "opacity-100" : "opacity-90 group-hover:opacity-100"}`}>{event.title}</h3>
+                            <p className="mt-1 truncate text-sm text-white/65 transition group-hover:text-white/80">
                               {event.companyName}
+                            </p>
+                            <p className="mt-1.5 text-xs text-white/55 transition group-hover:text-white/70">
+                              {new Date(event.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <p className="mt-2 text-right text-xs text-white/55 transition group-hover:text-white/70">
-                          {new Date(event.createdAt).toLocaleDateString()}
-                        </p>
                       </button>
                     </li>
                   );
