@@ -20,8 +20,8 @@ export function TableBody({ children }: { children: ReactNode }) {
   return <tbody className="divide-y divide-border">{children}</tbody>;
 }
 
-export function Th({ children }: { children?: ReactNode }) {
-  return <th className="px-4 py-3 font-semibold">{children}</th>;
+export function Th({ children, className = "" }: { children?: ReactNode; className?: string }) {
+  return <th className={`px-4 py-3 font-semibold ${className}`}>{children}</th>;
 }
 
 export function Td({ children, className = "" }: { children: ReactNode; className?: string }) {

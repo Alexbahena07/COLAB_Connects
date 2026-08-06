@@ -6,6 +6,8 @@ import { requireActiveStatus } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited } from "@/lib/rateLimit";
 import { triggerNewMessage } from "@/lib/pusher";
+import { candidatePoolWhere } from "@/lib/candidatePool";
+import { canSearchCandidates, getEffectiveSponsorTier } from "@/lib/sponsorTier";
 
 export const dynamic = "force-dynamic";
 
@@ -136,7 +138,7 @@ export async function POST(request: Request) {
 
   const sender = await prisma.user.findUnique({
     where: { id: userId },
-    select: { accountType: true },
+    select: { accountType: true, isAdmin: true, companyProfile: { select: { sponsorTier: true } } },
   });
   if (sender?.accountType !== "COMPANY") {
     return NextResponse.json(
@@ -159,16 +161,38 @@ export async function POST(request: Request) {
   }
   const { candidateId, message } = parsed.data;
 
-  // A company may only message candidates who applied to one of its jobs.
+  // A company may message a candidate either because they applied to one of
+  // its jobs, or — same as the applicant page — because the company has
+  // candidate search access and the target is an actual pool candidate
+  // (not, say, another company's user id).
   const application = await prisma.jobApplication.findFirst({
     where: { applicantId: candidateId, job: { companyId: userId } },
     select: { id: true },
   });
+
   if (!application) {
-    return NextResponse.json(
-      { error: "You can only message candidates who applied to your jobs" },
-      { status: 403 }
+    const sponsorTier = getEffectiveSponsorTier(
+      Boolean(sender.isAdmin),
+      sender.companyProfile?.sponsorTier,
+      sender.accountType
     );
+
+    const isPoolCandidate =
+      canSearchCandidates(sponsorTier) &&
+      (await prisma.user.findFirst({
+        where: { id: candidateId, ...candidatePoolWhere() },
+        select: { id: true },
+      })) !== null;
+
+    if (!isPoolCandidate) {
+      return NextResponse.json(
+        {
+          error:
+            "You can only message candidates who applied to your jobs, or who you can find in candidate search.",
+        },
+        { status: 403 }
+      );
+    }
   }
 
   const conversation = await prisma.conversation.upsert({

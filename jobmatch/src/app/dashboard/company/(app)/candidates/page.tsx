@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getEffectiveSponsorTier } from "@/lib/sponsorTier";
+import { canSearchCandidates, getEffectiveSponsorTier } from "@/lib/sponsorTier";
 import CandidatesPageClient from "@/components/company/CandidatesPageClient";
 
 export default async function CompanyCandidatesPage() {
@@ -18,7 +18,7 @@ export default async function CompanyCandidatesPage() {
 
   const sponsorTier = getEffectiveSponsorTier(Boolean(session.user.isAdmin), companyProfile?.sponsorTier, session.user.accountType);
 
-  if (sponsorTier === "FREE") {
+  if (!canSearchCandidates(sponsorTier)) {
     return (
       <main className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto bg-background p-6 text-foreground">
         <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-8 text-center shadow-sm">

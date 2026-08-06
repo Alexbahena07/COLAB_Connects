@@ -72,36 +72,27 @@ export async function POST(req: Request) {
 
     const hashed = await bcrypt.hash(String(password), 10);
 
-    const user = await prisma.$transaction(async (tx) => {
-      const created = await tx.user.create({
-        data: {
-          name: normalizedName,
-          email: normalizedEmail,
-          password: hashed,
-          accountType: normalizedType,
-          ...(isCompany
-            ? {}
-            : {
-                profile: {
-                  create: {
-                    firstName: normalizedFirstName,
-                    lastName: normalizedLastName,
-                  },
+    // The all-time signup counter increments on verification, not here — an
+    // unverified registration gets deleted by the cleanup cron if it never
+    // completes, and shouldn't inflate that metric in the meantime.
+    const user = await prisma.user.create({
+      data: {
+        name: normalizedName,
+        email: normalizedEmail,
+        password: hashed,
+        accountType: normalizedType,
+        ...(isCompany
+          ? {}
+          : {
+              profile: {
+                create: {
+                  firstName: normalizedFirstName,
+                  lastName: normalizedLastName,
                 },
-              }),
-        },
-        select: { id: true, email: true },
-      });
-
-      // Lifetime counter — never decremented, so it survives account
-      // deletions and stays meaningful as a "total signups" metric.
-      await tx.appStats.upsert({
-        where: { id: "singleton" },
-        create: { id: "singleton", totalUsersCreated: 1 },
-        update: { totalUsersCreated: { increment: 1 } },
-      });
-
-      return created;
+              },
+            }),
+      },
+      select: { id: true, email: true },
     });
 
     // Store the photo in blob storage rather than as base64 in Postgres. A

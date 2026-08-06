@@ -16,3 +16,9 @@ export function getEffectiveSponsorTier(
 export function canPostEvents(tier: SponsorTier): boolean {
   return tier === "GOLD" || tier === "PLATINUM";
 }
+
+// Candidate search — and by extension, messaging candidates found through
+// it — is a Silver/Gold/Platinum sponsor feature.
+export function canSearchCandidates(tier: SponsorTier): boolean {
+  return tier !== "FREE";
+}

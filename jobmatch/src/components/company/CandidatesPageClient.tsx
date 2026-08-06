@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import LocationMultiSelect from "@/components/ui/LocationMultiSelect";
@@ -756,6 +757,15 @@ export default function CandidatesPageClient() {
                     >
                       {selectedCandidate.resumeUrl ? "View resume" : "No resume uploaded"}
                     </Button>
+
+                    <Link
+                      href={`/messages?candidate=${selectedCandidate.id}&name=${encodeURIComponent(
+                        selectedCandidate.name
+                      )}`}
+                      className="btn-brand inline-flex h-11 w-full items-center justify-center text-sm font-semibold"
+                    >
+                      Message
+                    </Link>
 
                     <div className="rounded-xl border border-border bg-surface p-4">
                       <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">Contact</h3>

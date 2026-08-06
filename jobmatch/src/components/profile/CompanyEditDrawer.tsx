@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import CompanyProfileForm from "@/app/onboarding/company/company-form";
 import CompanyProfilePhotoEditor from "@/components/company/CompanyProfilePhotoEditor";
+import Toast from "@/components/ui/Toast";
 
 type CompanyEditDrawerProps = {
   profilePhoto: string | null;
@@ -10,7 +11,13 @@ type CompanyEditDrawerProps = {
 
 export default function CompanyEditDrawer({ profilePhoto }: CompanyEditDrawerProps) {
   const [open, setOpen] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleSaved = () => {
+    setOpen(false);
+    setSavedMessage("Company profile saved");
+  };
 
   useEffect(() => {
     if (open) {
@@ -125,10 +132,14 @@ export default function CompanyEditDrawer({ profilePhoto }: CompanyEditDrawerPro
                 <CompanyProfilePhotoEditor initialImage={profilePhoto} />
               </div>
             </section>
-            <CompanyProfileForm onSuccess={() => setOpen(false)} />
+            <CompanyProfileForm onSuccess={handleSaved} />
           </div>
         </div>
       </div>
+
+      {/* Rendered outside the sliding panel so it stays visible after the
+          drawer closes on save. */}
+      <Toast message={savedMessage} onDismiss={() => setSavedMessage(null)} />
     </>
   );
 }

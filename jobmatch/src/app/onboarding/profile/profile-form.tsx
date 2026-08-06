@@ -18,9 +18,14 @@ import { SkillsSection } from "./sections/SkillsSection";
 type ProfileFormProps = {
   redirectTo?: string;
   isEmbedded?: boolean;
+  onSaved?: () => void;
 };
 
-export default function ProfileForm({ redirectTo = "/dashboard", isEmbedded = false }: ProfileFormProps) {
+export default function ProfileForm({
+  redirectTo = "/dashboard",
+  isEmbedded = false,
+  onSaved,
+}: ProfileFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -163,8 +168,15 @@ export default function ProfileForm({ redirectTo = "/dashboard", isEmbedded = fa
       body: JSON.stringify(payload),
     });
 
-    if (res.ok) router.push(redirectTo);
-    else setSaveError("Failed to save your profile. Please try again.");
+    if (res.ok) {
+      // Refresh so any server-rendered summary of this data (e.g. on the
+      // profile page behind the edit drawer) reflects what was just saved.
+      router.refresh();
+      if (onSaved) onSaved();
+      else router.push(redirectTo);
+    } else {
+      setSaveError("Failed to save your profile. Please try again.");
+    }
   };
 
   const formBody = (

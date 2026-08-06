@@ -62,13 +62,24 @@ export const consumeVerificationToken = async (token: string) => {
   });
   if (!record || record.expires < new Date()) return false;
 
-  await prisma.$transaction([
+  const [{ count: verifiedCount }] = await prisma.$transaction([
     prisma.user.updateMany({
       where: { email: record.identifier, emailVerified: null },
       data: { emailVerified: new Date() },
     }),
     prisma.verificationToken.deleteMany({ where: { identifier: record.identifier } }),
   ]);
+
+  // count is 0 if the user was already verified (e.g. a repeat click) — only
+  // a genuine unverified-to-verified transition counts toward the lifetime
+  // signup metric, which never decrements and otherwise survives deletions.
+  if (verifiedCount > 0) {
+    await prisma.appStats.upsert({
+      where: { id: "singleton" },
+      create: { id: "singleton", totalUsersCreated: 1 },
+      update: { totalUsersCreated: { increment: 1 } },
+    });
+  }
 
   return true;
 };

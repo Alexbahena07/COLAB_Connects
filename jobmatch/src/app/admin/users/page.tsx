@@ -235,20 +235,20 @@ export default function AdminUsersPage() {
       {users.length > 0 ? (
         <Table>
           <TableHead>
-            <Th>Name</Th>
-            <Th>Email</Th>
-            <Th>Type</Th>
-            <Th>Status</Th>
-            <Th>Signed up</Th>
-            <Th>Activated</Th>
-            <Th>Last login</Th>
-            <Th>Flag</Th>
-            <Th>Actions</Th>
+            <Th className="whitespace-nowrap">Name</Th>
+            <Th className="whitespace-nowrap">Email</Th>
+            <Th className="whitespace-nowrap">Type</Th>
+            <Th className="whitespace-nowrap">Status</Th>
+            <Th className="whitespace-nowrap">Signed up</Th>
+            <Th className="whitespace-nowrap">Activated</Th>
+            <Th className="whitespace-nowrap">Last login</Th>
+            <Th className="whitespace-nowrap">Flag</Th>
+            <Th className="whitespace-nowrap">Actions</Th>
           </TableHead>
           <TableBody>
             {users.map((user) => (
               <tr key={user.id}>
-                <Td>
+                <Td className="whitespace-nowrap">
                   {user.name ?? "—"}
                   {user.isAdmin ? (
                     <span className="ml-2 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-brand">
@@ -256,27 +256,27 @@ export default function AdminUsersPage() {
                     </span>
                   ) : null}
                 </Td>
-                <Td>{user.email ?? "—"}</Td>
-                <Td>{user.accountType}</Td>
-                <Td>
+                <Td className="whitespace-nowrap">{user.email ?? "—"}</Td>
+                <Td className="whitespace-nowrap">{user.accountType}</Td>
+                <Td className="whitespace-nowrap">
                   <StatusBadge status={user.status} />
                 </Td>
-                <Td>{new Date(user.createdAt).toLocaleDateString()}</Td>
-                <Td>
+                <Td className="whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString()}</Td>
+                <Td className="whitespace-nowrap">
                   {user.hasPassword ? (
                     <span className="text-xs font-medium text-green-700">Yes</span>
                   ) : (
                     <span className="text-xs text-muted">Not yet</span>
                   )}
                 </Td>
-                <Td>
+                <Td className="whitespace-nowrap">
                   {user.lastLoginAt ? (
                     new Date(user.lastLoginAt).toLocaleString()
                   ) : (
                     <span className="text-xs text-muted">Never</span>
                   )}
                 </Td>
-                <Td>
+                <Td className="whitespace-nowrap">
                   {user.flagged ? (
                     <span title={user.flagNote ?? undefined}>
                       <StatusBadge status="FLAGGED" />
@@ -285,13 +285,13 @@ export default function AdminUsersPage() {
                     "—"
                   )}
                 </Td>
-                <Td>
-                  <div className="flex flex-wrap items-center gap-2">
+                <Td className="whitespace-nowrap">
+                  <div className="flex flex-nowrap items-center gap-2">
                     <select
                       value={user.status}
                       disabled={busyUserId === user.id}
                       onChange={(e) => changeStatus(user, e.target.value)}
-                      className="h-9 rounded-lg border border-border bg-background px-2 text-xs text-foreground outline-none focus:border-brand"
+                      className="h-9 shrink-0 rounded-lg border border-border bg-background px-2 text-xs text-foreground outline-none focus:border-brand"
                     >
                       {STATUS_OPTIONS.map((s) => (
                         <option key={s} value={s}>
@@ -300,7 +300,7 @@ export default function AdminUsersPage() {
                       ))}
                     </select>
                     <Button
-                      className="btn-outline-brand h-9 px-3 text-xs"
+                      className="btn-outline-brand h-9 shrink-0 px-3 text-xs whitespace-nowrap"
                       disabled={busyUserId === user.id}
                       onClick={() => resetPassword(user)}
                     >
@@ -314,18 +314,18 @@ export default function AdminUsersPage() {
                         onChange={(e) =>
                           setFlagNoteDraft((prev) => ({ ...prev, [user.id]: e.target.value }))
                         }
-                        className="h-9 w-32 rounded-lg border border-border bg-background px-2 text-xs text-foreground outline-none focus:border-brand"
+                        className="h-9 w-32 shrink-0 rounded-lg border border-border bg-background px-2 text-xs text-foreground outline-none focus:border-brand"
                       />
                     ) : null}
                     <Button
-                      className="btn-outline-brand h-9 px-3 text-xs"
+                      className="btn-outline-brand h-9 shrink-0 px-3 text-xs whitespace-nowrap"
                       disabled={busyUserId === user.id}
                       onClick={() => toggleFlag(user)}
                     >
                       {user.flagged ? "Unflag" : "Flag"}
                     </Button>
                     <Button
-                      className="h-9 rounded-lg bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-700"
+                      className="h-9 shrink-0 rounded-lg bg-red-600 px-3 text-xs font-semibold whitespace-nowrap text-white hover:bg-red-700"
                       disabled={busyUserId === user.id || user.isAdmin}
                       title={user.isAdmin ? "Admins cannot be deleted here" : undefined}
                       onClick={() => openDeleteModal(user)}

@@ -2,10 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import ProfileForm from "@/app/onboarding/profile/profile-form";
+import Toast from "@/components/ui/Toast";
 
 export default function ProfileEditDrawer() {
   const [open, setOpen] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleSaved = () => {
+    setOpen(false);
+    setSavedMessage("Profile saved");
+  };
 
   // Lock body scroll when open
   useEffect(() => {
@@ -115,10 +122,14 @@ export default function ProfileEditDrawer() {
         {/* Scrollable form body */}
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="px-4 py-5 sm:px-6 sm:py-6">
-            <ProfileForm redirectTo="/dashboard/profile" isEmbedded />
+            <ProfileForm redirectTo="/dashboard/profile" isEmbedded onSaved={handleSaved} />
           </div>
         </div>
       </div>
+
+      {/* Rendered outside the sliding panel so it stays visible after the
+          drawer closes on save. */}
+      <Toast message={savedMessage} onDismiss={() => setSavedMessage(null)} />
     </>
   );
 }

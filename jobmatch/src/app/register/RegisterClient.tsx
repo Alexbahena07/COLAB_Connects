@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -10,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
-import { normalizeImageFile } from "@/lib/normalizeImageFile";
 
 const RegisterSchema = z
   .object({
@@ -22,32 +20,6 @@ const RegisterSchema = z
     companyName: z.string().optional(),
     email: z.string().email("Enter a valid email"),
     password: z.string().min(8, "At least 8 characters"),
-    profilePhoto: z
-      .any()
-      .refine((value) => {
-        if (typeof FileList === "undefined") return true;
-        return value instanceof FileList && value.length > 0;
-      }, "Upload a profile photo")
-      .refine((value) => {
-        if (
-          typeof FileList === "undefined" ||
-          !(value instanceof FileList) ||
-          value.length === 0
-        )
-          return true;
-        const file = value.item(0);
-        return !!file && file.type.startsWith("image/");
-      }, "Upload an image file")
-      .refine((value) => {
-        if (
-          typeof FileList === "undefined" ||
-          !(value instanceof FileList) ||
-          value.length === 0
-        )
-          return true;
-        const file = value.item(0);
-        return !!file && file.size <= 4 * 1024 * 1024;
-      }, "Image must be 4MB or smaller"),
   })
   .superRefine((value, ctx) => {
     if (value.accountType === "company") {
@@ -78,25 +50,10 @@ const RegisterSchema = z
 
 type RegisterFormData = z.infer<typeof RegisterSchema>;
 
-async function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") resolve(result);
-      else reject(new Error("Unable to read file"));
-    };
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function RegisterClient() {
   const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [isConvertingPhoto, setIsConvertingPhoto] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
   // Blocks repeat clicks for a minute: each resend invalidates the previous
@@ -109,8 +66,6 @@ export default function RegisterClient() {
     handleSubmit,
     watch,
     setValue,
-    setError,
-    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(RegisterSchema),
@@ -119,7 +74,6 @@ export default function RegisterClient() {
   });
 
   const accountType = watch("accountType");
-  const selectedPhoto = watch("profilePhoto") as FileList | undefined;
 
   useEffect(() => {
     const accountTypeParam = searchParams?.get("type");
@@ -130,62 +84,8 @@ export default function RegisterClient() {
     }
   }, [searchParams, setValue]);
 
-  useEffect(() => {
-    if (!selectedPhoto || selectedPhoto.length === 0) {
-      setPhotoPreview(null);
-      return undefined;
-    }
-    const file = selectedPhoto.item(0);
-    if (!file) {
-      setPhotoPreview(null);
-      return undefined;
-    }
-    const objectUrl = URL.createObjectURL(file);
-    setPhotoPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedPhoto]);
-
-  const handlePhotoInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.item(0) ?? null;
-    if (!file) {
-      setValue("profilePhoto", undefined, { shouldValidate: true });
-      return;
-    }
-
-    setIsConvertingPhoto(true);
-    clearErrors("profilePhoto");
-    try {
-      // iPhones default to HEIC, which no mainstream browser can preview or
-      // crop — convert it to a JPEG here so the rest of the form only ever
-      // has to deal with a normal image format.
-      const normalized = await normalizeImageFile(file);
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(normalized);
-      setValue("profilePhoto", dataTransfer.files, { shouldValidate: true });
-    } catch (err) {
-      console.error("Failed to process profile photo", err);
-      setError("profilePhoto", {
-        type: "manual",
-        message:
-          "We couldn't process that photo. Try a JPG or PNG, or re-save it from your Photos app first.",
-      });
-    } finally {
-      setIsConvertingPhoto(false);
-    }
-  };
-
   const onSubmit = async (data: RegisterFormData) => {
     setServerError(null);
-
-    const photoFile =
-      typeof FileList === "undefined" || !(data.profilePhoto instanceof FileList)
-        ? null
-        : data.profilePhoto.item(0);
-
-    if (!photoFile) {
-      setServerError("Please upload a profile photo to continue.");
-      return;
-    }
 
     const normalizedEmail = data.email.trim().toLowerCase();
     const normalizedFirstName = data.firstName?.trim() ?? "";
@@ -195,14 +95,6 @@ export default function RegisterClient() {
       data.accountType === "company"
         ? normalizedCompanyName
         : `${normalizedFirstName} ${normalizedLastName}`.trim();
-
-    let encodedPhoto: string;
-    try {
-      encodedPhoto = await fileToDataUrl(photoFile);
-    } catch {
-      setServerError("We couldn't read that image. Try a different file.");
-      return;
-    }
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -214,7 +106,6 @@ export default function RegisterClient() {
         lastName: data.accountType === "company" ? undefined : normalizedLastName,
         email: normalizedEmail,
         password: data.password,
-        profilePhoto: encodedPhoto,
       }),
     });
 
@@ -258,8 +149,9 @@ export default function RegisterClient() {
       <main className="min-h-screen bg-brand px-4 py-12">
         <div className="mx-auto grid w-full max-w-5xl items-start gap-6 md:grid-cols-2">
 
-          {/* Left: value prop panel */}
-          <section className="rounded-3xl border border-white/15 bg-white/10 p-7 backdrop-blur-sm md:p-8">
+          {/* Left: value prop panel — shown after the form on mobile so
+              visitors hit the actual registration fields first */}
+          <section className="order-2 rounded-3xl border border-white/15 bg-white/10 p-7 backdrop-blur-sm md:order-1 md:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">
               COLAB Connects
             </p>
@@ -329,8 +221,8 @@ export default function RegisterClient() {
             </div>
           </section>
 
-          {/* Right: form card */}
-          <section className="rounded-3xl border border-border bg-background p-7 shadow-xl md:p-8">
+          {/* Right: form card — first on mobile, second at md: and up */}
+          <section className="order-1 rounded-3xl border border-border bg-background p-7 shadow-xl md:order-2 md:p-8">
             {registeredEmail ? (
               <div>
                 <h2 className="font-serif text-xl font-bold text-brand">Check your email</h2>
@@ -519,58 +411,6 @@ export default function RegisterClient() {
                   </button>
                 }
               />
-
-              {/* Photo upload */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground" htmlFor="profile-photo-input">
-                  Profile photo
-                </label>
-
-                <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-surface p-4">
-                  <label
-                    htmlFor="profile-photo-input"
-                    className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-surface"
-                  >
-                    <span>Upload image</span>
-                    <span className="text-xs font-normal text-muted">PNG / JPG up to 4 MB</span>
-                  </label>
-
-                  <input
-                    id="profile-photo-input"
-                    type="file"
-                    accept="image/*,.heic,.heif"
-                    className="hidden"
-                    {...register("profilePhoto")}
-                    onChange={handlePhotoInputChange}
-                  />
-
-                  {isConvertingPhoto ? (
-                    <p className="text-xs text-muted">Processing photo…</p>
-                  ) : photoPreview ? (
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src={photoPreview}
-                        alt="Profile preview"
-                        width={64}
-                        height={64}
-                        className="h-16 w-16 rounded-full border border-border object-cover shadow-sm"
-                      />
-                      <span className="text-xs text-muted">
-                        Looking good — upload again to change it.
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted">
-                      This will appear on your profile and applications.
-                    </p>
-                  )}
-                </div>
-
-                {errors.profilePhoto ? (
-                  <p className="text-xs text-red-600">{errors.profilePhoto.message as string}</p>
-                ) : null}
-              </div>
-
 
               <Button
                 type="submit"
