@@ -4,6 +4,8 @@ import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const CANDIDATE_POOL_DELAY_MS = 25 * 60 * 60 * 1000;
+
 type CandidateSkill = { name: string; years: number | null };
 type CandidateExperience = {
   id: string;
@@ -200,6 +202,10 @@ export async function GET(request: Request) {
     accountType: "STUDENT",
     // Excludes deactivated/banned accounts from the candidate pool.
     status: "ACTIVE",
+    // Verified accounts only, and held back for a further 25 hours after
+    // verification — a brief window for obviously-fake signups to get
+    // caught before they're visible to companies.
+    emailVerified: { not: null, lte: new Date(Date.now() - CANDIDATE_POOL_DELAY_MS) },
   };
 
   const andFilters: Prisma.UserWhereInput[] = [];

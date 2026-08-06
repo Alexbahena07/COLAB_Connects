@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,6 +23,10 @@ function LoginForm() {
   const [showPw, setShowPw] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
+  // Blocks repeat clicks for a minute: each resend invalidates the previous
+  // email's link, so spamming this button leaves users clicking a dead link
+  // in an earlier email instead of the newest one.
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const {
     register,
@@ -65,7 +69,7 @@ function LoginForm() {
   };
 
   const handleResend = async () => {
-    if (!unverifiedEmail || resendStatus === "sending") return;
+    if (!unverifiedEmail || resendStatus === "sending" || resendCooldown > 0) return;
     setResendStatus("sending");
     await fetch("/api/auth/resend-verification", {
       method: "POST",
@@ -73,7 +77,14 @@ function LoginForm() {
       body: JSON.stringify({ email: unverifiedEmail }),
     }).catch(() => null);
     setResendStatus("sent");
+    setResendCooldown(60);
   };
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   return (
     <div className="card">
@@ -123,17 +134,23 @@ function LoginForm() {
           <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
             <p>Please verify your email before logging in. Check your inbox for the link we sent.</p>
             {resendStatus === "sent" ? (
-              <p className="mt-2 font-medium">Verification email sent again.</p>
-            ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resendStatus === "sending"}
-                className="mt-2 font-medium underline disabled:opacity-60"
-              >
-                {resendStatus === "sending" ? "Sending..." : "Resend verification email"}
-              </button>
-            )}
+              <p className="mt-2 font-medium">
+                Verification email sent. Use the link in the most recent email — each resend
+                replaces the previous link.
+              </p>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendStatus === "sending" || resendCooldown > 0}
+              className="mt-2 font-medium underline disabled:opacity-60"
+            >
+              {resendStatus === "sending"
+                ? "Sending..."
+                : resendCooldown > 0
+                ? `Resend available in ${resendCooldown}s`
+                : "Resend verification email"}
+            </button>
           </div>
         ) : null}
 

@@ -7,6 +7,10 @@
     {
       "path": "/api/notifications/digest?frequency=WEEKLY&commit=true",
       "schedule": "0 7 * * 1"
+    },
+    {
+      "path": "/api/auth/cleanup-unverified",
+      "schedule": "30 7 * * *"
     }
   ]
 }

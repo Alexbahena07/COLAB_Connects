@@ -99,6 +99,10 @@ export default function RegisterClient() {
   const [isConvertingPhoto, setIsConvertingPhoto] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
+  // Blocks repeat clicks for a minute: each resend invalidates the previous
+  // email's link, so spamming this button leaves users clicking a dead link
+  // in an earlier email instead of the newest one.
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const {
     register,
@@ -226,7 +230,7 @@ export default function RegisterClient() {
   };
 
   const handleResend = async () => {
-    if (!registeredEmail || resendStatus === "sending") return;
+    if (!registeredEmail || resendStatus === "sending" || resendCooldown > 0) return;
     setResendStatus("sending");
     await fetch("/api/auth/resend-verification", {
       method: "POST",
@@ -234,7 +238,14 @@ export default function RegisterClient() {
       body: JSON.stringify({ email: registeredEmail }),
     }).catch(() => null);
     setResendStatus("sent");
+    setResendCooldown(60);
   };
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
 
   return (
@@ -325,23 +336,25 @@ export default function RegisterClient() {
                   Click it to activate your account, then log in. The link expires in 24 hours.
                 </p>
                 <p className="mt-3 text-sm text-muted">
-                  Don&apos;t see it? Check your spam folder
-                  {resendStatus === "sent" ? "." : ", or resend it below."}
+                  Don&apos;t see it? Check your spam folder, or resend it below.
                 </p>
                 {resendStatus === "sent" ? (
                   <p className="mt-4 text-sm font-semibold text-foreground">
-                    Verification email sent again.
+                    Verification email sent. Use the link in the most recent email — each resend
+                    replaces the previous link.
                   </p>
-                ) : (
-                  <Button
-                    type="button"
-                    onClick={handleResend}
-                    isLoading={resendStatus === "sending"}
-                    className="btn-brand mt-4 w-full"
-                  >
-                    Resend verification email
-                  </Button>
-                )}
+                ) : null}
+                <Button
+                  type="button"
+                  onClick={handleResend}
+                  isLoading={resendStatus === "sending"}
+                  disabled={resendCooldown > 0}
+                  className="btn-brand mt-4 w-full"
+                >
+                  {resendCooldown > 0
+                    ? `Resend available in ${resendCooldown}s`
+                    : "Resend verification email"}
+                </Button>
                 <p className="mt-4 text-center text-xs text-muted">
                   Already verified?{" "}
                   <Link href="/login" className="font-semibold text-foreground underline underline-offset-4">
