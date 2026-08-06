@@ -225,8 +225,12 @@ export default function RegisterClient() {
     }
 
     // The account starts unverified, so no auto sign-in: the user has to
-    // click the link we just emailed before they can log in.
+    // click the link we just emailed before they can log in. Registration
+    // itself already sent that first email, so the resend cooldown starts
+    // now too — otherwise a user could immediately hit "resend" and end up
+    // with two emails, only the newer of which still has a working link.
     setRegisteredEmail(normalizedEmail);
+    setResendCooldown(60);
   };
 
   const handleResend = async () => {
