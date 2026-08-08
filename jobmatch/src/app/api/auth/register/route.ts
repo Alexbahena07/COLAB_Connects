@@ -80,6 +80,7 @@ export async function POST(req: Request) {
         name: normalizedName,
         email: normalizedEmail,
         password: hashed,
+        activatedAt: new Date(),
         accountType: normalizedType,
         ...(isCompany
           ? {}

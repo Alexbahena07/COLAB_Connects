@@ -38,25 +38,28 @@ export async function GET(request: Request) {
     };
   }
 
-  const users = await prisma.user.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: take + 1,
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      accountType: true,
-      status: true,
-      isAdmin: true,
-      flagged: true,
-      flagNote: true,
-      createdAt: true,
-      password: true,
-      lastLoginAt: true,
-    },
-  });
+  const [total, users] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: take + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        accountType: true,
+        status: true,
+        isAdmin: true,
+        flagged: true,
+        flagNote: true,
+        createdAt: true,
+        password: true,
+        lastLoginAt: true,
+      },
+    }),
+  ]);
 
   const hasMore = users.length > take;
   const page = hasMore ? users.slice(0, take) : users;
@@ -69,5 +72,6 @@ export async function GET(request: Request) {
       hasPassword: password !== null,
     })),
     nextCursor: hasMore ? page[page.length - 1].id : null,
+    total,
   });
 }

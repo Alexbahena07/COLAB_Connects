@@ -34,10 +34,19 @@ export async function POST(request: Request) {
 
   const hashed = await bcrypt.hash(password, 10);
 
+  // Accounts created without a password (bulk-imported career forum
+  // attendees) are "activated" the first time they actually set one here —
+  // later resets of an existing password shouldn't touch this date.
+  const targetUser = await prisma.user.findUnique({
+    where: { id: record.userId },
+    select: { password: true },
+  });
+  const isFirstActivation = !targetUser?.password;
+
   await prisma.$transaction([
     prisma.user.update({
       where: { id: record.userId },
-      data: { password: hashed },
+      data: { password: hashed, ...(isFirstActivation ? { activatedAt: new Date() } : {}) },
     }),
     prisma.passwordResetToken.update({
       where: { id: record.id },

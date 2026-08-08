@@ -24,10 +24,13 @@ export async function POST(
 
   const { id } = await params;
 
-  const user = await prisma.user.findUnique({ where: { id }, select: { id: true } });
+  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, password: true } });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
+  // Same "first password ever" rule as the self-service reset flow — covers
+  // an admin activating a never-claimed bulk-imported account by hand.
+  const isFirstActivation = !user.password;
 
   const tempPassword = generateTempPassword();
   const hashed = await bcrypt.hash(tempPassword, 10);
@@ -36,7 +39,11 @@ export async function POST(
     where: { id },
     // The temp password is single-use in practice: the user is forced to
     // pick a new one at their next sign-in before reaching anything else.
-    data: { password: hashed, mustChangePassword: true },
+    data: {
+      password: hashed,
+      mustChangePassword: true,
+      ...(isFirstActivation ? { activatedAt: new Date() } : {}),
+    },
   });
 
   return NextResponse.json({ tempPassword });

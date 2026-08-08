@@ -39,6 +39,7 @@ type CandidateRow = {
   name: string | null;
   email: string | null;
   image: string | null;
+  activatedAt: Date | null;
   profile: {
     firstName: string | null;
     lastName: string | null;
@@ -51,6 +52,7 @@ type CandidateRow = {
   certificates: CandidateCertificate[];
   experiences: CandidateExperience[];
   userSkills: Array<{ skill: { name: string }; years: number | null }>;
+  eventApplications: Array<{ id: string; event: { id: string; title: string; eventDate: Date } }>;
 };
 
 const candidateSelect = {
@@ -58,6 +60,7 @@ const candidateSelect = {
   name: true,
   email: true,
   image: true,
+  activatedAt: true,
   profile: {
     select: {
       firstName: true,
@@ -75,6 +78,15 @@ const candidateSelect = {
   },
   userSkills: {
     include: { skill: true },
+  },
+  // ACCEPTED is used as the "attended" signal — see dashboard/profile/page.tsx.
+  eventApplications: {
+    where: { status: "ACCEPTED" as const },
+    orderBy: { event: { eventDate: "desc" as const } },
+    select: {
+      id: true,
+      event: { select: { id: true, title: true, eventDate: true } },
+    },
   },
 } as const;
 
@@ -187,6 +199,7 @@ export async function GET(request: Request) {
     .filter(Boolean);
   const openToWorkOnly = searchParams.get("openToWorkOnly") === "true";
   const savedOnly = searchParams.get("savedOnly") === "true";
+  const sort = searchParams.get("sort") === "recentlyActivated" ? "recentlyActivated" : "name";
 
   const ugYearsOutMin = parseNumberParam(searchParams.get("ugYearsOutMin"));
   const ugYearsOutMax = parseNumberParam(searchParams.get("ugYearsOutMax"));
@@ -296,7 +309,12 @@ export async function GET(request: Request) {
     prisma.user.count({ where }),
     prisma.user.findMany({
       where,
-      orderBy: { name: "asc" },
+      // Not-yet-activated candidates (activatedAt: null) sort to the end
+      // rather than the top when sorting by recency.
+      orderBy:
+        sort === "recentlyActivated"
+          ? { activatedAt: { sort: "desc", nulls: "last" } }
+          : { name: "asc" },
       select: candidateSelect,
       skip,
       take: pageSize,
@@ -320,6 +338,7 @@ export async function GET(request: Request) {
       name: candidate.name ?? (computedName || "Unknown candidate"),
       email: candidate.email ?? null,
       photoUrl: candidate.image ?? null,
+      activatedAt: candidate.activatedAt ? candidate.activatedAt.toISOString() : null,
       headline: profile?.headline ?? null,
       desiredLocation: profile?.desiredLocation ?? null,
       openToWork: profile?.openToWork ?? false,
@@ -358,6 +377,11 @@ export async function GET(request: Request) {
       })) as CandidateSkill[],
       yearsOutUndergrad: computeYearsOut(undergradEndDate),
       yearsOutGraduate: computeYearsOut(gradEndDate),
+      careerForums: candidate.eventApplications.map((application) => ({
+        id: application.id,
+        title: application.event.title,
+        eventDate: application.event.eventDate.toISOString(),
+      })),
       isSaved: savedIds.has(candidate.id),
     };
   });

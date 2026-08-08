@@ -83,6 +83,7 @@ type ApplicantProfile = {
   certificates: ApplicantCertificate[];
   experiences: ApplicantExperience[];
   skills: ApplicantSkill[];
+  careerForums: Array<{ id: string; title: string; eventDate: string }>;
 };
 
 type ApplicantApplication = {
@@ -126,6 +127,9 @@ const parseApplicantApplication = (
   const skills = Array.isArray((applicantRaw as ApplicantProfile).skills)
     ? (applicantRaw as ApplicantProfile).skills
     : [];
+  const careerForums = Array.isArray((applicantRaw as ApplicantProfile).careerForums)
+    ? (applicantRaw as ApplicantProfile).careerForums
+    : [];
 
   const isApplicationStatus = (value: unknown): value is ApplicationStatus =>
     typeof value === "string" &&
@@ -140,6 +144,7 @@ const parseApplicantApplication = (
     applicant: {
       ...(applicantRaw as ApplicantProfile),
       skills,
+      careerForums,
     },
   };
 };
@@ -148,6 +153,14 @@ const formatDate = (value: string | null | undefined) => {
   if (!value) return "";
   const parsed = new Date(value);
   return Number.isNaN(parsed.valueOf()) ? "" : parsed.toLocaleDateString();
+};
+
+// Matches the "MM/YYYY" format the student's own profile uses for these.
+const formatMonthYear = (value: string) => {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.valueOf())
+    ? ""
+    : new Intl.DateTimeFormat("en-US", { month: "2-digit", year: "numeric" }).format(parsed);
 };
 
 function StarIcon({ filled }: { filled: boolean }) {
@@ -857,6 +870,21 @@ export default function CompanyDashboardPage() {
                         <p className="mt-1 text-sm text-muted">{selectedJob.title}</p>
                       ) : null}
                     </div>
+
+                    {selectedApplicant.applicant.careerForums.length > 0 ? (
+                      <div className="rounded-xl border border-border bg-surface p-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">
+                          Career Forums Attended
+                        </h3>
+                        <div className="mt-2 space-y-1">
+                          {selectedApplicant.applicant.careerForums.map((forum) => (
+                            <p key={forum.id} className="text-sm text-foreground">
+                              {forum.title} · {formatMonthYear(forum.eventDate)}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 

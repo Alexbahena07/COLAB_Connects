@@ -29,7 +29,7 @@ function SectionCard({ title, icon, action, children }: SectionCardProps) {
             )}
             <h2 className="text-lg font-semibold uppercase tracking-tight text-brand">{title}</h2>
           </div>
-          <div className="h-0.5 w-10 rounded-full bg-brandBlue" />
+          <div className="h-0.5 w-10 rounded-full bg-brand" />
         </div>
         {action}
       </header>
@@ -88,7 +88,7 @@ export default async function CompanyProfilePage() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
             <div className="space-y-6">
               {/* Hero band */}
-              <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-brandBlue px-6 py-7 shadow-lg sm:py-8">
+              <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-brand px-6 py-7 shadow-lg sm:py-8">
                 <div className="pointer-events-none absolute inset-0 opacity-30 mix-blend-soft-light">
                   <div className="absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
                   <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-[#f5f1ff]/20 blur-3xl" />
@@ -154,7 +154,7 @@ export default async function CompanyProfilePage() {
 
             {/* Company Details */}
             <aside className="space-y-6 lg:self-start">
-              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brand lg:bg-brand lg:text-white lg:ring-0">
                 <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                     <path d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 13 6 13s6-7.75 6-13c0-3.314-2.686-6-6-6Z" />
@@ -167,7 +167,7 @@ export default async function CompanyProfilePage() {
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brand lg:bg-brand lg:text-white lg:ring-0">
                 <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                     <circle cx="9" cy="7" r="3" />
@@ -182,7 +182,7 @@ export default async function CompanyProfilePage() {
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brand lg:bg-brand lg:text-white lg:ring-0">
                 <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                     <path d="M4 20V10l8-6 8 6v10" />
@@ -195,7 +195,7 @@ export default async function CompanyProfilePage() {
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brandBlue lg:bg-brandBlue lg:text-white lg:ring-0">
+              <div className="rounded-3xl border border-border bg-surface p-4 text-foreground shadow-sm ring-1 ring-black/5 sm:p-6 lg:border-brand lg:bg-brand lg:text-white lg:ring-0">
                 <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand lg:text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                     <circle cx="12" cy="12" r="9" />
@@ -208,7 +208,7 @@ export default async function CompanyProfilePage() {
                     href={website}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brandBlue underline-offset-2 hover:underline lg:text-white lg:underline"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand underline-offset-2 hover:underline lg:text-white lg:underline"
                   >
                     {websiteHost}
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5 shrink-0">

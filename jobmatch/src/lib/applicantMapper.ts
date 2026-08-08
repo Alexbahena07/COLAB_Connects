@@ -44,6 +44,10 @@ export type ApplicantWithProfile = {
     skill: { name: string };
     years: number | null;
   }>;
+  eventApplications: Array<{
+    id: string;
+    event: { id: string; title: string; eventDate: Date };
+  }>;
 };
 
 export const applicantSelect = {
@@ -69,6 +73,15 @@ export const applicantSelect = {
   },
   userSkills: {
     include: { skill: true },
+  },
+  // ACCEPTED is used as the "attended" signal — see dashboard/profile/page.tsx.
+  eventApplications: {
+    where: { status: "ACCEPTED" as const },
+    orderBy: { event: { eventDate: "desc" as const } },
+    select: {
+      id: true,
+      event: { select: { id: true, title: true, eventDate: true } },
+    },
   },
 } as const;
 
@@ -121,6 +134,11 @@ export const mapApplicant = (applicant: ApplicantWithProfile, jobId: string) => 
     skills: applicant.userSkills.map((userSkill) => ({
       name: userSkill.skill.name,
       years: userSkill.years ?? null,
+    })),
+    careerForums: applicant.eventApplications.map((application) => ({
+      id: application.id,
+      title: application.event.title,
+      eventDate: application.event.eventDate.toISOString(),
     })),
   };
 };

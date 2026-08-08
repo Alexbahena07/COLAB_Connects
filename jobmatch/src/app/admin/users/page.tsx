@@ -24,7 +24,10 @@ const STATUS_OPTIONS = ["ACTIVE", "DEACTIVATED", "BANNED"] as const;
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [q, setQ] = useState("");
@@ -42,26 +45,52 @@ export default function AdminUsersPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadUsers = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  const buildParams = useCallback(
+    (cursor?: string | null) => {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
       if (accountType) params.set("accountType", accountType);
       if (status) params.set("status", status);
       if (flaggedOnly) params.set("flagged", "true");
+      if (cursor) params.set("cursor", cursor);
+      return params;
+    },
+    [q, accountType, status, flaggedOnly]
+  );
 
-      const res = await fetch(`/api/admin/users?${params.toString()}`);
+  // Filters changing means a fresh first page, not more results appended.
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/users?${buildParams().toString()}`);
       if (!res.ok) throw new Error("Failed to load users");
       const data = await res.json();
       setUsers(data.users);
+      setNextCursor(data.nextCursor ?? null);
+      setTotal(typeof data.total === "number" ? data.total : data.users.length);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load users");
     } finally {
       setIsLoading(false);
     }
-  }, [q, accountType, status, flaggedOnly]);
+  }, [buildParams]);
+
+  const loadMoreUsers = async () => {
+    if (!nextCursor || isLoadingMore) return;
+    setIsLoadingMore(true);
+    try {
+      const res = await fetch(`/api/admin/users?${buildParams(nextCursor).toString()}`);
+      if (!res.ok) throw new Error("Failed to load more users");
+      const data = await res.json();
+      setUsers((prev) => [...prev, ...data.users]);
+      setNextCursor(data.nextCursor ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load more users");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     const timeout = setTimeout(loadUsers, 250);
@@ -232,6 +261,12 @@ export default function AdminUsersPage() {
         <p className="text-sm text-muted">No users match these filters.</p>
       ) : null}
 
+      {!isLoading && users.length > 0 ? (
+        <p className="text-sm text-muted">
+          Showing {users.length} of {total} user{total === 1 ? "" : "s"}
+        </p>
+      ) : null}
+
       {users.length > 0 ? (
         <Table>
           <TableHead>
@@ -338,6 +373,18 @@ export default function AdminUsersPage() {
             ))}
           </TableBody>
         </Table>
+      ) : null}
+
+      {nextCursor ? (
+        <div className="flex justify-center">
+          <Button
+            className="btn-outline-brand h-10 px-5 text-sm"
+            onClick={loadMoreUsers}
+            isLoading={isLoadingMore}
+          >
+            Load more users
+          </Button>
+        </div>
       ) : null}
 
       {deleteTargetUser ? (

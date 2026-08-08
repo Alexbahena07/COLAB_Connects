@@ -125,6 +125,11 @@ model User {
   emailVerified         DateTime?
   image                 String?
   password              String?
+  // Set the first time a password is created for this account — at normal
+  // registration, or later via "Forgot password" for accounts created
+  // without one (e.g. bulk-imported career forum attendees). Left null for
+  // every subsequent password reset, so it stays a true "activated" date.
+  activatedAt           DateTime?
   lastLoginAt           DateTime?
   accountType           AccountType           @default(STUDENT)
   notificationFrequency NotificationFrequency @default(WEEKLY)

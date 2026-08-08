@@ -41,6 +41,7 @@ type Candidate = {
   name: string;
   email: string | null;
   photoUrl: string | null;
+  activatedAt: string | null;
   headline: string | null;
   desiredLocation: string | null;
   openToWork: boolean;
@@ -52,6 +53,7 @@ type Candidate = {
   experiences: CandidateExperience[];
   yearsOutUndergrad: number | null;
   yearsOutGraduate: number | null;
+  careerForums: Array<{ id: string; title: string; eventDate: string }>;
   isSaved: boolean;
 };
 
@@ -91,6 +93,14 @@ const parseSkills = (value: string) =>
     .map((skill) => skill.trim())
     .filter(Boolean);
 
+// Matches the "MM/YYYY" format the student's own profile uses for these.
+const formatMonthYear = (value: string) => {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.valueOf())
+    ? ""
+    : new Intl.DateTimeFormat("en-US", { month: "2-digit", year: "numeric" }).format(parsed);
+};
+
 const formatDate = (value: string | null) => {
   if (!value) return "";
   const parsed = new Date(value);
@@ -121,6 +131,7 @@ export default function CandidatesPageClient() {
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [savedCandidateIds, setSavedCandidateIds] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "recentlyActivated">("name");
   const [page, setPage] = useState(1);
   const pageSize = 50;
   const [isLoading, setIsLoading] = useState(false);
@@ -129,7 +140,12 @@ export default function CandidatesPageClient() {
   const [totalResults, setTotalResults] = useState(0);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const buildQuery = (current: Filters, nextPage: number, savedOnly: boolean) => {
+  const buildQuery = (
+    current: Filters,
+    nextPage: number,
+    savedOnly: boolean,
+    sort: "name" | "recentlyActivated"
+  ) => {
     const params = new URLSearchParams();
     if (current.q) params.set("q", current.q);
     if (current.location) params.set("location", current.location);
@@ -146,6 +162,7 @@ export default function CandidatesPageClient() {
     if (current.gradYearsOutMin) params.set("gradYearsOutMin", current.gradYearsOutMin);
     if (current.gradYearsOutMax) params.set("gradYearsOutMax", current.gradYearsOutMax);
     if (savedOnly) params.set("savedOnly", "true");
+    if (sort === "recentlyActivated") params.set("sort", "recentlyActivated");
     params.set("page", `${nextPage}`);
     params.set("pageSize", `${pageSize}`);
     return params.toString();
@@ -158,9 +175,10 @@ export default function CandidatesPageClient() {
       setError(null);
       setSaveError(null);
       try {
-        const response = await fetch(`/api/candidates?${buildQuery(filters, page, showSavedOnly)}`, {
-          cache: "no-store",
-        });
+        const response = await fetch(
+          `/api/candidates?${buildQuery(filters, page, showSavedOnly, sortBy)}`,
+          { cache: "no-store" }
+        );
         const payload = await response.json().catch(() => null);
         if (!active) return;
 
@@ -199,7 +217,7 @@ export default function CandidatesPageClient() {
     return () => {
       active = false;
     };
-  }, [filters, page, showSavedOnly]);
+  }, [filters, page, showSavedOnly, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
 
@@ -286,6 +304,20 @@ export default function CandidatesPageClient() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <label className="flex h-10 items-center gap-2 text-sm text-foreground">
+                  Sort by
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value === "recentlyActivated" ? "recentlyActivated" : "name");
+                      setPage(1);
+                    }}
+                    className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-brand"
+                  >
+                    <option value="name">Name (A-Z)</option>
+                    <option value="recentlyActivated">Recently activated</option>
+                  </select>
+                </label>
                 <Button
                   className="btn-outline-brand h-10"
                   onClick={() => { setShowSavedOnly((prev) => !prev); setPage(1); }}
@@ -344,7 +376,7 @@ export default function CandidatesPageClient() {
                 label="Search"
                 value={draftFilters.q}
                 onChange={(event) => setDraftFilters((prev) => ({ ...prev, q: event.target.value }))}
-                placeholder="Name, email, headline, skill"
+                placeholder="Name or skill"
                 className="h-11 border-border bg-background text-foreground placeholder:text-muted"
               />
               <LocationMultiSelect
@@ -550,6 +582,13 @@ export default function CandidatesPageClient() {
                           <p className="mt-2 text-xs text-white/55 group-hover:text-white/70">
                             {candidate.desiredLocation ?? "Location not specified"}
                           </p>
+                          {sortBy === "recentlyActivated" ? (
+                            <p className="mt-1 text-xs text-white/55 group-hover:text-white/70">
+                              {candidate.activatedAt
+                                ? `Activated ${formatDate(candidate.activatedAt)}`
+                                : "Not yet activated"}
+                            </p>
+                          ) : null}
                         </button>
                       </li>
                     );
@@ -801,6 +840,21 @@ export default function CandidatesPageClient() {
                         </p>
                       </div>
                     </div>
+
+                    {selectedCandidate.careerForums.length > 0 ? (
+                      <div className="rounded-xl border border-border bg-surface p-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">
+                          Career Forums Attended
+                        </h3>
+                        <div className="mt-2 space-y-1">
+                          {selectedCandidate.careerForums.map((forum) => (
+                            <p key={forum.id} className="text-sm text-foreground">
+                              {forum.title} · {formatMonthYear(forum.eventDate)}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
